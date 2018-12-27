@@ -59,7 +59,8 @@ export class ExceptionsPlugin extends PureComponent {
 
   render() {
     const { errors } = this.state;
-    const { sessionHost } = this.props;
+    const { sessionHost, sessionId } = this.props;
+    const pluginHref = `${sessionHost}/plugin/1/${sessionId}`;
 
     return (
       <div>
@@ -68,7 +69,7 @@ export class ExceptionsPlugin extends PureComponent {
         Global: {errors[GLOBAL]}
         <br />
         <br />
-        <a href={sessionHost} target="_blank">
+        <a href={pluginHref} target="_blank">
           Go.
         </a>
       </div>
