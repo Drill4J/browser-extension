@@ -1,7 +1,7 @@
 .widget {
-  height: 100px;
-  width: 100px;
-  border: 1px solid;
-  background-color: #fff;
-  font-size: 16px;
+
+}
+
+.pluginWrapper {
+  pointer-events: auto;
 }

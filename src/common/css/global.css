@@ -7,17 +7,3 @@
   left: 0;
   pointer-events: none;
 }
-
-.react-grid-item {
-  pointer-events: auto;
-}
-
-.react-grid-item.react-draggable-dragging {
-  z-index: 1;
-}
-
-.react-grid-placeholder {
-  z-index: 0;
-  background-color: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 1px 2px 1px inset rgba(0, 0, 0, 0.2);
-}

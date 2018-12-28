@@ -1,20 +1,17 @@
 import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
 import axios from 'axios';
+import cookie from 'cookie';
+import Draggable from 'react-draggable';
 import { pluginsMap } from '../plugins/pluginsMap';
 import styles from './widget.css';
 
+const SESSION_ID_COOKIE_KEY = 'DrillSessionId';
+const SESSION_HOST_COOKIE_KEY = 'DrillSocketHost';
+const cookies = cookie.parse(document.cookie);
+const sessionId = cookies[SESSION_ID_COOKIE_KEY];
+const sessionHost = cookies[SESSION_HOST_COOKIE_KEY];
+
 export class Widget extends PureComponent {
-  static propTypes = {
-    sessionId: PropTypes.string,
-    sessionHost: PropTypes.string,
-  };
-
-  static defaultProps = {
-    sessionId: null,
-    sessionHost: null,
-  };
-
   state = {
     plugins: [],
   };
@@ -24,8 +21,6 @@ export class Widget extends PureComponent {
   }
 
   fetchPlugins() {
-    const { sessionHost } = this.props;
-
     axios
       .get(`${sessionHost}/drill-admin/plugin/getAllPlugins`)
       .then((response) => response.data)
@@ -33,17 +28,27 @@ export class Widget extends PureComponent {
   }
 
   renderPlugin = (plugin) => {
-    const { sessionHost, sessionId } = this.props;
     const PluginComponent = pluginsMap[plugin.id];
 
     return PluginComponent ? (
-      <PluginComponent key={plugin.id} sessionId={sessionId} sessionHost={sessionHost} />
+      <PluginComponent sessionId={sessionId} sessionHost={sessionHost} />
     ) : null;
   };
 
   render() {
     const { plugins } = this.state;
 
-    return <div className={styles.widget}>{plugins.map(this.renderPlugin)}</div>;
+    return (
+      <Draggable>
+        <div className={styles.widget}>
+          Drill4J
+          {plugins.map((plugin) => (
+            <div className={styles.pluginWrapper} key={plugin.id}>
+              {this.renderPlugin(plugin)}
+            </div>
+          ))}
+        </div>
+      </Draggable>
+    );
   }
 }

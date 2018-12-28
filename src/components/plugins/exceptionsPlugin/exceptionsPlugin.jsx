@@ -1,7 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import Parser from 'html-react-parser';
+import PluginIcon from 'common/img/icon-plugin-inline.svg';
 import { WsConnection } from 'common/connection';
 import { GLOBAL, LOCAL } from 'common/constants';
+import styles from './exceptionsPlugin.css';
 
 export class ExceptionsPlugin extends PureComponent {
   static propTypes = {
@@ -36,21 +39,21 @@ export class ExceptionsPlugin extends PureComponent {
   onMessage(data, eventType) {
     switch (data.type) {
       case 'MESSAGE':
-        this.setState({
+        this.setState((state) => ({
           errors: {
-            ...this.state.errors,
-            [eventType]: this.state.errors[eventType] + 1,
+            ...state.errors,
+            [eventType]: state.errors[eventType] + 1,
           },
-        });
+        }));
         break;
 
       case 'DELETE':
-        this.setState({
+        this.setState((state) => ({
           errors: {
-            ...this.state.errors,
-            [eventType]: this.state.errors[eventType] - 1,
+            ...state.errors,
+            [eventType]: state.errors[eventType] - 1,
           },
-        });
+        }));
         break;
 
       default:
@@ -63,15 +66,15 @@ export class ExceptionsPlugin extends PureComponent {
     const pluginHref = `${sessionHost}/plugin/1/${sessionId}`;
 
     return (
-      <div>
-        Local: {errors[LOCAL]}
-        <br />
-        Global: {errors[GLOBAL]}
-        <br />
-        <br />
-        <a href={pluginHref} target="_blank">
-          Go.
-        </a>
+      <div className={styles.exceptionsPlugin}>
+        <div className={`${styles.counter} ${styles.local}`}>{errors[LOCAL]}</div>
+        <div className={`${styles.counter} ${styles.global}`}>{errors[GLOBAL]}</div>
+        <div className={`${styles.counter} ${styles.global}`} style={{ top: 50 }}>
+          <a href={pluginHref} target="_blank">
+            Go.
+          </a>
+        </div>
+        <i className={styles.icon}>{Parser(PluginIcon)}</i>
       </div>
     );
   }
