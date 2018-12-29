@@ -53,7 +53,7 @@ export default (env = defaultEnv) => ({
       Utils: 'common/utils',
     }),
     new ExtractTextPlugin({
-      filename: '[name].[hash:6].css',
+      filename: '[name].bundle.css',
       allChunks: true,
       disable: env.dev,
     }),
