@@ -22,14 +22,15 @@ export class Widget extends PureComponent {
     this.fetchPlugins();
   }
 
-  onDragStop = (event, { x, y }) =>
-    setStorageItem(WIDGET_POSITION_STORAGE_KEY, JSON.stringify({ x, y }));
+  onDragStop = (event, { x, y }) => setStorageItem(WIDGET_POSITION_STORAGE_KEY, { x, y });
 
   getDefaultWidgetPosition = () => {
+    const resetWidgetPosition = { x: 0, y: 0 };
+
     try {
-      return JSON.parse(getStorageItem(WIDGET_POSITION_STORAGE_KEY));
+      return getStorageItem(WIDGET_POSITION_STORAGE_KEY) || resetWidgetPosition;
     } catch (e) {
-      return { x: 0, y: 0 };
+      return resetWidgetPosition;
     }
   };
 
