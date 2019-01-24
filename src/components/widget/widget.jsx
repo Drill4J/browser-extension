@@ -2,8 +2,10 @@ import React, { PureComponent } from 'react';
 import axios from 'axios';
 import cookie from 'cookie';
 import Draggable from 'react-draggable';
+
 import { setStorageItem, getStorageItem } from 'common/utils/localStorage';
 import { pluginsMap } from '../plugins/pluginsMap';
+import { ExceptionsPlugin } from '../plugins/exceptionsPlugin';
 import styles from './widget.css';
 
 const SESSION_ID_COOKIE_KEY = 'DrillSessionId';
@@ -58,7 +60,7 @@ export class Widget extends PureComponent {
         <div className={styles.widget}>
           Drill4J
           {plugins.map((plugin) => (
-            <div className={styles.pluginWrapper} key={plugin.id}>
+            <div key={plugin.id}>
               {this.renderPlugin(plugin)}
             </div>
           ))}

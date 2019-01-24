@@ -87,7 +87,6 @@ export default (env = defaultEnv) => ({
           ),
       },
     ]),
-    new ChromeExtensionReloader(),
     ...(env.production
       ? [
           new CompressionPlugin({
@@ -97,7 +96,10 @@ export default (env = defaultEnv) => ({
             minRatio: 0.8,
           }),
         ]
-      : []),
+        : [
+          //it causes an error in Firefox browser in dev mode (webpack-chrome-extension-reloader.js:5184 browserVersion.split is not a function)
+          new ChromeExtensionReloader(),
+        ]),
   ],
   module: {
     rules: [
