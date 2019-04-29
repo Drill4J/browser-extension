@@ -1,4 +1,4 @@
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 
 let id = '';
 let isActive = browser.storage.local.get().then((value) => value.isActive);
@@ -9,7 +9,7 @@ browser.runtime.onMessage.addListener(async (msg, { id: extensionId }) => {
   isActive = state;
 });
 
-function rewriteUserAgentHeader(e) {
+function rewriteUserAgentHeader(e: any) {
   if (isActive) {
     e.requestHeaders.push({ name: 'drillSessionId', value: id });
   }

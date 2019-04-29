@@ -1,9 +1,9 @@
 import axios from 'axios';
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 
 import { TOKEN_HEADER, TOKEN_KEY } from '../constants';
 
-const hosts = {
+const hosts: { [env: string]: string } = {
   local: 'http://localhost:8090/api',
   development: '/api',
   qa: '',

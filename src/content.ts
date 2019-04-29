@@ -11,7 +11,7 @@
 
 // // render(React.createElement(Content), container);
 
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 
 import { TOKEN_KEY } from './common/constants';
 

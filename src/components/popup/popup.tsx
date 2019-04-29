@@ -1,8 +1,7 @@
-/* eslint-disable react/prop-types */
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import Parser from 'html-react-parser';
-import browser from 'webextension-polyfill';
+import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
 import { Button } from '../button';
@@ -10,18 +9,26 @@ import Logo from './logo-inline.svg';
 
 import styles from './popup.module.scss';
 
+interface Props {
+  className?: string;
+}
+
+interface State {
+  isActive: boolean;
+}
+
 const popup = BEM(styles);
 
 export const Popup = popup(
-  class extends React.Component {
-    state = { isActive: false };
+  class extends React.Component<Props, State> {
+    public state: Readonly<State> = { isActive: false };
 
-    async componentDidMount() {
+    public async componentDidMount() {
       const { isActive } = await browser.storage.local.get();
       this.setState({ isActive });
     }
 
-    handleStartRecording = async () => {
+    public handleStartRecording = async () => {
       this.setState({ isActive: true });
       axios.patch('/agents/127.0.0.1/action-plugin', {
         sessionId: browser.runtime.id,
@@ -36,7 +43,7 @@ export const Popup = popup(
         });
     };
 
-    handleStopRecording = () => {
+    public handleStopRecording = () => {
       axios.patch('/agents/127.0.0.1/action-plugin', {
         sessionId: browser.runtime.id,
         isRecord: false,
@@ -51,7 +58,7 @@ export const Popup = popup(
         });
     };
 
-    render() {
+    public render() {
       const { className } = this.props;
       const { isActive } = this.state;
       return (
@@ -64,7 +71,7 @@ export const Popup = popup(
               </StartButton>
             ) : (
               <StartButton type="primary" onClick={this.handleStartRecording}>
-                Start
+                ssss
               </StartButton>
             )}
           </Content>

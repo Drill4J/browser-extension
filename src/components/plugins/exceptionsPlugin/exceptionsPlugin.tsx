@@ -1,42 +1,44 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
+import * as React from 'react';
 import Parser from 'html-react-parser';
 import PluginIcon from 'common/img/icon-plugin-inline.svg';
-import { WsConnection } from 'common/connection';
-import { GLOBAL, LOCAL } from 'common/constants';
+import { WsConnection } from '../../../common/connection';
+import { GLOBAL, LOCAL } from '../../../common/constants';
+// @ts-ignore
 import styles from './exceptionsPlugin.css';
 
-export class ExceptionsPlugin extends PureComponent {
-  static propTypes = {
-    sessionId: PropTypes.string,
-    sessionHost: PropTypes.string,
-  };
+interface Props {
+  sessionId?: string;
+  sessionHost?: string;
+}
 
-  static defaultProps = {
-    sessionId: null,
-    sessionHost: null,
-  };
+interface State {
+  errors: { [key: string]: number };
+}
 
-  state = {
+export class ExceptionsPlugin extends React.PureComponent<Props, State> {
+  public connection: any;
+  public state: Readonly<State> = {
     errors: {
       [LOCAL]: 0,
       [GLOBAL]: 0,
     },
   };
 
-  componentDidMount() {
+  public componentDidMount() {
     const { sessionId } = this.props;
 
     this.connection = new WsConnection().onOpen(() => {
-      this.connection.subscribe('except-ions', (data) => this.onMessage(data, GLOBAL));
+      this.connection.subscribe('except-ions', (data: any) => this.onMessage(data, GLOBAL));
 
       if (sessionId) {
-        this.connection.subscribe(`except-ions${sessionId}`, (data) => this.onMessage(data, LOCAL));
+        this.connection.subscribe(`except-ions${sessionId}`, (data: any) =>
+          this.onMessage(data, LOCAL),
+        );
       }
     });
   }
 
-  onMessage(data, eventType) {
+  public onMessage(data: any, eventType: string) {
     switch (data.type) {
       case 'MESSAGE':
         this.setState((state) => ({
@@ -60,7 +62,7 @@ export class ExceptionsPlugin extends PureComponent {
     }
   }
 
-  render() {
+  public render() {
     const { errors } = this.state;
     const { sessionHost, sessionId } = this.props;
     const pluginHref = `${sessionHost}/plugin/1/${sessionId}`;
