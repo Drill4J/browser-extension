@@ -33,10 +33,8 @@ export function configureAxios() {
     (response) => response,
     (error) => {
       if (error.response && error.response.status === 401) {
-        localStorage.setItem(TOKEN_KEY, '');
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
+        browser.storage.local.set({ token: '' });
+        window.location.href = '/login';
       }
 
       return Promise.reject(error);

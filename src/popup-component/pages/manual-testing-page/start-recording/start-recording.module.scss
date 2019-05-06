@@ -1,0 +1,53 @@
+@import '../../../../common/style-guide/index';
+
+.start-recording {
+  height: 320px;
+  width: 320px;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    height: 47px;
+    border-bottom: 1px solid map-get($color-palette, light-blue);
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  &__back-icon {
+    display: flex;
+    align-items: center;
+    color: map-get($color-palette, blue100);
+    margin-right: 16px;
+    transform: rotate(180deg);
+    cursor: pointer;
+  }
+
+  &__content {
+    padding: 16px;
+  }
+
+  &__message {
+    font-size: 13px;
+    line-height: 22px;
+    color: $slate-gray;
+    margin-top: 17px;
+  }
+
+  &__test-name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  &__start-button {
+    height: 40px;
+    width: 280px;
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 19px;
+  }
+}

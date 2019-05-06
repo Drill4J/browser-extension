@@ -1,20 +1,26 @@
 import browser from 'webextension-polyfill';
 
-let id = '';
-let isActive = browser.storage.local.get().then((value) => value.isActive);
+let isActive = false;
+let testName = 'test';
 
-browser.runtime.onMessage.addListener(async (msg, { id: extensionId }) => {
-  id = extensionId;
-  const { isActive: state } = await browser.storage.local.get();
-  isActive = state;
+browser.storage.local.get(['isActive', 'testName']).then((value) => {
+  isActive = value.isActive;
+  testName = value.testName;
 });
 
-function rewriteUserAgentHeader(e) {
-  if (isActive) {
-    e.requestHeaders.push({ name: 'drillSessionId', value: id });
-  }
+browser.storage.onChanged.addListener(
+  ({ isActive: { newValue: newIsActiveValue } = {}, testName: { newValue: newTestName } = {} }) => {
+    isActive = newIsActiveValue;
+    testName = newTestName;
+  },
+);
 
-  return { requestHeaders: e.requestHeaders };
+function rewriteUserAgentHeader({ requestHeaders }) {
+  if (isActive) {
+    requestHeaders.push({ name: 'drill-session-id', value: browser.runtime.id });
+    requestHeaders.push({ name: 'drill-test-name', value: testName });
+  }
+  return { requestHeaders };
 }
 
 browser.webRequest.onBeforeSendHeaders.addListener(

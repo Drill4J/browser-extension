@@ -11,10 +11,10 @@
 
 // // render(React.createElement(Content), container);
 
-import browser from 'webextension-polyfill';
+// import browser from 'webextension-polyfill';
 
-import { TOKEN_KEY } from './common/constants';
+// import { TOKEN_KEY } from './common/constants';
 
-browser.storage.local.set({
-  token: localStorage.getItem(TOKEN_KEY),
-});
+// browser.storage.local.set({
+//   token: localStorage.getItem(TOKEN_KEY),
+// });

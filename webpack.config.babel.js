@@ -191,6 +191,17 @@ export default (env = defaultEnv) => {
           ],
         },
         {
+          test: /\.(?:png|jpg|gif|svg)$/i,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: '[name].[ext]',
+              },
+            },
+          ],
+        },
+        {
           test: /\/*-inline.svg/,
           loader: 'svg-inline-loader',
         },
