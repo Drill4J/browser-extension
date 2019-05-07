@@ -13,9 +13,9 @@ const inProgress = BEM(styles);
 
 function finishRecordingSession(agentId) {
   browser.storage.local.set({ isActive: false });
-  axios.patch(`/agents/${agentId}/action-plugin`, {
-    sessionId: browser.runtime.id,
-    isRecord: false,
+  axios.patch(`/agents/${agentId}/dispatch-action`, {
+    type: 'STOP',
+    payload: { sessionId: browser.runtime.id },
   });
 }
 
