@@ -1,19 +1,11 @@
 import axios from 'axios';
 import browser from 'webextension-polyfill';
 
-import { TOKEN_HEADER, TOKEN_KEY } from '../constants';
+import { TOKEN_HEADER } from '../constants';
 
-const hosts = {
-  local: 'http://localhost:8090/api',
-  development: '/api',
-  qa: '',
-  prod: '',
-};
-
-export function configureAxios() {
-  axios.defaults.baseURL = process.env.REACT_APP_ENV
-    ? hosts[process.env.REACT_APP_ENV]
-    : hosts.local;
+export async function configureAxios() {
+  const { adminUrl } = await browser.storage.local.get('adminUrl');
+  axios.defaults.baseURL = `${adminUrl}/api`;
 
   axios.interceptors.request.use(
     async (config) => {

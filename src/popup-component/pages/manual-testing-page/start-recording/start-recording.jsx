@@ -6,14 +6,15 @@ import axios from 'axios';
 
 import { Icons, Input, Button } from '../../../../components';
 import { Panel } from '../../../../layouts';
+import { useLocalStorage } from '../../../../hooks';
 
 import styles from './start-recording.module.scss';
 
 const startRecording = BEM(styles);
 
-function startRecordingSession(testName) {
+function startRecordingSession(testName, agentId) {
   browser.storage.local.set({ testName, isActive: true });
-  axios.patch('/agents/MySuperAgent/action-plugin', {
+  axios.patch(`/agents/${agentId}/action-plugin`, {
     sessionId: browser.runtime.id,
     isRecord: true,
   });
@@ -22,6 +23,7 @@ function startRecordingSession(testName) {
 export const StartRecording = withRouter(
   startRecording(({ className, history: { push } }) => {
     const [testName, setTestName] = React.useState('');
+    const { agentId } = useLocalStorage('agentId') || {};
 
     return (
       <div className={className}>
@@ -45,7 +47,7 @@ export const StartRecording = withRouter(
             type="primary"
             disabled={!testName}
             onClick={() => {
-              startRecordingSession(testName);
+              startRecordingSession(testName, agentId);
               push('/manual-testing/in-progress');
             }}
           >

@@ -6,5 +6,6 @@ import './common/style-guide/fonts/fonts.scss';
 import { configureAxios } from './common/connection';
 import './default-logo.png';
 
-configureAxios();
-render(React.createElement(App), document.getElementById('root'));
+configureAxios().then(() => {
+  render(React.createElement(App), document.getElementById('root'));
+});

@@ -12,7 +12,8 @@ const finishRecording = BEM(styles);
 
 export const FinishRecording = withRouter(
   finishRecording(({ className, history: { push } }) => {
-    const { testName } = useLocalStorage('testName') || {};
+    const { testName, adminUrl, agentId } =
+      useLocalStorage(['testName', 'adminUrl', 'agentId']) || {};
 
     return (
       <div className={className}>
@@ -26,7 +27,7 @@ export const FinishRecording = withRouter(
           <Panel>
             <ViewResultsButton
               type="secondary"
-              onClick={() => window.open('http://localhost:3000/full-page/MySuperAgent/coverage')}
+              onClick={() => window.open(`${adminUrl}/full-page/${agentId}/coverage`)}
             >
               View results
             </ViewResultsButton>

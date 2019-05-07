@@ -11,9 +11,9 @@ import styles from './in-progress.module.scss';
 
 const inProgress = BEM(styles);
 
-function finishRecordingSession() {
+function finishRecordingSession(agentId) {
   browser.storage.local.set({ isActive: false });
-  axios.patch('/agents/MySuperAgent/action-plugin', {
+  axios.patch(`/agents/${agentId}/action-plugin`, {
     sessionId: browser.runtime.id,
     isRecord: false,
   });
@@ -21,7 +21,7 @@ function finishRecordingSession() {
 
 export const InProgress = withRouter(
   inProgress(({ className, history: { push } }) => {
-    const { testName } = useLocalStorage('testName') || {};
+    const { testName, agentId } = useLocalStorage(['testName', 'agentId']) || {};
     return (
       <div className={className}>
         <Header>{testName}</Header>
@@ -31,7 +31,7 @@ export const InProgress = withRouter(
           <FinishButton
             type="secondary"
             onClick={() => {
-              finishRecordingSession();
+              finishRecordingSession(agentId);
               push('/manual-testing/finish-recording');
             }}
           >
