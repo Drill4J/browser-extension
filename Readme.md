@@ -8,14 +8,8 @@ To launch the development environment, follow these steps:
 
 1.  open console from the project root
 2.  run the command `npm install`
-3.  to proxy requests to the server, create `.env` file in root folder
-
-    ```
-    PROXY_PATH=http://your_server:port/
-    ```
-
-4.  run the command `npm run dev`
-5.  enjoy the development.
+3.  run the command `npm run dev`
+4.  enjoy the development.
 
 ## Production version installation
 
@@ -27,7 +21,6 @@ To get production bundle, follow these steps:
 2.  run the command `npm install`
 3.  run the command `npm run build`
 4.  in project root will be created 'build' folder with UI bundle, witch can be used on production server.
-
 
 ## All npm commands
 
@@ -47,4 +40,4 @@ To get production bundle, follow these steps:
 
 ## Technology
 
-Used technology stack: [React](https://reactjs.org/), [Redux](https://redux.js.org/)
+Used technology stack: [React](https://reactjs.org/)
