@@ -14,7 +14,7 @@ const startRecording = BEM(styles);
 
 function startRecordingSession(testName, agentId) {
   browser.storage.local.set({ testName, isActive: true });
-  axios.patch(`/agents/${agentId}/dispatch-action`, {
+  axios.post(`/agents/${agentId}/dispatch-action`, {
     type: 'START',
     payload: { sessionId: browser.runtime.id },
   });
