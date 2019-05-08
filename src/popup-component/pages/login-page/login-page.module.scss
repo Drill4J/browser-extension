@@ -1,0 +1,67 @@
+@import '../../../common/style-guide/index';
+
+.login-page {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 448px;
+  width: 320px;
+  margin: 10px;
+
+  &__logo-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 32px;
+    width: 51px;
+    height: 64px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+  }
+
+  &__message {
+    color: map-get($color-palette, black100);
+    margin-bottom: 24px;
+    font-size: 20px;
+    line-height: 32px;
+    text-align: center;
+  }
+
+  &__credentials {
+    width: 280px;
+    margin-bottom: 16px;
+
+    & > * {
+      margin-bottom: 8px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+
+    & > * {
+      margin-bottom: 24px;
+    }
+  }
+
+  &__action-button {
+    height: 40px;
+    width: 280px;
+  }
+
+  &__forgot-password {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 22px;
+    text-align: center;
+    color: map-get($color-palette, blue100);
+    cursor: default;
+  }
+}
