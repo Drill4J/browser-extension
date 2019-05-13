@@ -21,8 +21,8 @@ export const FinishRecording = withRouter(
         <Content>
           <Title>Testing finished</Title>
           <Instructions>
-            More information here if necessary. Maybe instructions to go to full page widget to see
-            results, etc.
+            When you click on the &quot;View results&quot; button, a tab with detailed information
+            about the code coverage will open.
           </Instructions>
           <Panel>
             <ViewResultsButton

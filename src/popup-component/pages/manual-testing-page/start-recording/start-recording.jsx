@@ -35,7 +35,7 @@ export const StartRecording = withRouter(
         </Header>
         <Content>
           <Message>
-            Something about what’s going to happen, what test will be run and where to see results.
+          Enter the name of a manual test and click the Start button. The System will begin to collect coverage.
           </Message>
           <TestName>Test name</TestName>
           <Input
