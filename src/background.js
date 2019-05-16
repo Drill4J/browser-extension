@@ -25,6 +25,8 @@ function rewriteUserAgentHeader({ requestHeaders }) {
 
 browser.webRequest.onBeforeSendHeaders.addListener(
   rewriteUserAgentHeader,
-  { urls: ['<all_urls>'] },
+  {
+    urls: ['http://localhost/*', 'http://*.epam.com/*'],
+  },
   ['blocking', 'requestHeaders'],
 );

@@ -11,7 +11,14 @@
       "js": ["content.bundle.js"]
     }
   ],
-  "permissions": ["webRequest", "webRequestBlocking", "<all_urls>", "storage"],
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "activeTab",
+    "storage",
+    "http://localhost/*",
+    "http://*.epam.com/*"
+  ],
   "browser_action": {
     "default_icon": {
       "16": "default-logo.png",
