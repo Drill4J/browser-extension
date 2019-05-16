@@ -1,5 +1,6 @@
 {
   "name": "Drill4J Browser Extension",
+  "version": "0.0.1",
   "background": {
     "page": "background.html"
   },
@@ -13,7 +14,8 @@
   "permissions": ["webRequest", "webRequestBlocking", "<all_urls>", "storage"],
   "browser_action": {
     "default_icon": {
-      "16": "default-logo.png"
+      "16": "default-logo.png",
+      "128": "large-logo.png"
     },
     "default_popup": "popup.html"
   },
