@@ -19,6 +19,14 @@ function finishRecordingSession(agentId) {
   });
 }
 
+function cancelRecordingSession(agentId) {
+  browser.storage.local.set({ isActive: false });
+  axios.post(`/agents/${agentId}/dispatch-action`, {
+    type: 'CANCEL',
+    payload: { sessionId: browser.runtime.id },
+  });
+}
+
 export const InProgress = withRouter(
   inProgress(({ className, history: { push } }) => {
     const { testName, agentId } = useLocalStorage(['testName', 'agentId']) || {};
@@ -37,7 +45,14 @@ export const InProgress = withRouter(
           >
             Finish testing
           </FinishButton>
-          <CancelButton>Cancel</CancelButton>
+          <CancelButton
+            onClick={() => {
+              cancelRecordingSession(agentId);
+              push('/manual-testing/start-recording');
+            }}
+          >
+            Cancel
+          </CancelButton>
         </Content>
       </div>
     );
