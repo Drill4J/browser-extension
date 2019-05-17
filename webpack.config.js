@@ -23,9 +23,9 @@ if (fileSystem.existsSync(secretsPath)) {
 const options = {
   mode: process.env.NODE_ENV || 'development',
   entry: {
-    popup: path.join(__dirname, 'src', 'popup.js'),
-    options: path.join(__dirname, 'src', 'options.js'),
-    background: path.join(__dirname, 'src', 'background.js'),
+    popup: path.join(__dirname, 'src', 'popup.ts'),
+    options: path.join(__dirname, 'src', 'options.ts'),
+    background: path.join(__dirname, 'src', 'background.ts'),
   },
   output: {
     path: path.join(__dirname, 'build'),
@@ -48,11 +48,7 @@ const options = {
         loader: 'html-loader',
         exclude: /node_modules/,
       },
-      {
-        test: /\.(js|jsx)$/,
-        loader: 'babel-loader',
-        exclude: /node_modules/,
-      },
+      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
       {
         test: /\/*-inline.svg/,
         loader: 'svg-inline-loader',
@@ -96,7 +92,9 @@ const options = {
   },
   resolve: {
     alias,
-    extensions: fileExtensions.map((extension) => `.${extension}`).concat(['.jsx', '.js', '.css']),
+    extensions: fileExtensions
+      .map((extension) => `.${extension}`)
+      .concat(['.jsx', '.js', '.tsx', '.ts', '.css']),
   },
   plugins: [
     // clean the build folder
