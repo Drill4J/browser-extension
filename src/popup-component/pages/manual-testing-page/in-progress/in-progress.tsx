@@ -11,25 +11,26 @@ import styles from './in-progress.module.scss';
 
 const inProgress = BEM(styles);
 
-function finishRecordingSession(agentId: string) {
+function finishRecordingSession(agentId: string, sessionId: string) {
   browser.storage.local.set({ isActive: false });
   axios.post(`/agents/${agentId}/dispatch-action`, {
     type: 'STOP',
-    payload: { sessionId: browser.runtime.id },
+    payload: { sessionId },
   });
 }
 
-function cancelRecordingSession(agentId: string) {
+function cancelRecordingSession(agentId: string, sessionId: string) {
   browser.storage.local.set({ isActive: false });
   axios.post(`/agents/${agentId}/dispatch-action`, {
     type: 'CANCEL',
-    payload: { sessionId: browser.runtime.id },
+    payload: { sessionId },
   });
 }
 
 export const InProgress = withRouter(
   inProgress(({ className, history: { push } }) => {
-    const { testName = '', agentId = '' } = useLocalStorage(['testName', 'agentId']) || {};
+    const { testName = '', agentId = '', sessionId = '' } =
+      useLocalStorage(['testName', 'agentId', 'sessionId']) || {};
     return (
       <div className={className}>
         <Header>{testName}</Header>
@@ -39,7 +40,7 @@ export const InProgress = withRouter(
           <FinishButton
             type="secondary"
             onClick={() => {
-              finishRecordingSession(agentId);
+              finishRecordingSession(agentId, sessionId);
               push('/manual-testing/finish-recording');
             }}
           >
@@ -47,7 +48,7 @@ export const InProgress = withRouter(
           </FinishButton>
           <CancelButton
             onClick={() => {
-              cancelRecordingSession(agentId);
+              cancelRecordingSession(agentId, sessionId);
               push('/manual-testing/start-recording');
             }}
           >

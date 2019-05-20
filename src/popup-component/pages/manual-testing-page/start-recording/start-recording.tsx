@@ -3,6 +3,7 @@ import { BEM } from '@redneckz/react-bem-helper';
 import { withRouter } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
+import nanoid from 'nanoid';
 
 import { Icons, Input, Button } from '../../../../components';
 import { Panel } from '../../../../layouts';
@@ -13,10 +14,11 @@ import styles from './start-recording.module.scss';
 const startRecording = BEM(styles);
 
 function startRecordingSession(testName: string, agentId: string) {
-  browser.storage.local.set({ testName, isActive: true });
+  const sessionId = nanoid();
+  browser.storage.local.set({ testName, isActive: true, sessionId });
   axios.post(`/agents/${agentId}/dispatch-action`, {
     type: 'START',
-    payload: { sessionId: browser.runtime.id },
+    payload: { sessionId },
   });
 }
 
