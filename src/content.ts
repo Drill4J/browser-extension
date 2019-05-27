@@ -1,4 +1,16 @@
-import React from 'react';
+import { browser } from 'webextension-polyfill-ts';
+
+// browser.storage.local
+//   .get(window.location.hostname)
+//   .then(({ [window.location.hostname]: { adminUrl = '', agentId = '' } = {} }) => {
+//     browser.storage.local.set({ agentId, adminUrl });
+//   });
+
+// browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+//   console.log(tab);
+// });
+// browser.storage.local.set({ activeTab: window.location.hostname });
+
 // import { render } from 'react-dom';
 // import { Content } from 'components/content';
 // import 'common/css/global.css';

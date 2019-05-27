@@ -7,16 +7,17 @@ import nanoid from 'nanoid';
 
 import { Icons, Input, Button } from '../../../../components';
 import { Panel } from '../../../../layouts';
-import { useLocalStorage } from '../../../../hooks';
+import { useAgentConfig, useActiveTab } from '../../../../hooks';
+import { AgentConfig } from '../../../../types/agent-config';
 
 import styles from './start-recording.module.scss';
 
 const startRecording = BEM(styles);
 
-function startRecordingSession(testName: string, agentId: string) {
+function startRecordingSession(activeTab: string, testName: string, config: AgentConfig) {
   const sessionId = nanoid();
-  browser.storage.local.set({ testName, isActive: true, sessionId });
-  axios.post(`/agents/${agentId}/dispatch-action`, {
+  browser.storage.local.set({ [activeTab]: { ...config, testName, isActive: true, sessionId } });
+  axios.post(`/agents/${config.agentId}/dispatch-action`, {
     type: 'START',
     payload: { sessionId },
   });
@@ -25,7 +26,8 @@ function startRecordingSession(testName: string, agentId: string) {
 export const StartRecording = withRouter(
   startRecording(({ className, history: { push } }) => {
     const [testName, setTestName] = React.useState('');
-    const { agentId = '' } = useLocalStorage('agentId') || {};
+    const activeTab = useActiveTab();
+    const config = useAgentConfig() || {};
 
     return (
       <div className={className}>
@@ -44,13 +46,15 @@ export const StartRecording = withRouter(
           <Input
             placeholder="Give this test a name"
             value={testName}
-            onChange={({ target: { value } }: any) => setTestName(value)}
+            onChange={({ currentTarget: { value } }: React.SyntheticEvent<HTMLInputElement>) =>
+              setTestName(value)
+            }
           />
           <StartButton
             type="primary"
             disabled={!Boolean(testName)}
             onClick={() => {
-              startRecordingSession(testName, agentId);
+              startRecordingSession(activeTab, testName, config);
               push('/manual-testing/in-progress');
             }}
           >

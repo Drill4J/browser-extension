@@ -4,8 +4,10 @@ import { browser } from 'webextension-polyfill-ts';
 import { TOKEN_HEADER } from '../constants';
 
 export async function configureAxios() {
-  const { adminUrl } = await browser.storage.local.get('adminUrl');
-  axios.defaults.baseURL = `${adminUrl}/api`;
+  const [{ url = '' }] = await browser.tabs.query({ active: true, currentWindow: true });
+  const hostname = new URL(url).hostname;
+  const { [hostname]: { adminUrl = '' } = {} } = await browser.storage.local.get(hostname);
+  axios.defaults.baseURL = `http://${adminUrl}/api`;
 
   axios.interceptors.request.use(
     async (config) => {
