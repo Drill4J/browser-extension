@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "scripts": {
     "build": "webpack -p --env.production",
-    "start": "node build-utils/webserver.js"
+    "start": "node build-utils/webserver.js",
+    "typecheck": "tsc --project tsconfig.json --noEmit --skipLibCheck",
+    "lint": "tslint --project ."
   },
   "dependencies": {
     "@redneckz/react-bem-helper": "^2.0.3",
