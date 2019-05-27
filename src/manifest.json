@@ -6,6 +6,7 @@
   },
   "options_page": "options.html",
   "permissions": [
+    "tabs",
     "webRequest",
     "webRequestBlocking",
     "activeTab",

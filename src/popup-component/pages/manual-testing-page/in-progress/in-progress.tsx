@@ -5,42 +5,43 @@ import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
 import { Icons, Button } from '../../../../components';
-import { useLocalStorage } from '../../../../hooks';
+import { useAgentConfig, useActiveTab } from '../../../../hooks';
+import { AgentConfig } from '../../../../types/agent-config';
 
 import styles from './in-progress.module.scss';
 
 const inProgress = BEM(styles);
 
-function finishRecordingSession(agentId: string, sessionId: string) {
-  browser.storage.local.set({ isActive: false });
-  axios.post(`/agents/${agentId}/dispatch-action`, {
+function finishRecordingSession(activeTab: string, config: AgentConfig) {
+  browser.storage.local.set({ [activeTab]: { ...config, isActive: false } });
+  axios.post(`/agents/${config.agentId}/dispatch-action`, {
     type: 'STOP',
-    payload: { sessionId },
+    payload: { sessionId: config.sessionId },
   });
 }
 
-function cancelRecordingSession(agentId: string, sessionId: string) {
-  browser.storage.local.set({ isActive: false });
-  axios.post(`/agents/${agentId}/dispatch-action`, {
+function cancelRecordingSession(activeTab: string, config: AgentConfig) {
+  browser.storage.local.set({ [activeTab]: { ...config, isActive: false } });
+  axios.post(`/agents/${config.agentId}/dispatch-action`, {
     type: 'CANCEL',
-    payload: { sessionId },
+    payload: { sessionId: config.sessionId },
   });
 }
 
 export const InProgress = withRouter(
   inProgress(({ className, history: { push } }) => {
-    const { testName = '', agentId = '', sessionId = '' } =
-      useLocalStorage(['testName', 'agentId', 'sessionId']) || {};
+    const activeTab = useActiveTab();
+    const config = useAgentConfig() || {};
     return (
       <div className={className}>
-        <Header>{testName}</Header>
+        <Header>{(config as any).testName}</Header>
         <Content>
           <Icons.Stopwatch />
           <Instructions>Recording and analyzing your code coverage ...</Instructions>
           <FinishButton
             type="secondary"
             onClick={() => {
-              finishRecordingSession(agentId, sessionId);
+              finishRecordingSession(activeTab, config);
               push('/manual-testing/finish-recording');
             }}
           >
@@ -48,7 +49,7 @@ export const InProgress = withRouter(
           </FinishButton>
           <CancelButton
             onClick={() => {
-              cancelRecordingSession(agentId, sessionId);
+              cancelRecordingSession(activeTab, config);
               push('/manual-testing/start-recording');
             }}
           >

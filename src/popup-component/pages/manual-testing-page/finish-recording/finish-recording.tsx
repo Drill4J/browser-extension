@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 
 import { Button } from '../../../../components';
 import { Panel } from '../../../../layouts';
-import { useLocalStorage } from '../../../../hooks';
+import { useAgentConfig } from '../../../../hooks';
 
 import styles from './finish-recording.module.scss';
 
@@ -12,8 +12,7 @@ const finishRecording = BEM(styles);
 
 export const FinishRecording = withRouter(
   finishRecording(({ className, history: { push } }) => {
-    const { testName = '', adminUrl = '', agentId = '' } =
-      useLocalStorage(['testName', 'adminUrl', 'agentId']) || {};
+    const { agentId = '', testName = '', adminUrl = '' } = useAgentConfig() || {};
 
     return (
       <div className={className}>

@@ -26,6 +26,7 @@ import { path as planetPath } from './path/planet.path';
 import { path as mousePath } from './path/mouse.path';
 import { path as startPath } from './path/start.path';
 import { path as stopwatchPath } from './path/stopwatch.path';
+import { path as logoPath } from './path/logo.path';
 import { declareIcon } from './declare-icon';
 
 export const Icons = {
@@ -57,4 +58,5 @@ export const Icons = {
   Mouse: declareIcon(mousePath, { defaultWidth: 20, defaultHeight: 32 }),
   Start: declareIcon(startPath),
   Stopwatch: declareIcon(stopwatchPath, { defaultWidth: 42, defaultHeight: 48 }),
+  Logo: declareIcon(logoPath, { defaultHeight: 80, defaultWidth: 64 }),
 };
