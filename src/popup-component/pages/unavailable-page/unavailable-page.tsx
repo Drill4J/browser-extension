@@ -17,10 +17,8 @@ export const UnavailablePage = unavailablePage(({ className }: Props) => (
       <LogoWrapper>
         <Icons.Logo />
       </LogoWrapper>
-      <Title>Drill4J not available</Title>
-      <Instructions>
-        Drill4J extension only operates on websites with Drill4J widget installed on.
-      </Instructions>
+      <Title>Drill4J not found</Title>
+      <Instructions>If an agent is installed on this site, try refreshing the page.</Instructions>
     </Content>
   </div>
 ));

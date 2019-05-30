@@ -11,7 +11,7 @@
     border-bottom: 1px solid map-get($color-palette, light-blue);
     padding: 0 16px;
     font-size: 14px;
-    font-weight: 600;
+    font-family: $semibold-font;
     line-height: 20px;
     background-color: map-get($color-palette, green100);
     color: map-get($color-palette, white);

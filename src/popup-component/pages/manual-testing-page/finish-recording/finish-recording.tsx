@@ -2,7 +2,7 @@ import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { withRouter } from 'react-router-dom';
 
-import { Button } from '../../../../components';
+import { Button, OverflowText } from '../../../../components';
 import { Panel } from '../../../../layouts';
 import { useAgentConfig } from '../../../../hooks';
 
@@ -16,7 +16,9 @@ export const FinishRecording = withRouter(
 
     return (
       <div className={className}>
-        <Header>{testName}</Header>
+        <Header>
+          <OverflowText>{testName}</OverflowText>
+        </Header>
         <Content>
           <Title>Testing finished</Title>
           <Instructions>

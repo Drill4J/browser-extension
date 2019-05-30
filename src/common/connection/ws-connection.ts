@@ -1,3 +1,5 @@
+import { browser } from 'webextension-polyfill-ts';
+
 interface StompResponse {
   message: string;
   destination: string;
@@ -7,10 +9,10 @@ interface StompResponse {
 export class WsConnection {
   public connection: WebSocket;
   public onMessageListeners: { [key: string]: (arg: unknown) => void };
-  constructor(socket: string = 'drill-admin-socket') {
+  constructor(adminUrl: string, socket: string = 'drill-admin-socket') {
     this.connection = new WebSocket(
       process.env.REACT_APP_ENV
-        ? `ws://${window.location.host}/ws/${socket}`
+        ? `ws://${adminUrl}/ws/${socket}`
         : `ws://localhost:8090/ws/${socket}`,
     );
     this.onMessageListeners = {};

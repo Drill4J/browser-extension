@@ -59,7 +59,7 @@ export const StartRecording = withRouter(
             }}
           >
             <Panel align="center">
-              <Icons.Start />
+              <StartButtonIcon />
               Start a new test
             </Panel>
           </StartButton>
@@ -75,3 +75,4 @@ const Content = startRecording.content('div');
 const Message = startRecording.message('div');
 const TestName = startRecording.testName('div');
 const StartButton = startRecording.startButton(Button);
+const StartButtonIcon = startRecording.startButtonIcon(Icons.Start);
