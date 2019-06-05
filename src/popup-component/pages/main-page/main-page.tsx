@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Badge, Icons } from '../../../components';
 import { Panel } from '../../../layouts';
 import { CompoundLabel } from './compound-label';
-import { useAgentConfig } from '../../../hooks';
+import { useAgentConfig, useAgentInfo } from '../../../hooks';
 import { TOKEN_HEADER } from '../../../common/constants';
 
 import styles from './main-page.module.scss';
@@ -19,26 +19,29 @@ export const MainPage = withRouter(
     React.useEffect(() => {
       browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
         const hostname = new URL(url).hostname;
-        browser.storage.local.get(hostname).then(({ [hostname]: { adminUrl = '' } = {} }) => {
-          if (adminUrl) {
-            axios.post('/login').then((response) => {
-              const authToken = response.headers[TOKEN_HEADER.toLowerCase()];
-              if (authToken) {
-                browser.storage.local.set({ token: authToken });
-              }
-            });
-          } else {
-            push('/unavailable-page');
-          }
-        });
+        browser.storage.local
+          .get(hostname)
+          .then(({ [hostname]: { adminUrl: defaultAdminUrl = '' } = {} }) => {
+            if (defaultAdminUrl) {
+              axios.post('/login').then((response) => {
+                const authToken = response.headers[TOKEN_HEADER.toLowerCase()];
+                if (authToken) {
+                  browser.storage.local.set({ token: authToken });
+                }
+              });
+            } else {
+              push('/unavailable-page');
+            }
+          });
       });
     }, []);
-    const { isActive = false } = useAgentConfig() || {};
+    const { isActive = false, adminUrl = '', agentId = '' } = useAgentConfig() || {};
+    const { name = '' } = useAgentInfo(adminUrl, agentId) || {};
     return (
       <div className={className}>
         <Header>
           <Panel>
-            <Icons.Planet /> <AgentName>Agent Name</AgentName>
+            <Icons.Planet /> <AgentName>{name}</AgentName>
           </Panel>
           <Badge text="Online" />
         </Header>
