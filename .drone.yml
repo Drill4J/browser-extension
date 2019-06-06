@@ -1,0 +1,7 @@
+pipeline:
+  build:
+    image: node:8
+    commands:
+      - yarn
+      - yarn typecheck
+      - yarn lint

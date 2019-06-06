@@ -1,4 +1,20 @@
-# Drill4J Project
+# Drill4J Project · [![Build Status](https://cloud.drone.io/api/badges/Drill4J/browser-extension/status.svg)](https://cloud.drone.io/Drill4J/browser-extension)
+
+<img src="./logo.svg" alt="Logo" width="128" align="right">
+
+Drill4J is a plugin management platform for real-time application profiling and extension that does not affect code base.
+
+Drill4J allows you to:
+
+- automate and organize data
+- choose the right solutions for specific tasks
+- increase the velocity and quality of the team
+- store all plugins in one place
+- flexible configuration of agents and plugins for project needs
+
+## Documentation
+
+Check out our [documentation](https://github.com/Drill4J/browser-extension/tree/master/dev-guide)
 
 ## Development installation
 
@@ -8,14 +24,8 @@ To launch the development environment, follow these steps:
 
 1.  open console from the project root
 2.  run the command `npm install`
-3.  to proxy requests to the server, create `.env` file in root folder
-
-    ```
-    PROXY_PATH=http://your_server:port/
-    ```
-
-4.  run the command `npm run dev`
-5.  enjoy the development.
+3.  run the command `npm start`
+4.  enjoy the development.
 
 ## Production version installation
 
@@ -25,26 +35,21 @@ To get production bundle, follow these steps:
 
 1.  open console from the project root
 2.  run the command `npm install`
-3.  run the command `npm run build`
+3.  run the command `npm build`
 4.  in project root will be created 'build' folder with UI bundle, witch can be used on production server.
-
 
 ## All npm commands
 
-`npm run lint` - syntax and formatting check with eslint
+`npm start` - launch the development environment
 
-`npm run format` - reformat js, scss and md using eslint and prettier
+`npm build` - build the product version in the `build` folder
 
-`npm run dev` - launch the development environment
+`npm test` - run tests when changing files
 
-`npm run build` - build the product version in the `build` folder
+`npm lint` - run tslint
 
-`npm run test` - single run all tests
-
-`npm run test:watch` - run tests when changing files
-
-`npm run manage:translations` - checking the relevance of localization
+`npm typecheck` - run TypeScript typechecing
 
 ## Technology
 
-Used technology stack: [React](https://reactjs.org/), [Redux](https://redux.js.org/)
+Used technology stack: [TypeScript](https://www.typescriptlang.org/) [React](https://reactjs.org/)

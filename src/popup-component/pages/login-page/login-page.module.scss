@@ -58,7 +58,7 @@
 
   &__forgot-password {
     font-size: 14px;
-    font-weight: 600;
+    font-family: $semibold-font;
     line-height: 22px;
     text-align: center;
     color: map-get($color-palette, blue100);

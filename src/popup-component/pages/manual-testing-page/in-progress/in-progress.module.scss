@@ -11,8 +11,8 @@
     border-bottom: 1px solid map-get($color-palette, light-blue);
     padding: 0 16px;
     font-size: 14px;
-    font-weight: 600;
     line-height: 20px;
+    font-family: $semibold-font;
     background-color: map-get($color-palette, green100);
     color: map-get($color-palette, white);
   }
@@ -26,6 +26,13 @@
     color: $slate-gray;
   }
 
+  &__timer-wrapper {
+    font-size: 20px;
+    line-height: 32px;
+    text-align: center;
+    color: map-get($color-palette, dark-blue);
+  }
+
   &__instructions {
     font-size: 14px;
     line-height: 22px;
@@ -34,13 +41,20 @@
   }
 
   &__finish-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 32px;
     width: 144px;
   }
 
+  &__finish-button-icon {
+    margin-right: 8px;
+  }
+
   &__cancel-button {
     font-size: 14px;
-    font-weight: 600;
+    font-family: $semibold-font;
     line-height: 19px;
     text-align: center;
     color: map-get($color-palette, red100);
