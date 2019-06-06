@@ -28,7 +28,9 @@ export const FinishRecording = withRouter(
           <Panel>
             <ViewResultsButton
               type="secondary"
-              onClick={() => window.open(`${adminUrl}/full-page/${agentId}/coverage`)}
+              onClick={() =>
+                window.open(`${getCorrectAdminUrl(adminUrl)}/full-page/${agentId}/coverage`)
+              }
             >
               View results
             </ViewResultsButton>
@@ -48,3 +50,15 @@ const Title = finishRecording.title('div');
 const Instructions = finishRecording.instructions('div');
 const ViewResultsButton = finishRecording.viewResultsButton(Button);
 const StartNewTest = finishRecording.startNewTest(Button);
+
+function getCorrectAdminUrl(adminUrl: string) {
+  const url = new URL(`http://${adminUrl}`);
+
+  if (url.hostname === 'localhost') {
+    url.port = '3000';
+  } else {
+    url.port = '9090';
+  }
+
+  return url.host;
+}
