@@ -1,6 +1,6 @@
 {
   "name": "Drill4J Browser Extension",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "background": {
     "page": "background.html"
   },
