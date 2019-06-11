@@ -37,6 +37,7 @@ export const MainPage = withRouter(
     }, []);
     const { isActive = false, adminUrl = '', agentId = '' } = useAgentConfig() || {};
     const { name = '' } = useAgentInfo(adminUrl, agentId) || {};
+
     return (
       <div className={className}>
         <Header>

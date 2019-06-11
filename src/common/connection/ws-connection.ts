@@ -11,9 +11,7 @@ export class WsConnection {
   public onMessageListeners: { [key: string]: (arg: unknown) => void };
   constructor(adminUrl: string, socket: string = 'drill-admin-socket') {
     this.connection = new WebSocket(
-      process.env.REACT_APP_ENV
-        ? `ws://${adminUrl}/ws/${socket}`
-        : `ws://localhost:8090/ws/${socket}`,
+      adminUrl ? `ws://${adminUrl}/ws/${socket}` : `ws://localhost:8090/ws/${socket}`,
     );
     this.onMessageListeners = {};
 
