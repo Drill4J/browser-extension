@@ -15,7 +15,7 @@ const inProgress = BEM(styles);
 
 function finishRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
-  axios.post(`/agents/${config.agentId}/dispatch-action`, {
+  axios.post(`/agents/${config.agentId}/coverage/dispatch-action`, {
     type: 'STOP',
     payload: { sessionId: config.sessionId },
   });
@@ -23,7 +23,7 @@ function finishRecordingSession(activeTab: string, config: AgentConfig) {
 
 function cancelRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
-  axios.post(`/agents/${config.agentId}/dispatch-action`, {
+  axios.post(`/agents/${config.agentId}/coverage/dispatch-action`, {
     type: 'CANCEL',
     payload: { sessionId: config.sessionId },
   });
