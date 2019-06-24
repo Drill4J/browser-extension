@@ -17,7 +17,7 @@ const startRecording = BEM(styles);
 function startRecordingSession(activeTab: string, testName: string, config: AgentConfig) {
   const sessionId = nanoid();
   browser.storage.local.set({ [activeTab]: { ...config, testName, isActive: true, sessionId } });
-  axios.post(`/agents/${config.agentId}/dispatch-action`, {
+  axios.post(`/agents/${config.agentId}/coverage/dispatch-action`, {
     type: 'START',
     payload: { sessionId },
   });
