@@ -3,7 +3,6 @@ import { BEM } from '@redneckz/react-bem-helper';
 import { withRouter } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
-import nanoid from 'nanoid';
 
 import { Icons, Input, Button } from '../../../../components';
 import { Panel } from '../../../../layouts';
@@ -14,13 +13,17 @@ import styles from './start-recording.module.scss';
 
 const startRecording = BEM(styles);
 
-function startRecordingSession(activeTab: string, testName: string, config: AgentConfig) {
-  const sessionId = nanoid();
-  browser.storage.local.set({ [activeTab]: { ...config, testName, isActive: true, sessionId } });
-  axios.post(`/agents/${config.agentId}/coverage/dispatch-action`, {
+async function startRecordingSession(activeTab: string, testName: string, config: AgentConfig) {
+  const {
+    data: {
+      payload: { sessionId },
+    },
+  } = await axios.post(`/agents/${config.agentId}/coverage/dispatch-action`, {
     type: 'START',
-    payload: { sessionId },
+    payload: { testType: 'MANUAL' },
   });
+
+  browser.storage.local.set({ [activeTab]: { ...config, testName, isActive: true, sessionId } });
 }
 
 export const StartRecording = withRouter(
@@ -53,8 +56,8 @@ export const StartRecording = withRouter(
           <StartButton
             type="primary"
             disabled={!Boolean(testName)}
-            onClick={() => {
-              startRecordingSession(activeTab, testName, config);
+            onClick={async () => {
+              await startRecordingSession(activeTab, testName, config);
               push('/manual-testing/in-progress');
             }}
           >
