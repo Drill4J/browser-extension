@@ -29,7 +29,9 @@ export const FinishRecording = withRouter(
             <ViewResultsButton
               type="secondary"
               onClick={() =>
-                window.open(`${getCorrectAdminUrl(adminUrl)}/full-page/${agentId}/coverage`)
+                window.open(
+                  `${getCorrectAdminUrl(adminUrl)}/full-page/${agentId}/coverage/dashboard`,
+                )
               }
             >
               View results
