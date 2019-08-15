@@ -56,7 +56,7 @@ const StartNewTest = finishRecording.startNewTest(Button);
 function getCorrectAdminUrl(adminUrl: string) {
   const url = new URL(`http://${adminUrl}`);
 
-  if (url.hostname === 'localhost') {
+  if (process.env.NODE_ENV === 'development') {
     url.port = '3000';
   } else {
     url.port = '9090';
