@@ -23,7 +23,9 @@ async function startRecordingSession(activeTab: string, testName: string, config
     payload: { testType: 'MANUAL' },
   });
 
-  browser.storage.local.set({ [activeTab]: { ...config, testName, isActive: true, sessionId } });
+  browser.storage.local.set({
+    [activeTab]: { ...config, testName, isActive: true, sessionId, timerStart: Date.now() },
+  });
 }
 
 export const StartRecording = withRouter(
