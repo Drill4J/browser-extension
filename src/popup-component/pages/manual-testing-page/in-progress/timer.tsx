@@ -1,17 +1,23 @@
 import * as React from 'react';
 
+import { useAgentConfig } from '../../../../hooks';
+
 function useTimer() {
+  const config = useAgentConfig() || {};
   const [time, setTime] = React.useState(0);
 
-  React.useEffect(() => {
-    const timerStart = Date.now();
-    const interval = setInterval(() => {
-      setTime(Date.now() - timerStart);
-    }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+  React.useEffect(
+    () => {
+      const timerStart = config.timerStart;
+      const interval = setInterval(() => {
+        timerStart && setTime(Date.now() - timerStart);
+      }, 1000);
+      return () => {
+        clearInterval(interval);
+      };
+    },
+    [config.timerStart],
+  );
 
   return time;
 }
