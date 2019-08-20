@@ -1,6 +1,6 @@
 {
   "name": "Drill4J Browser Extension",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "background": {
     "page": "background.html"
   },
@@ -12,7 +12,9 @@
     "activeTab",
     "storage",
     "http://localhost/*",
-    "http://*.epam.com/*"
+    "http://*.epam.com/*",
+    "https://localhost/*",
+    "https://*.epam.com/*"
   ],
   "browser_action": {
     "default_icon": {
