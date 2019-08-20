@@ -1,5 +1,3 @@
-import { browser } from 'webextension-polyfill-ts';
-
 interface StompResponse {
   message: string;
   destination: string;
@@ -11,7 +9,7 @@ export class WsConnection {
   public onMessageListeners: { [key: string]: (arg: unknown) => void };
   constructor(adminUrl: string, socket: string = 'drill-admin-socket') {
     this.connection = new WebSocket(
-      adminUrl ? `ws://${adminUrl}/ws/${socket}` : `ws://localhost:8090/ws/${socket}`,
+      adminUrl ? `ws://${adminUrl}/ws/${socket}` : `wss://localhost:8443/ws/${socket}`,
     );
     this.onMessageListeners = {};
 
