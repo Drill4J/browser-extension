@@ -54,7 +54,8 @@ const ViewResultsButton = finishRecording.viewResultsButton(Button);
 const StartNewTest = finishRecording.startNewTest(Button);
 
 function getCorrectAdminUrl(adminUrl: string) {
-  return `${process.env.NODE_ENV === 'development' ? 'http' : 'https'}://${adminUrl}:${
+  const { hostname } = new URL(`http://${adminUrl}`);
+  return `${process.env.NODE_ENV === 'development' ? 'http' : 'https'}://${hostname}:${
     process.env.NODE_ENV === 'development' ? 3000 : 9443
   }`;
 }
