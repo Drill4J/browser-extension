@@ -7,7 +7,7 @@ export async function configureAxios() {
   const [{ url = '' }] = await browser.tabs.query({ active: true, currentWindow: true });
   const hostname = new URL(url).hostname;
   const { [hostname]: { adminUrl = '' } = {} } = await browser.storage.local.get(hostname);
-  axios.defaults.baseURL = `https://${adminUrl}/api`;
+  axios.defaults.baseURL = `http://${adminUrl}/api`;
 
   axios.interceptors.request.use(
     async (config) => {
