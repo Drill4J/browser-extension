@@ -38,7 +38,12 @@ function addDrillHeaders({ requestHeaders = [] }: WebRequest.OnBeforeSendHeaders
 browser.webRequest.onBeforeSendHeaders.addListener(
   addDrillHeaders,
   {
-    urls: ['http://localhost/*', 'http://*.epam.com/*'],
+    urls: [
+      'http://localhost/*',
+      'http://*.epam.com/*',
+      'https://localhost/*',
+      'https://*.epam.com/*',
+    ],
   },
   ['blocking', 'requestHeaders'],
 );
@@ -49,7 +54,7 @@ function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceive
   const { value: agentId = '' } =
     responseHeaders.find((header) => header.name.toLowerCase() === 'drill-agent-id') || {};
   if (adminUrl && agentId) {
-    const url = new URL(`http://${activeTab}`).hostname;
+    const url = new URL(`https://${activeTab}`).hostname;
     browser.storage.local.get([url]).then(({ [url]: currentConfig }) => {
       browser.storage.local.set({
         [url]: {
@@ -65,7 +70,12 @@ function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceive
 browser.webRequest.onHeadersReceived.addListener(
   checkDrillAgentId,
   {
-    urls: ['http://localhost/*', 'http://*.epam.com/*'],
+    urls: [
+      'http://localhost/*',
+      'http://*.epam.com/*',
+      'https://localhost/*',
+      'https://*.epam.com/*',
+    ],
   },
   ['responseHeaders'],
 );
