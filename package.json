@@ -1,6 +1,6 @@
 {
   "name": "@drill4j/browser-extension",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "scripts": {
     "build": "webpack -p --env.production",
     "start": "node build-utils/webserver.js",
