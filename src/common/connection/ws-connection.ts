@@ -7,9 +7,11 @@ interface StompResponse {
 export class WsConnection {
   public connection: WebSocket;
   public onMessageListeners: { [key: string]: (arg: unknown) => void };
-  constructor(adminUrl: string, socket: string = 'drill-admin-socket') {
+  constructor(adminUrl: string, socket: string = 'drill-admin-socket', token?: string) {
     this.connection = new WebSocket(
-      adminUrl ? `ws://${adminUrl}/ws/${socket}` : `wss://localhost:8443/ws/${socket}`,
+      adminUrl
+        ? `wss://${adminUrl}/ws/${socket}?token=${token}`
+        : `wss://localhost:8443/ws/${socket}?token=${token}`,
     );
     this.onMessageListeners = {};
 
