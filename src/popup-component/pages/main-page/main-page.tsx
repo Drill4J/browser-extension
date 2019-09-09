@@ -7,7 +7,7 @@ import axios from 'axios';
 import { Badge, Icons } from '../../../components';
 import { Panel } from '../../../layouts';
 import { CompoundLabel } from './compound-label';
-import { useAgentConfig, useAgentInfo } from '../../../hooks';
+import { useAgentConfig, useAgentInfo, useLocalStorage } from '../../../hooks';
 import { TOKEN_HEADER } from '../../../common/constants';
 
 import styles from './main-page.module.scss';
@@ -36,7 +36,8 @@ export const MainPage = withRouter(
       });
     }, []);
     const { isActive = false, adminUrl = '', agentId = '' } = useAgentConfig() || {};
-    const { name = '' } = useAgentInfo(adminUrl, agentId) || {};
+    const { token = '' } = useLocalStorage('token') || {};
+    const { name = '' } = useAgentInfo(adminUrl, agentId, token) || {};
 
     return (
       <div className={className}>
