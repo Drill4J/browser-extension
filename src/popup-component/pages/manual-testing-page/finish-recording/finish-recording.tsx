@@ -30,7 +30,9 @@ export const FinishRecording = withRouter(
               type="secondary"
               onClick={() =>
                 window.open(
-                  `${getCorrectAdminUrl(adminUrl)}/full-page/${agentId}/coverage/dashboard`,
+                  `${getCorrectAdminUrl(
+                    adminUrl,
+                  )}/full-page/${agentId}/test-to-code-mapping/dashboard`,
                 )
               }
             >

@@ -25,6 +25,7 @@ export const MainPage = withRouter(
             if (defaultAdminUrl) {
               axios.post('/login').then((response) => {
                 const authToken = response.headers[TOKEN_HEADER.toLowerCase()];
+
                 if (authToken) {
                   browser.storage.local.set({ token: authToken });
                 }

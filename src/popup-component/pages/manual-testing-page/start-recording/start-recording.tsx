@@ -18,7 +18,7 @@ async function startRecordingSession(activeTab: string, testName: string, config
     data: {
       payload: { sessionId },
     },
-  } = await axios.post(`/agents/${config.agentId}/coverage/dispatch-action`, {
+  } = await axios.post(`/agents/${config.agentId}/test-to-code-mapping/dispatch-action`, {
     type: 'START',
     payload: { testType: 'MANUAL' },
   });
