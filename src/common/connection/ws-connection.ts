@@ -10,8 +10,8 @@ export class WsConnection {
   constructor(adminUrl: string, socket: string = 'drill-admin-socket', token?: string) {
     this.connection = new WebSocket(
       adminUrl
-        ? `wss://${adminUrl}/ws/${socket}?token=${token}`
-        : `wss://localhost:8443/ws/${socket}?token=${token}`,
+        ? `ws://${adminUrl}/ws/${socket}?token=${token}`
+        : `ws://localhost:8090/ws/${socket}?token=${token}`,
     );
     this.onMessageListeners = {};
 
