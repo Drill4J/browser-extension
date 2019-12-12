@@ -38,12 +38,7 @@ function addDrillHeaders({ requestHeaders = [] }: WebRequest.OnBeforeSendHeaders
 browser.webRequest.onBeforeSendHeaders.addListener(
   addDrillHeaders,
   {
-    urls: [
-      'http://localhost/*',
-      'http://*.epam.com/*',
-      'https://localhost/*',
-      'https://*.epam.com/*',
-    ],
+    urls: ['*://*/*'],
   },
   ['blocking', 'requestHeaders'],
 );
@@ -70,12 +65,7 @@ function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceive
 browser.webRequest.onHeadersReceived.addListener(
   checkDrillAgentId,
   {
-    urls: [
-      'http://localhost/*',
-      'http://*.epam.com/*',
-      'https://localhost/*',
-      'https://*.epam.com/*',
-    ],
+    urls: ['*://*/*'],
   },
   ['responseHeaders'],
 );

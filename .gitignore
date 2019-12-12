@@ -6,5 +6,6 @@ build
 localization/messages
 localization/translated/en.json
 .env
+.DS_Store
 
 *.iml
