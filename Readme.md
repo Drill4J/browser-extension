@@ -1,8 +1,8 @@
-# Drill4J Project · [![Build Status](https://cloud.drone.io/api/badges/Drill4J/browser-extension/status.svg)](https://cloud.drone.io/Drill4J/browser-extension)
-
-<img src="./logo.svg" alt="Logo" width="128" align="right">
+# Drill4J Project · [![Build Status](https://github.com/Drill4J/browser-extension/workflows/Bump%20version/badge.svg)](https://github.com/Drill4J/browser-extension/actions)
 
 Drill4J is a plugin management platform for real-time application profiling and extension that does not affect code base.
+
+<img src="./logo.svg" alt="Logo" width="128" align="right">
 
 Drill4J allows you to:
 
