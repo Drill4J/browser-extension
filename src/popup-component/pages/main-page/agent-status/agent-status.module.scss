@@ -1,0 +1,17 @@
+@import '../../../../common/style-guide/index';
+
+.agent-status {
+  &__content {
+    &--status {
+      &--online {
+        color: map-get($color-palette, green100);
+      }
+      &--offline {
+        color: map-get($color-palette, red100);
+      }
+      &--busy {
+        color: map-get($color-palette, yellow50);
+      }
+    }
+  }
+}
