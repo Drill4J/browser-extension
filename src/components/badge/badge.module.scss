@@ -1,10 +1,10 @@
 @import '../../common/style-guide/index';
 
 .badge {
-  border: 1px solid map-get($color-palette, green100);
+  border: 1px solid currentColor;
   border-radius: 14px;
   font-size: 11px;
   line-height: 12px;
-  padding: 4px 10px;
-  color: map-get($color-palette, green100);
+  padding: 2px 8px;
+  text-transform: capitalize;
 }

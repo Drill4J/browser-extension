@@ -1,21 +1,26 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { withRouter } from 'react-router-dom';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
-import { Badge, Icons } from '../../../components';
+import { Icons } from '../../../components';
 import { Panel } from '../../../layouts';
-import { CompoundLabel } from './compound-label';
 import { useAgentConfig, useAgentInfo, useLocalStorage } from '../../../hooks';
 import { TOKEN_HEADER } from '../../../common/constants';
+import { CompoundLabel } from './compound-label';
+import { AgentStatus } from './agent-status';
 
 import styles from './main-page.module.scss';
+
+interface Props extends RouteComponentProps {
+  className?: string;
+}
 
 const mainPage = BEM(styles);
 
 export const MainPage = withRouter(
-  mainPage(({ className, history: { push } }) => {
+  mainPage(({ className, history: { push } }: Props) => {
     React.useEffect(() => {
       browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
         const hostname = new URL(url).hostname;
@@ -38,7 +43,7 @@ export const MainPage = withRouter(
     }, []);
     const { isActive = false, adminUrl = '', agentId = '' } = useAgentConfig() || {};
     const { token = '' } = useLocalStorage('token') || {};
-    const { name = '' } = useAgentInfo(adminUrl, agentId, token) || {};
+    const { name = '', status } = useAgentInfo(adminUrl, agentId, token) || {};
 
     return (
       <div className={className}>
@@ -46,7 +51,7 @@ export const MainPage = withRouter(
           <Panel>
             <Icons.Planet /> <AgentName>{name}</AgentName>
           </Panel>
-          <Badge text="Online" />
+          <AgentStatus status={status} />
         </Header>
         <ActionsList>
           <ActionItem
@@ -55,7 +60,7 @@ export const MainPage = withRouter(
             <IconWrapper align="center" active={isActive}>
               <Icons.Mouse />
             </IconWrapper>
-            <CompoundLabel firstLabel="Manual testing" secondLabel="For Code Coverage plugin" />
+            <CompoundLabel firstLabel="Manual testing" secondLabel="For Test-2-Code plugin" />
             <RedirectIcon>
               <Icons.Expander />
             </RedirectIcon>
