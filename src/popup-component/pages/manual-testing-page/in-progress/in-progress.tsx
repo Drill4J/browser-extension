@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { withRouter } from 'react-router-dom';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
@@ -10,6 +10,10 @@ import { AgentConfig } from '../../../../types/agent-config';
 import { Timer } from './timer';
 
 import styles from './in-progress.module.scss';
+
+interface Props extends RouteComponentProps {
+  className?: string;
+}
 
 const inProgress = BEM(styles);
 
@@ -30,7 +34,7 @@ function cancelRecordingSession(activeTab: string, config: AgentConfig) {
 }
 
 export const InProgress = withRouter(
-  inProgress(({ className, history: { push } }) => {
+  inProgress(({ className, history: { push } }: Props) => {
     const activeTab = useActiveTab();
     const config = useAgentConfig() || {};
     return (

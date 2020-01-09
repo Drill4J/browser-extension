@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { withRouter } from 'react-router-dom';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
@@ -10,6 +10,10 @@ import { useAgentConfig, useActiveTab } from '../../../../hooks';
 import { AgentConfig } from '../../../../types/agent-config';
 
 import styles from './start-recording.module.scss';
+
+interface Props extends RouteComponentProps {
+  className?: string;
+}
 
 const startRecording = BEM(styles);
 
@@ -29,7 +33,7 @@ async function startRecordingSession(activeTab: string, testName: string, config
 }
 
 export const StartRecording = withRouter(
-  startRecording(({ className, history: { push } }) => {
+  startRecording(({ className, history: { push } }: Props) => {
     const [testName, setTestName] = React.useState('');
     const activeTab = useActiveTab();
     const config = useAgentConfig() || {};

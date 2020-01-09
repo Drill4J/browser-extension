@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { withRouter } from 'react-router-dom';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import { Button, OverflowText } from '../../../../components';
 import { Panel } from '../../../../layouts';
@@ -8,10 +8,14 @@ import { useAgentConfig } from '../../../../hooks';
 
 import styles from './finish-recording.module.scss';
 
+interface Props extends RouteComponentProps {
+  className?: string;
+}
+
 const finishRecording = BEM(styles);
 
 export const FinishRecording = withRouter(
-  finishRecording(({ className, history: { push } }) => {
+  finishRecording(({ className, history: { push } }: Props) => {
     const { agentId = '', testName = '', adminUrl = '' } = useAgentConfig() || {};
 
     return (
