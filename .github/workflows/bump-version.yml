@@ -14,4 +14,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           DEFAULT_BUMP: patch
-          RELEASE_BRANCHES: develop
