@@ -1,6 +1,6 @@
 {
   "name": "@drill4j/browser-extension",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "scripts": {
     "build": "webpack -p --env.production",
     "start": "node build-utils/webserver.js",
@@ -8,7 +8,6 @@
     "lint": "tslint --project ."
   },
   "dependencies": {
-    "@drill4j/socket": "^0.1.4",
     "@redneckz/react-bem-helper": "^2.0.3",
     "@types/axios": "^0.14.0",
     "@types/nanoid": "^2.0.0",
@@ -21,6 +20,7 @@
     "react": "16.8.6",
     "react-dom": "16.8.6",
     "react-router-dom": "5.0.0",
+    "rxjs": "^6.5.4",
     "webextension-polyfill": "0.4.0",
     "webextension-polyfill-ts": "^0.9.0"
   },
