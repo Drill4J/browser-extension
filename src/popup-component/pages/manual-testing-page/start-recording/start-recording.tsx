@@ -28,7 +28,9 @@ async function startRecordingSession(activeTab: string, testName: string, config
   });
 
   browser.storage.local.set({
-    [activeTab]: { ...config, testName, isActive: true, sessionId, timerStart: Date.now() },
+    [activeTab]: {
+      ...config, testName, isActive: true, sessionId, timerStart: Date.now(),
+    },
   });
 }
 
@@ -37,6 +39,9 @@ export const StartRecording = withRouter(
     const [testName, setTestName] = React.useState('');
     const activeTab = useActiveTab();
     const config = useAgentConfig() || {};
+    const handleOnChange: React.ChangeEventHandler<HTMLInputElement> = ({ currentTarget: { value } }) => {
+      setTestName(value);
+    };
 
     return (
       <div className={className}>
@@ -55,13 +60,11 @@ export const StartRecording = withRouter(
           <Input
             placeholder="Give this test a name"
             value={testName}
-            onChange={({ currentTarget: { value } }: React.SyntheticEvent<HTMLInputElement>) =>
-              setTestName(value)
-            }
+            onChange={handleOnChange}
           />
           <StartButton
             type="primary"
-            disabled={!Boolean(testName)}
+            disabled={!testName}
             onClick={async () => {
               await startRecordingSession(activeTab, testName, config);
               push('/manual-testing/in-progress');

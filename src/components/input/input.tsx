@@ -13,8 +13,8 @@ interface Props {
   disabled?: boolean;
   type?: string;
   checked?: boolean;
-  value?: any;
-  onChange?: (event: React.SyntheticEvent<any>) => void;
+  value?: string;
+  onChange?: React.ChangeEventHandler;
 }
 
 const input = BEM(styles);
@@ -32,6 +32,6 @@ const InputElement = input.inputElement(
   bemInput({
     ...INPUT_PROPS_OBJ,
     value: '',
-  } as {}),
+  } as { value?: unknown; onChange?: React.ChangeEventHandler}),
 );
 const IconWrapper = input.iconWrapper('div');

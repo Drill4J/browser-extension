@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 const fileSystem = require('fs');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WriteFilePlugin = require('write-file-webpack-plugin');
@@ -61,8 +61,6 @@ const options = {
             loader: 'css-loader',
             options: {
               modules: true,
-              localIdentName: '[name]__[local]___[hash:base64:5]',
-              camelCase: true,
               sourceMap: env.NODE_ENV === 'development',
             },
           },
@@ -98,7 +96,7 @@ const options = {
   },
   plugins: [
     // clean the build folder
-    new CleanWebpackPlugin(['build']),
+    new CleanWebpackPlugin(),
     // expose and write the allowed env vars on the compiled bundle
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'development', // use 'development' unless process.env.NODE_ENV is defined
