@@ -7,9 +7,10 @@ let config: AgentConfig = {};
 
 browser.tabs.onActivated.addListener(({ tabId }) => {
   browser.tabs.get(tabId).then(({ url = '' }) => {
-    const hostname = new URL(url).hostname;
-    activeTab = hostname;
-    browser.storage.local.get(hostname).then(({ [hostname]: value = {} }) => {
+    const { host } = new URL(url);
+    activeTab = host;
+
+    browser.storage.local.get(host).then(({ [host]: value = {} }) => {
       config = value;
     });
   });
@@ -44,12 +45,10 @@ browser.webRequest.onBeforeSendHeaders.addListener(
 );
 
 function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceivedDetailsType) {
-  const { value: adminUrl = '' } =
-    responseHeaders.find((header) => header.name.toLowerCase() === 'drill-admin-url') || {};
-  const { value: agentId = '' } =
-    responseHeaders.find((header) => header.name.toLowerCase() === 'drill-agent-id') || {};
+  const { value: adminUrl = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-admin-url') || {};
+  const { value: agentId = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-agent-id') || {};
   if (adminUrl && agentId) {
-    const url = new URL(`https://${activeTab}`).hostname;
+    const url = new URL(`https://${activeTab}`).host;
     browser.storage.local.get([url]).then(({ [url]: currentConfig }) => {
       browser.storage.local.set({
         [url]: {
