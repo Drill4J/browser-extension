@@ -14,14 +14,16 @@ interface Attrs {
 
 const checkbox = BEM(styles);
 
-export const Toggler = checkbox(({ className, label, value, onChange = () => {} }: Attrs) => (
-  <label className={className}>
-    <React.Fragment>
-      <CheckboxInput type="checkbox" checked={Boolean(value)} value={value} onChange={onChange} />
+export const Toggler = checkbox(({
+  className, label, value, onChange = () => {},
+}: Attrs) => (
+  <span className={className}>
+    <>
+      <CheckboxInput type="checkbox" checked={Boolean(value)} value={String(value)} onChange={onChange} />
       <CheckboxTogglerLabel />
-    </React.Fragment>
+    </>
     {label && <Label checked={Boolean(value)}>{label}</Label>}
-  </label>
+  </span>
 ));
 
 const CheckboxInput = checkbox.input(Input);

@@ -9,17 +9,19 @@ export interface DrillResponse {
 
 export class DrillSocket {
   public connection$: WebSocketSubject<DrillResponse>;
+
   public subscription: Subscription;
+
   constructor(url: string) {
     this.connection$ = webSocket<DrillResponse>(url);
 
     this.subscription = this.connection$.subscribe();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public subscribe(topic: string, callback: (arg: any) => void, message?: object) {
     const subscription = this.connection$.subscribe(
-      ({ destination, message: responseMessage }: DrillResponse) =>
-        destination === topic && callback(responseMessage || null),
+      ({ destination, message: responseMessage }: DrillResponse) => destination === topic && callback(responseMessage || null),
     );
     this.send(topic, 'SUBSCRIBE', message);
 

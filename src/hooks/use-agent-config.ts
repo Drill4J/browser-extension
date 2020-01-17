@@ -8,7 +8,7 @@ export function useAgentConfig() {
 
   useEffect(() => {
     browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
-      const hostname = new URL(url).hostname;
+      const hostname = new URL(url).host;
       browser.storage.local.get(hostname).then(({ [hostname]: agentConfig }) => {
         setData(agentConfig as AgentConfig);
       });

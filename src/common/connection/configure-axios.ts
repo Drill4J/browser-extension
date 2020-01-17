@@ -5,7 +5,7 @@ import { TOKEN_HEADER } from '../constants';
 
 export async function configureAxios() {
   const [{ url = '' }] = await browser.tabs.query({ active: true, currentWindow: true });
-  const hostname = new URL(url).hostname;
+  const hostname = new URL(url).host;
   const { [hostname]: { adminUrl = '' } = {} } = await browser.storage.local.get(hostname);
   axios.defaults.baseURL = `http://${adminUrl}/api`;
 
@@ -14,6 +14,7 @@ export async function configureAxios() {
       const { token } = await browser.storage.local.get();
 
       if (token) {
+        // eslint-disable-next-line no-param-reassign
         config.headers[TOKEN_HEADER] = `Bearer ${token}`;
       }
 

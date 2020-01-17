@@ -11,26 +11,27 @@ interface Props {
 
 const optionsPage = BEM(styles);
 
-export const App = optionsPage(({ className }: Props) => {
-  return (
-    <div className={className}>
-      <Content>
-        <Header>Drill4J Extension Settings</Header>
-        <Version>Version: {packageJson.version}</Version>
-        <Link
-          href="https://github.com/Drill4J/browser-extension/releases"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+export const App = optionsPage(({ className }: Props) => (
+  <div className={className}>
+    <Content>
+      <Header>Drill4J Extension Settings</Header>
+      <Version>
+Version:
+        {packageJson.version}
+      </Version>
+      <Link
+        href="https://github.com/Drill4J/browser-extension/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
           About this version
-        </Link>
-        <Notification>
-          Extension settings are not available yet, but we're working on it. Stay tuned!
-        </Notification>
-      </Content>
-    </div>
-  );
-});
+      </Link>
+      <Notification>
+          Extension settings are not available yet, but we&apos;re working on it. Stay tuned!
+      </Notification>
+    </Content>
+  </div>
+));
 
 const Content = optionsPage.content('div');
 const Header = optionsPage.header('div');
