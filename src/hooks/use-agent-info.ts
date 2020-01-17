@@ -10,17 +10,16 @@ export function useAgentInfo(adminUrl?: string, agentId?: string) {
 
   useEffect(
     () => {
-      function handleDataChange(newData: any) {
+      function handleDataChange(newData: Agent) {
         setData(newData);
       }
 
-      const unsubscribe =
-        agentId && adminUrl
-          ? getDefaultAdminSocket(adminUrl, token).subscribe(
-              `/get-agent/${agentId}`,
-              handleDataChange,
-            )
-          : null;
+      const unsubscribe = agentId && adminUrl
+        ? getDefaultAdminSocket(adminUrl, token).subscribe(
+          `/get-agent/${agentId}`,
+          handleDataChange,
+        )
+        : null;
 
       return () => {
         unsubscribe && unsubscribe();

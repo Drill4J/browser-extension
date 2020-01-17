@@ -49,7 +49,7 @@ const Actions = loginPage.actions('div');
 const ActionButton = loginPage.actionButton(Button);
 const ForgotPassword = loginPage.forgotPassword('div');
 
-function handleLogin(push: (path: string, state?: any) => void) {
+function handleLogin(push: (path: string) => void) {
   axios.post('/login').then((response) => {
     const authToken = response.headers[TOKEN_HEADER.toLowerCase()];
     if (authToken) {

@@ -4,7 +4,7 @@ import { RouteProps, Route, Redirect } from 'react-router-dom';
 import { TOKEN_KEY } from '../../common/constants';
 
 interface PrivateRouteProps extends RouteProps {
-  component: React.ComponentType<any>;
+  component: React.ComponentType<unknown>;
 }
 
 export function isAuth() {
@@ -17,9 +17,7 @@ export function PrivateRoute(props: PrivateRouteProps) {
 
   return (
     <Route
-      render={() =>
-        isAuth() ? <Component {...props} /> : <Redirect to={{ pathname: '/login' }} />
-      }
+      render={() => (isAuth() ? <Component {...props} /> : <Redirect to={{ pathname: '/login' }} />)}
       {...rest}
     />
   );

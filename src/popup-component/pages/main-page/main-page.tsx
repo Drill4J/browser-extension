@@ -23,7 +23,7 @@ export const MainPage = withRouter(
   mainPage(({ className, history: { push } }: Props) => {
     React.useEffect(() => {
       browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
-        const hostname = new URL(url).hostname;
+        const hostname = new URL(url).host;
         browser.storage.local
           .get(hostname)
           .then(({ [hostname]: { adminUrl: defaultAdminUrl = '' } = {} }) => {
@@ -48,7 +48,9 @@ export const MainPage = withRouter(
       <div className={className}>
         <Header>
           <Panel>
-            <Icons.Planet /> <AgentName>{name}</AgentName>
+            <Icons.Planet />
+            {' '}
+            <AgentName>{name}</AgentName>
           </Panel>
           <AgentStatus status={status} />
         </Header>
@@ -74,5 +76,5 @@ const Header = mainPage.header('div');
 const AgentName = mainPage.agentName('div');
 const ActionsList = mainPage.actionsList('div');
 const ActionItem = mainPage.actionItem(Panel);
-const IconWrapper: React.ComponentType<any> = mainPage.iconWrapper(Panel);
+const IconWrapper = mainPage.iconWrapper(Panel as React.ComponentType<{align?: 'center'; active?: boolean}>);
 const RedirectIcon = mainPage.redirectIcon('div');

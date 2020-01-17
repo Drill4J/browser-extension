@@ -6,7 +6,7 @@ export function useActiveTab() {
 
   useEffect(() => {
     browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
-      const hostname = new URL(url).hostname;
+      const hostname = new URL(url).host;
       setActiveTab(hostname);
     });
   }, []);
