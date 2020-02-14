@@ -16,7 +16,7 @@ export const App = optionsPage(({ className }: Props) => (
     <Content>
       <Header>Drill4J Extension Settings</Header>
       <Version>
-Version:
+        Version:
         {packageJson.version}
       </Version>
       <Link
@@ -24,10 +24,10 @@ Version:
         target="_blank"
         rel="noopener noreferrer"
       >
-          About this version
+        About this version
       </Link>
       <Notification>
-          Extension settings are not available yet, but we&apos;re working on it. Stay tuned!
+        Extension settings are not available yet, but we&apos;re working on it. Stay tuned!
       </Notification>
     </Content>
   </div>
