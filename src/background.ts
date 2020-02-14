@@ -70,3 +70,22 @@ browser.webRequest.onHeadersReceived.addListener(
   },
   ['responseHeaders'],
 );
+
+browser.webRequest.onHeadersReceived.addListener(
+  responseInterceptor,
+  {
+    urls: ['*://*/*'],
+  },
+  ['responseHeaders'],
+);
+
+const drillHeaders = ['drill-group-id', 'drill-agent-id', 'drill-admin-url'];
+
+function responseInterceptor({ responseHeaders = [] }: WebRequest.OnHeadersReceivedDetailsType) {
+  const filtredHeaders = responseHeaders.filter(
+    ({ name }) => drillHeaders.includes(name),
+  ).map(({ name, value }) => ({ [toCamel(name)]: value }));
+}
+
+const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase()
+  .replace('-', ''));
