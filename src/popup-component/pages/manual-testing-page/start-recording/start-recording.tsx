@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
-import { browser } from 'webextension-polyfill-ts';
-import axios from 'axios';
 
 import { Icons, Input, Button } from '../../../../components';
 import { Panel } from '../../../../layouts';
 import { useAgentConfig, useActiveTab } from '../../../../hooks';
-import { AgentConfig } from '../../../../types/agent-config';
+import { startAgentSession, startGroupSession } from '../api';
 
 import styles from './start-recording.module.scss';
 
@@ -16,23 +14,6 @@ interface Props extends RouteComponentProps {
 }
 
 const startRecording = BEM(styles);
-
-async function startRecordingSession(activeTab: string, testName: string, config: AgentConfig) {
-  const {
-    data: {
-      payload: { sessionId },
-    },
-  } = await axios.post(`/agents/${config.agentId}/test-to-code-mapping/dispatch-action`, {
-    type: 'START',
-    payload: { testType: 'MANUAL' },
-  });
-
-  browser.storage.local.set({
-    [activeTab]: {
-      ...config, testName, isActive: true, sessionId, timerStart: Date.now(),
-    },
-  });
-}
 
 export const StartRecording = withRouter(
   startRecording(({ className, history: { push } }: Props) => {
@@ -66,7 +47,7 @@ export const StartRecording = withRouter(
             type="primary"
             disabled={!testName}
             onClick={async () => {
-              await startRecordingSession(activeTab, testName, config);
+              config.agentId ? await startAgentSession(activeTab, testName, config) : await startGroupSession(activeTab, testName, config);
               push('/manual-testing/in-progress');
             }}
           >
