@@ -19,17 +19,21 @@ const inProgress = BEM(styles);
 
 function finishRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
-  axios.post(`/agents/${config.agentId}/test-to-code-mapping/dispatch-action`, {
+  const { agentId, groupId, sessionId } = config;
+  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-group/${groupId}/plugin`}/test-to-code-mapping/dispatch-action`;
+  axios.post(requestURL, {
     type: 'STOP',
-    payload: { sessionId: config.sessionId },
+    payload: { sessionId },
   });
 }
 
 function cancelRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
-  axios.post(`/agents/${config.agentId}/test-to-code-mapping/dispatch-action`, {
+  const { agentId, groupId, sessionId } = config;
+  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-group/${groupId}/plugin`}/test-to-code-mapping/dispatch-action`;
+  axios.post(requestURL, {
     type: 'CANCEL',
-    payload: { sessionId: config.sessionId },
+    payload: { sessionId },
   });
 }
 
