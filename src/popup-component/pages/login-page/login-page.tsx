@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
-import Parser from 'html-react-parser';
 import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
 import { TOKEN_HEADER } from '../../../common/constants';
 import { Button, Input, Icons } from '../../../components';
-import Logo from './logo-inline.svg';
 
 import styles from './login-page.module.scss';
 
@@ -20,7 +18,6 @@ const loginPage = BEM(styles);
 export const LoginPage = withRouter(
   loginPage(({ className, history: { push } }: Props) => (
     <div className={className}>
-      <LogoWrapper>{Parser(Logo)}</LogoWrapper>
       <Content>
         <WelcomeMessage>Sign in to Drill4J</WelcomeMessage>
         <Credentials>
@@ -41,7 +38,6 @@ export const LoginPage = withRouter(
   )),
 );
 
-const LogoWrapper = loginPage.logoWrapper('div');
 const Content = loginPage.content('div');
 const WelcomeMessage = loginPage.message('div');
 const Credentials = loginPage.credentials('div');
