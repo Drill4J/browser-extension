@@ -47,7 +47,8 @@ browser.webRequest.onBeforeSendHeaders.addListener(
 function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceivedDetailsType) {
   const { value: adminUrl = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-admin-url') || {};
   const { value: agentId = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-agent-id') || {};
-  if (adminUrl && agentId) {
+  const { value: groupId = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-group-id') || {};
+  if (adminUrl && (agentId || groupId)) {
     const url = new URL(`https://${activeTab}`).host;
     browser.storage.local.get([url]).then(({ [url]: currentConfig }) => {
       browser.storage.local.set({
@@ -55,6 +56,7 @@ function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceive
           ...currentConfig,
           adminUrl,
           agentId,
+          groupId,
         },
       });
     });
