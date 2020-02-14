@@ -46,7 +46,7 @@ To get production bundle, follow these steps:
 
 `npm test` - run tests when changing files
 
-`npm lint` - run tslint
+`npm lint` - run eslint
 
 `npm typecheck` - run TypeScript typechecing
 
