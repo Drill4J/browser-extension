@@ -72,7 +72,13 @@ const options = {
       .concat(['.jsx', '.js', '.tsx', '.ts', '.css']),
   },
   plugins: [
-    new ExtensionReloader(),
+    new ExtensionReloader({
+      entries: {
+        contentScript: 'content',
+        background: 'background',
+        extensionPage: ['popup', 'options'],
+      },
+    }),
     new MiniCssExtractPlugin(),
     new CopyWebpackPlugin([
       { from: path.join(__dirname, 'src', 'manifest.json') },

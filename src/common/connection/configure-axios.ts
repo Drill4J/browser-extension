@@ -6,8 +6,8 @@ import { TOKEN_HEADER } from '../constants';
 export async function configureAxios() {
   const [{ url = '' }] = await browser.tabs.query({ active: true, currentWindow: true });
   const hostname = new URL(url).host;
-  const { [hostname]: { adminUrl = '' } = {} } = await browser.storage.local.get(hostname);
-  axios.defaults.baseURL = `http://${adminUrl}/api`;
+  const { [hostname]: { drillAdminUrl = '' } = {} } = await browser.storage.local.get(hostname);
+  axios.defaults.baseURL = `http://${drillAdminUrl}/api`;
 
   axios.interceptors.request.use(
     async (config) => {

@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
+import { Inputs, Button } from '@drill4j/ui-kit';
 
-import { Icons, Input, Button } from '../../../../components';
-import { Panel } from '../../../../layouts';
-import { useAgentConfig, useActiveTab } from '../../../../hooks';
+import { useAgentConfig } from '../../../../hooks';
 import { startAgentSession, startGroupSession } from '../api';
 
 import styles from './start-recording.module.scss';
@@ -18,7 +17,7 @@ const startRecording = BEM(styles);
 export const StartRecording = withRouter(
   startRecording(({ className, history: { push } }: Props) => {
     const [testName, setTestName] = React.useState('');
-    const activeTab = useActiveTab();
+    const activeTab = window.location.host;
     const config = useAgentConfig() || {};
     const handleOnChange: React.ChangeEventHandler<HTMLInputElement> = ({ currentTarget: { value } }) => {
       setTestName(value);
@@ -27,10 +26,7 @@ export const StartRecording = withRouter(
     return (
       <div className={className}>
         <Header>
-          <BackIcon>
-            <Icons.Arrow onClick={() => push('/')} />
-          </BackIcon>
-          Manual testing
+          New manual test
         </Header>
         <Content>
           <Message>
@@ -38,23 +34,23 @@ export const StartRecording = withRouter(
             collect coverage.
           </Message>
           <TestName>Test name</TestName>
-          <Input
+          <Inputs.Text
             placeholder="Give this test a name"
             value={testName}
-            onChange={handleOnChange}
+            onChange={handleOnChange as any}
           />
           <StartButton
             type="primary"
+            size="large"
             disabled={!testName}
             onClick={async () => {
-              config.agentId ? await startAgentSession(activeTab, testName, config) : await startGroupSession(activeTab, testName, config);
-              push('/manual-testing/in-progress');
+              config.drillAgentId
+                ? await startAgentSession(activeTab, testName, config)
+                : await startGroupSession(activeTab, testName, config);
+              push('/in-progress');
             }}
           >
-            <Panel align="center">
-              <StartButtonIcon />
-              Start a new test
-            </Panel>
+            Start a new test
           </StartButton>
         </Content>
       </div>
@@ -63,9 +59,7 @@ export const StartRecording = withRouter(
 );
 
 const Header = startRecording.header('div');
-const BackIcon = startRecording.backIcon('div');
 const Content = startRecording.content('div');
 const Message = startRecording.message('div');
 const TestName = startRecording.testName('div');
 const StartButton = startRecording.startButton(Button);
-const StartButtonIcon = startRecording.startButtonIcon(Icons.Start);
