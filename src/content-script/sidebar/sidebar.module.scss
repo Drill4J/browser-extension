@@ -1,0 +1,30 @@
+@import '../../common/style-guide/index';
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+
+  &__agent {
+    height: 40px;
+    cursor: pointer;
+  }
+
+  &__plugins-list {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  &__plugin-item {
+    height: 40px;
+    cursor: pointer;
+  }
+
+  &__logo {
+    height: 40px;
+    border-top: 1px solid map-get($color-palette, light-blue);
+  }
+}

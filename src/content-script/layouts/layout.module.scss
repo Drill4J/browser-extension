@@ -1,0 +1,48 @@
+@import '../../common/style-guide/index';
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 296px;
+  width: fit-content;
+  background-color: map-get($color-palette, ultra-light-blue);
+  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+  z-index: 9999999;
+
+  &__header {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 16px;
+    padding: 0 4px;
+    cursor: grab;
+    background-color: map-get($color-palette, blue100);
+    color: map-get($color-palette, white);
+    border-radius: 2px;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &__content-wrapper {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+  }
+
+  &__sidebar {
+    height: 100%;
+    width: 40px;
+  }
+
+  &__content {
+    min-width: 320px;
+    height: 100%;
+    background-color: map-get($color-palette, white);
+  }
+}
