@@ -1,74 +1,37 @@
 import { browser, WebRequest } from 'webextension-polyfill-ts';
 
-import { AgentConfig } from './types/agent-config';
+import { AgentConfig } from 'types/agent-config';
 
-let activeTab = '';
-let config: AgentConfig = {};
+let configMap: { [host: string]: AgentConfig } = {};
 
-browser.tabs.onActivated.addListener(({ tabId }) => {
-  browser.tabs.get(tabId).then(({ url = '' }) => {
-    const { host } = new URL(url);
-    activeTab = host;
+browser.storage.local.get().then((value) => {
+  if (value) {
+    configMap = value;
+  }
+});
 
-    browser.storage.local.get(host).then(({ [host]: value = {} }) => {
-      config = value;
-    });
+browser.storage.onChanged.addListener(() => {
+  browser.storage.local.get().then((value) => {
+    configMap = value;
   });
 });
 
-browser.storage.local.get(activeTab).then((value) => {
-  if (value) {
-    config = value;
-  }
-});
-
-browser.storage.onChanged.addListener(({ [activeTab]: { newValue = '' } = {} }) => {
-  if (newValue) {
-    config = newValue;
-  }
-});
-
-function addDrillHeaders({ requestHeaders = [] }: WebRequest.OnBeforeSendHeadersDetailsType) {
-  if (config.isActive) {
-    requestHeaders.push({ name: 'drill-session-id', value: config.sessionId });
-    requestHeaders.push({ name: 'drill-test-name', value: config.testName });
+function requestInteceptor({ requestHeaders = [], url }: WebRequest.OnBeforeSendHeadersDetailsType) {
+  const requestHost = getHost(url);
+  const { sessionId, testName, isActive } = configMap[requestHost];
+  if (isActive) {
+    requestHeaders.push({ name: 'drill-session-id', value: sessionId });
+    requestHeaders.push({ name: 'drill-test-name', value: testName });
   }
   return { requestHeaders };
 }
 
 browser.webRequest.onBeforeSendHeaders.addListener(
-  addDrillHeaders,
+  requestInteceptor,
   {
     urls: ['*://*/*'],
   },
   ['blocking', 'requestHeaders'],
-);
-
-function checkDrillAgentId({ responseHeaders = [] }: WebRequest.OnHeadersReceivedDetailsType) {
-  const { value: adminUrl = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-admin-url') || {};
-  const { value: agentId = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-agent-id') || {};
-  const { value: groupId = '' } = responseHeaders.find((header) => header.name.toLowerCase() === 'drill-group-id') || {};
-  if (adminUrl && (agentId || groupId)) {
-    const url = new URL(`https://${activeTab}`).host;
-    browser.storage.local.get([url]).then(({ [url]: currentConfig }) => {
-      browser.storage.local.set({
-        [url]: {
-          ...currentConfig,
-          adminUrl,
-          agentId,
-          groupId,
-        },
-      });
-    });
-  }
-}
-
-browser.webRequest.onHeadersReceived.addListener(
-  checkDrillAgentId,
-  {
-    urls: ['*://*/*'],
-  },
-  ['responseHeaders'],
 );
 
 browser.webRequest.onHeadersReceived.addListener(
@@ -79,13 +42,28 @@ browser.webRequest.onHeadersReceived.addListener(
   ['responseHeaders'],
 );
 
-const drillHeaders = ['drill-group-id', 'drill-agent-id', 'drill-admin-url'];
+const DRILL_RESPONSE_HEADERS = ['drill-group-id', 'drill-agent-id', 'drill-admin-url'];
 
-function responseInterceptor({ responseHeaders = [] }: WebRequest.OnHeadersReceivedDetailsType) {
-  const filtredHeaders = responseHeaders.filter(
-    ({ name }) => drillHeaders.includes(name),
-  ).map(({ name, value }) => ({ [toCamel(name)]: value }));
+const DRILL_REQUEST_HEADER = ['drill-session-id', 'drill-test-name'];
+
+function responseInterceptor({ responseHeaders = [], url }: WebRequest.OnHeadersReceivedDetailsType) {
+  const drillHeaders = responseHeaders.filter(
+    ({ name }) => DRILL_RESPONSE_HEADERS.includes(name),
+  ).reduce((acc, { name, value }) => ({ ...acc, [toCamel(name)]: value }), {});
+
+  Object.keys(drillHeaders).length && storeConfig(getHost(url), drillHeaders);
 }
 
-const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($1) => $1.toUpperCase()
+async function storeConfig(host: string, config?: { [key: string]: string | undefined }) {
+  const { [host]: currentConfig } = await browser.storage.local.get([host]);
+  if (!currentConfig) {
+    browser.storage.local.set({
+      [host]: { ...config },
+    });
+  }
+}
+
+const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($match) => $match.toUpperCase()
   .replace('-', ''));
+
+const getHost = (url: string) => new URL(url).host;
