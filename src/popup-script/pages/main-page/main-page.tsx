@@ -26,7 +26,7 @@ export const MainPage = withRouter(
         const hostname = new URL(url).host;
         browser.storage.local
           .get(hostname)
-          .then(({ [hostname]: { adminUrl: defaultAdminUrl = '' } = {} }) => {
+          .then(({ [hostname]: { drillAdminUrl: defaultAdminUrl = '' } = {} }) => {
             if (defaultAdminUrl) {
               axios.post('/login').then((response) => {
                 const authToken = response.headers[TOKEN_HEADER.toLowerCase()];
@@ -41,8 +41,8 @@ export const MainPage = withRouter(
           });
       });
     }, []);
-    const { isActive = false, adminUrl = '', agentId = '' } = useAgentConfig() || {};
-    const { name = '', status } = useAgentInfo(adminUrl, agentId) || {};
+    const { isActive = false, drillAdminUrl = '', drillAgentId = '' } = useAgentConfig() || {};
+    const { name = '', status } = useAgentInfo(drillAdminUrl, drillAgentId) || {};
 
     return (
       <div className={className}>
@@ -56,7 +56,8 @@ export const MainPage = withRouter(
         </Header>
         <ActionsList>
           <ActionItem
-            onClick={() => push(`/manual-testing/${isActive ? 'in-progress' : 'start-recording'}`)}
+            // onClick={() => push(`/manual-testing/${isActive ? 'in-progress' : 'start-recording'}`)}
+            onClick={() => browser.storage.local.set({ active: true })}
           >
             <IconWrapper align="center" active={isActive}>
               <Icons.Mouse />

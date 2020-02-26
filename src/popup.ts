@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { render } from 'react-dom';
-import { App } from './popup-component';
-import './common/style-guide/common.scss';
+import { App } from './popup-script';
+import './common/style-guide/_index.scss';
 import './common/style-guide/fonts/fonts.scss';
 import { configureAxios } from './common/connection';
 import './large-logo.png';

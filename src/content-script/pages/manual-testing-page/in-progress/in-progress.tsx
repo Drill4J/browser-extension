@@ -5,7 +5,7 @@ import { browser } from 'webextension-polyfill-ts';
 import axios from 'axios';
 
 import { Icons, Button, OverflowText } from '../../../../components';
-import { useAgentConfig, useActiveTab } from '../../../../hooks';
+import { useAgentConfig } from '../../../../hooks';
 import { AgentConfig } from '../../../../types/agent-config';
 import { Timer } from './timer';
 
@@ -19,8 +19,8 @@ const inProgress = BEM(styles);
 
 function finishRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
-  const { agentId, groupId, sessionId } = config;
-  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-groups/${groupId}`}/plugins/test2code/dispatch-action`;
+  const { drillAgentId, drillGroupId, sessionId } = config;
+  const requestURL = `${drillAgentId ? `/agents/${drillAgentId}` : `/service-group/${drillGroupId}/plugin`}/test-to-code-mapping/dispatch-action`;
   axios.post(requestURL, {
     type: 'STOP',
     payload: { sessionId },
@@ -29,8 +29,8 @@ function finishRecordingSession(activeTab: string, config: AgentConfig) {
 
 function cancelRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
-  const { agentId, groupId, sessionId } = config;
-  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-groups/${groupId}`}/plugins/test2code/dispatch-action`;
+  const { drillAgentId, drillGroupId, sessionId } = config;
+  const requestURL = `${drillAgentId ? `/agents/${drillAgentId}` : `/service-group/${drillGroupId}/plugin`}/test-to-code-mapping/dispatch-action`;
   axios.post(requestURL, {
     type: 'CANCEL',
     payload: { sessionId },
@@ -39,7 +39,7 @@ function cancelRecordingSession(activeTab: string, config: AgentConfig) {
 
 export const InProgress = withRouter(
   inProgress(({ className, history: { push } }: Props) => {
-    const activeTab = useActiveTab();
+    const activeTab = window.location.host;
     const config = useAgentConfig() || {};
     return (
       <div className={className}>
