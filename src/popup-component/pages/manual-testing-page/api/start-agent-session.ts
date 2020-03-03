@@ -5,7 +5,7 @@ import { AgentConfig } from '../../../../types/agent-config';
 
 export async function startAgentSession(activeTab: string, testName: string, config: AgentConfig) {
   const { agentId } = config;
-  const { data } = await axios.post(`/agents/${agentId}/test-to-code-mapping/dispatch-action`, {
+  const { data } = await axios.post(`/agents/${agentId}/plugins/test2code/dispatch-action`, {
     type: 'START',
     payload: { testType: 'MANUAL' },
   });
