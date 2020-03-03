@@ -20,7 +20,7 @@ const inProgress = BEM(styles);
 function finishRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
   const { agentId, groupId, sessionId } = config;
-  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-group/${groupId}/plugin`}/test-to-code-mapping/dispatch-action`;
+  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-groups/${groupId}`}/plugins/test2code/dispatch-action`;
   axios.post(requestURL, {
     type: 'STOP',
     payload: { sessionId },
@@ -30,7 +30,7 @@ function finishRecordingSession(activeTab: string, config: AgentConfig) {
 function cancelRecordingSession(activeTab: string, config: AgentConfig) {
   browser.storage.local.set({ [activeTab]: { ...config, isActive: false, timerStart: 0 } });
   const { agentId, groupId, sessionId } = config;
-  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-group/${groupId}/plugin`}/test-to-code-mapping/dispatch-action`;
+  const requestURL = `${agentId ? `/agents/${config.agentId}` : `/service-groups/${groupId}`}/plugins/test2code/dispatch-action`;
   axios.post(requestURL, {
     type: 'CANCEL',
     payload: { sessionId },
