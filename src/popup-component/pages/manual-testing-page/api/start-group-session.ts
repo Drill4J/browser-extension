@@ -5,7 +5,7 @@ import { AgentConfig } from '../../../../types/agent-config';
 
 export async function startGroupSession(activeTab: string, testName: string, config: AgentConfig) {
   const { groupId } = config;
-  const { data: [response] } = await axios.post(`/service-group/${groupId}/plugin/test-to-code-mapping/dispatch-action`, {
+  const { data: [response] } = await axios.post(`/service-groups/${groupId}/plugins/test2code/dispatch-action`, {
     type: 'START',
     payload: { testType: 'MANUAL' },
   });
