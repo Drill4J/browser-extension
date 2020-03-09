@@ -1,17 +1,15 @@
 @import '../../../../common/style-guide/index';
 
 .in-progress {
+  width: 320px;
+  height: 280px;
+
   &__header {
     display: flex;
     align-items: center;
-    height: 49px;
-    border-bottom: 1px solid map-get($color-palette, light-blue);
-    padding: 0 16px;
-    font-size: 14px;
-    line-height: 20px;
-    font-family: $semibold-font;
-    background-color: map-get($color-palette, green100);
-    color: map-get($color-palette, white);
+    padding: 12px 24px;
+    font-size: 16px;
+    line-height: 24px;
   }
 
   &__content {
@@ -24,6 +22,7 @@
   }
 
   &__timer-wrapper {
+    margin-left: 16px;
     font-size: 20px;
     line-height: 32px;
     text-align: center;
@@ -32,9 +31,10 @@
 
   &__instructions {
     font-size: 14px;
-    line-height: 22px;
-    text-align: center;
-    margin-bottom: 8px;
+    line-height: 20px;
+    margin-top: 8px;
+    margin-bottom: 32px;
+    color: $slate-gray;
   }
 
   &__finish-button {
@@ -50,12 +50,12 @@
   }
 
   &__cancel-button {
-    font-size: 14px;
-    font-family: $semibold-font;
-    line-height: 19px;
-    text-align: center;
     color: map-get($color-palette, red100);
+    border: 1px solid map-get($color-palette, red100);
     cursor: pointer;
-    margin-top: 16px;
+
+    &:hover {
+      border: 1px solid map-get($color-palette, red75);
+    }
   }
 }

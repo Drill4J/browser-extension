@@ -5,12 +5,13 @@
   flex-direction: column;
   height: 320px;
   width: 320px;
+  font-family: $regular-font;
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 47px;
+    height: 48px;
     border-bottom: 1px solid map-get($color-palette, light-blue);
     color: map-get($color-palette, middle-blue);
     padding: 0 16px;
@@ -23,37 +24,33 @@
     margin-left: 8px;
   }
 
-  &__actions-list {
-    display: flex;
-    flex-grow: 1;
+  &__content {
+    box-sizing: border-box;
+    margin: 16px;
+    font-size: 14px;
+    line-height: 20px;
+    color: $slate-gray;
   }
 
-  &__action-item {
-    height: 79px;
-    width: 100%;
-    border-bottom: 1px solid map-get($color-palette, light-blue);
-    padding: 0 16px;
-    position: relative;
-    cursor: pointer;
-  }
-
-  &__icon-wrapper {
+  &__footer {
+    box-sizing: border-box;
     height: 48px;
-    width: 48px;
-    border-radius: 24px;
-    background-color: map-get($color-palette, light-blue);
-    color: map-get($color-palette, middle-blue);
+    padding: 0 16px;
+    border-top: 1px solid map-get($color-palette, light-blue);
+    color: $slate-gray;
+  }
 
-    &--active {
-      color: map-get($color-palette, white);
-      background-color: map-get($color-palette, green100);
+  &__actions-panel {
+    margin-top: 32px;
+
+    & > :not(:last-child) {
+      margin-right: 16px;
     }
   }
 
-  &__redirect-icon {
-    position: absolute;
-    top: calc(50% - 8px);
-    right: 16px;
+  &__link {
     color: map-get($color-palette, blue100);
+    cursor: pointer;
+    text-decoration: none;
   }
 }

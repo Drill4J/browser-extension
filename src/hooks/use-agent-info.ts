@@ -5,7 +5,7 @@ import { useLocalStorage } from './use-local-storage';
 import { Agent } from '../types/agent';
 
 export function useAgentInfo(adminUrl?: string, agentId?: string) {
-  const { token = '' } = useLocalStorage('token') || {};
+  const { token = '' } = useLocalStorage<string>('token') || {};
   const [data, setData] = useState<Agent | null>(null);
 
   useEffect(
@@ -25,7 +25,7 @@ export function useAgentInfo(adminUrl?: string, agentId?: string) {
         unsubscribe && unsubscribe();
       };
     },
-    [adminUrl, agentId],
+    [adminUrl, agentId, token],
   );
 
   return data;

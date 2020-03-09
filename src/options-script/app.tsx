@@ -16,8 +16,7 @@ export const App = optionsPage(({ className }: Props) => (
     <Content>
       <Header>Drill4J Extension Settings</Header>
       <Version>
-        Version:
-        {packageJson.version}
+        {`Version: ${packageJson.version}`}
       </Version>
       <Link
         href="https://github.com/Drill4J/browser-extension/releases"

@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
 import { AgentConfig } from 'types/agent-config';
+import { configureAxios } from './common/connection';
 import { App } from './content-script';
 
 let configMap: { [host: string]: AgentConfig } = {};
@@ -28,8 +29,8 @@ function renderWidget() {
     root.id = 'drill-widget-root';
     document.body.appendChild(root);
     injectFonts();
-
-    render(React.createElement(App), root);
+    const { drillAdminUrl = '' } = configMap[window.location.host];
+    configureAxios(drillAdminUrl).then(() => render(React.createElement(App), root));
   }
 }
 
