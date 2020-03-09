@@ -8,8 +8,12 @@
   box-sizing: border-box;
 
   &__agent {
-    height: 40px;
+    height: 56px;
     cursor: pointer;
+  }
+
+  &__logo {
+    height: 26px;
   }
 
   &__plugins-list {
@@ -19,11 +23,19 @@
   }
 
   &__plugin-item {
-    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
     cursor: pointer;
+
+    &--active {
+      background-color: map-get($color-palette, white);
+      color: map-get($color-palette, blue100);
+    }
   }
 
-  &__logo {
+  &__drill-logo {
     height: 40px;
     border-top: 1px solid map-get($color-palette, light-blue);
   }

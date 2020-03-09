@@ -1,6 +1,7 @@
 @import '../../../../common/style-guide/index';
 
 .agent-status {
+  font-family: $semibold-font;
   &__content {
     &--status {
       &--online {

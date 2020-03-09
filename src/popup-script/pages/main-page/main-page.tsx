@@ -1,81 +1,84 @@
 import * as React from 'react';
-import { BEM } from '@redneckz/react-bem-helper';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
+import { BEM, tag } from '@redneckz/react-bem-helper';
 import { browser } from 'webextension-polyfill-ts';
-import axios from 'axios';
+import {
+  Icons, Panel, PanelSpread, Button, Spinner,
+} from '@drill4j/ui-kit';
 
-import { Icons } from '../../../components';
-import { Panel } from '../../../layouts';
-import { useAgentConfig, useAgentInfo } from '../../../hooks';
-import { TOKEN_HEADER } from '../../../common/constants';
-import { CompoundLabel } from './compound-label';
+import { AgentConfig } from 'types/agent-config';
+import { UnavailablePage } from '../unavailable-page';
+import { useAgentInfo, useLocalStorage } from '../../../hooks';
 import { AgentStatus } from './agent-status';
+import { withConfigs } from '../../with-configs';
+import { login } from '../../api';
 
 import styles from './main-page.module.scss';
 
-interface Props extends RouteComponentProps {
+interface Props {
   className?: string;
+  configs: AgentConfig;
 }
 
 const mainPage = BEM(styles);
 
-export const MainPage = withRouter(
-  mainPage(({ className, history: { push } }: Props) => {
-    React.useEffect(() => {
-      browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
-        const hostname = new URL(url).host;
-        browser.storage.local
-          .get(hostname)
-          .then(({ [hostname]: { drillAdminUrl: defaultAdminUrl = '' } = {} }) => {
-            if (defaultAdminUrl) {
-              axios.post('/login').then((response) => {
-                const authToken = response.headers[TOKEN_HEADER.toLowerCase()];
+export const MainPage = withConfigs(mainPage(({ className, configs: { drillAdminUrl, drillAgentId } = {} }: Props) => {
+  const { name = '', status } = useAgentInfo(drillAdminUrl, drillAgentId) || {};
+  const { active = false } = useLocalStorage<boolean>('active') || {};
 
-                if (authToken) {
-                  browser.storage.local.set({ token: authToken });
-                }
-              });
-            } else {
-              push('/unavailable-page');
-            }
-          });
-      });
-    }, []);
-    const { isActive = false, drillAdminUrl = '', drillAgentId = '' } = useAgentConfig() || {};
-    const { name = '', status } = useAgentInfo(drillAdminUrl, drillAgentId) || {};
+  React.useEffect(() => {
+    drillAdminUrl && login();
+  }, [drillAdminUrl]);
 
-    return (
-      <div className={className}>
-        <Header>
-          <Panel>
-            <Icons.Planet />
-            {' '}
-            <AgentName>{name}</AgentName>
-          </Panel>
-          <AgentStatus status={status} />
-        </Header>
-        <ActionsList>
-          <ActionItem
-            // onClick={() => push(`/manual-testing/${isActive ? 'in-progress' : 'start-recording'}`)}
-            onClick={() => browser.storage.local.set({ active: true })}
-          >
-            <IconWrapper align="center" active={isActive}>
-              <Icons.Mouse />
-            </IconWrapper>
-            <CompoundLabel firstLabel="Manual testing" secondLabel="For Test-2-Code plugin" />
-            <RedirectIcon>
-              <Icons.Expander />
-            </RedirectIcon>
-          </ActionItem>
-        </ActionsList>
-      </div>
-    );
-  }),
-);
+  return (
+    <div className={className}>
+      {drillAdminUrl ? (
+        <>
+          <Header>
+            <Panel>
+              <Icons.Planet />
+              <AgentName>{name}</AgentName>
+            </Panel>
+            <AgentStatus status={status} />
+          </Header>
+          <Content>
+            <div>Drill4J web widget allows you to record your test sessions and see test coverage results in real time.</div>
+            <ActionsPanel>
+              <Button type="primary" size="large" onClick={() => browser.storage.local.set({ active: true })} disabled={active}>
+                {active ? (
+                  <Panel align="center">
+                    <Spinner />
+                    <Panel>&nbsp;&nbsp;Running</Panel>
+                  </Panel>
+                ) : 'Run widget'}
+              </Button>
+              <Button type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
+                Widget settings
+              </Button>
+            </ActionsPanel>
+          </Content>
+          <PanelSpread />
+          <Footer>
+            Visit&nbsp;
+            <Link
+              href="http://drill4j.github.io"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Drill4J
+            </Link>
+            &nbsp;for additional info about the project.
+          </Footer>
+        </>
+      ) : <UnavailablePage />}
+    </div>
+  );
+}));
 
 const Header = mainPage.header('div');
 const AgentName = mainPage.agentName('div');
-const ActionsList = mainPage.actionsList('div');
-const ActionItem = mainPage.actionItem(Panel);
-const IconWrapper = mainPage.iconWrapper(Panel as React.ComponentType<{align?: 'center'; active?: boolean}>);
-const RedirectIcon = mainPage.redirectIcon('div');
+const Content = mainPage.content('div');
+const Footer = mainPage.footer(Panel);
+const ActionsPanel = mainPage.actionsPanel(Panel);
+const Link = mainPage.link(
+  tag('a')({ href: '', rel: '', target: '' } as { href: string; rel: string; target: string; children: React.ReactNode}),
+);

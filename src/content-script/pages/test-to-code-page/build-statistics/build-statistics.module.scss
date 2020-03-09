@@ -1,0 +1,28 @@
+@import '../../../../common/style-guide/index';
+
+.build-statistics {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  &__header {
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    font-family: $semibold-font;
+  }
+
+  &__label {
+    color: $slate-gray;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  &__value {
+    color: map-get($color-palette, black100);
+    font-family: $semibold-font;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: right;
+  }
+}
