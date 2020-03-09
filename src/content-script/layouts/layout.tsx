@@ -35,11 +35,9 @@ export const Layout = layout(({
       position={position}
     >
       <div className={className}>
-        <div className="drag-wrapper">
-          <Header>
-            {header}
-          </Header>
-        </div>
+        <Header>
+          {header}
+        </Header>
         <ContentWrapper>
           <Sidebar>
             {sidebar}

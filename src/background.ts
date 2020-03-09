@@ -18,7 +18,7 @@ browser.storage.onChanged.addListener(() => {
 
 function requestInteceptor({ requestHeaders = [], url }: WebRequest.OnBeforeSendHeadersDetailsType) {
   const requestHost = getHost(url);
-  const { sessionId, testName, isActive } = configMap[requestHost];
+  const { sessionId, testName, isActive } = configMap[requestHost] || {};
   if (isActive) {
     requestHeaders.push({ name: 'drill-session-id', value: sessionId });
     requestHeaders.push({ name: 'drill-test-name', value: testName });
@@ -56,11 +56,15 @@ function responseInterceptor({ responseHeaders = [], url }: WebRequest.OnHeaders
 
 async function storeConfig(host: string, config?: { [key: string]: string | undefined }) {
   const { [host]: currentConfig } = await browser.storage.local.get([host]);
-  if (!currentConfig) {
+  if (!currentConfig || !compareConfigs(currentConfig, config)) {
     browser.storage.local.set({
       [host]: { ...config },
     });
   }
+}
+
+function compareConfigs({ drillAgentId, drillAdminUrl, drillGroupId }: AgentConfig, newConfig?: { [key: string]: string | undefined }) {
+  return drillAgentId === newConfig?.drillAgentId && drillAdminUrl === newConfig?.drillAdminUrl && drillGroupId === newConfig?.drillGroupId;
 }
 
 const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($match) => $match.toUpperCase()

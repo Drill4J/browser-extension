@@ -1,0 +1,20 @@
+@import '../../../../../common/style-guide/index';
+
+.test-result {
+  display: flex;
+  justify-content: space-between;
+
+  &__label {
+    color: $slate-gray;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  &__value {
+    color: map-get($color-palette, black100);
+    font-family: $semibold-font;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: right;
+  }
+}

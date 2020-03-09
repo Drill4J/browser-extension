@@ -8,8 +8,14 @@ function useTimer() {
 
   React.useEffect(
     () => {
+      function updateTimer(timerStart?: number) {
+        timerStart && setTime(Date.now() - timerStart);
+      }
+
       const { timerStart } = config;
-      const interval = setInterval(() => timerStart && setTime(Date.now() - timerStart), 1000);
+      updateTimer(timerStart);
+      const interval = setInterval(() => updateTimer(timerStart), 1000);
+
       return () => {
         clearInterval(interval);
       };
