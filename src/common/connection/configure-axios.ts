@@ -3,10 +3,7 @@ import { browser } from 'webextension-polyfill-ts';
 
 import { TOKEN_HEADER } from '../constants';
 
-export async function configureAxios() {
-  const [{ url = '' }] = await browser.tabs.query({ active: true, currentWindow: true });
-  const hostname = new URL(url).host;
-  const { [hostname]: { drillAdminUrl = '' } = {} } = await browser.storage.local.get(hostname);
+export async function configureAxios(drillAdminUrl: string) {
   axios.defaults.baseURL = `http://${drillAdminUrl}/api`;
 
   axios.interceptors.request.use(
@@ -27,8 +24,7 @@ export async function configureAxios() {
     (response) => response,
     (error) => {
       if (error.response && error.response.status === 401) {
-        browser.storage.local.set({ token: '' });
-        window.location.href = '/login';
+        browser.storage.local.set({ token: '', active: false });
       }
 
       return Promise.reject(error);
