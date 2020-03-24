@@ -9,7 +9,6 @@
   background-color: map-get($color-palette, ultra-light-blue);
   box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.15);
   border-radius: 2px;
-  z-index: 9999999;
 
   &__header {
     box-sizing: border-box;
