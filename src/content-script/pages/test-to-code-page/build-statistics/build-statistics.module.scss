@@ -24,5 +24,18 @@
     font-size: 14px;
     line-height: 20px;
     text-align: right;
+
+    &--color {
+      &--red {
+        color: map-get($color-palette, red100);
+      }
+    }
+  }
+
+  &__instruction {
+    margin-top: 20px;
+    color: $slate-gray;
+    font-size: 14px;
+    line-height: 20px;
   }
 }

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { BEM, tag } from '@redneckz/react-bem-helper';
 import { browser } from 'webextension-polyfill-ts';
 import {
-  Icons, Panel, PanelSpread, Button, Spinner,
+  Icons, Panel, PanelSpread, Button,
 } from '@drill4j/ui-kit';
 
 import { AgentConfig } from 'types/agent-config';
@@ -43,13 +43,8 @@ export const MainPage = withConfigs(mainPage(({ className, configs: { drillAdmin
           <Content>
             <div>Drill4J web widget allows you to record your test sessions and see test coverage results in real time.</div>
             <ActionsPanel>
-              <Button type="primary" size="large" onClick={() => browser.storage.local.set({ active: true })} disabled={active}>
-                {active ? (
-                  <Panel align="center">
-                    <Spinner />
-                    <Panel>&nbsp;&nbsp;Running</Panel>
-                  </Panel>
-                ) : 'Run widget'}
+              <Button type="primary" size="large" onClick={() => browser.storage.local.set({ active: !active })}>
+                {active ? 'Close widget' : 'Run widget'}
               </Button>
               <Button type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
                 Widget settings

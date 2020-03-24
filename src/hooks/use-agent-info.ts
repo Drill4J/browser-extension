@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { browser } from 'webextension-polyfill-ts';
 
 import { getDefaultAdminSocket } from '../common/connection';
 import { useLocalStorage } from './use-local-storage';
@@ -12,6 +13,7 @@ export function useAgentInfo(adminUrl?: string, agentId?: string) {
     () => {
       function handleDataChange(newData: Agent) {
         setData(newData);
+        browser.storage.local.set({ agent: newData });
       }
 
       const unsubscribe = agentId && adminUrl

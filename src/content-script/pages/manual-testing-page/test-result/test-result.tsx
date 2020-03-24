@@ -6,7 +6,8 @@ import styles from './test-result.module.scss';
 interface Props {
   className?: string;
   label: string;
-  value?: string | number;
+  value?: React.ReactNode;
+  color?: 'red' | 'blue';
 }
 
 const testResult = BEM(styles);
