@@ -5,5 +5,6 @@ import './common/style-guide/_index.scss';
 import './common/style-guide/fonts/fonts.scss';
 import './large-logo.png';
 import './default-logo.png';
+import './popup.css';
 
 render(React.createElement(App), document.getElementById('root'));

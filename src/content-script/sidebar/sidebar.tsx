@@ -6,7 +6,9 @@ import { Icons, Panel } from '@drill4j/ui-kit';
 import { browser } from 'webextension-polyfill-ts';
 
 import { Plugin } from '../../types/plugin';
+import { useLocalStorage } from '../../hooks';
 import { useDispatcher } from '../hooks';
+import { AgentConfig } from '../../types/agent-config';
 
 import styles from './sidebar.module.scss';
 
@@ -22,6 +24,8 @@ const mock = [{ name: 'Test', id: 'manual-testing' }, { name: 'TestToCodeMapping
 export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
   const { push } = useHistory();
   const dispatcher = useDispatcher();
+  const { [window.location.host]: config } = useLocalStorage<AgentConfig>(window.location.host) || {};
+
   return (
     <div className={className}>
       <Agent align="center">
@@ -36,7 +40,11 @@ export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
               onClick={() => {
                 dispatcher({ type: 'SET_EXPANDED', payload: true });
                 browser.storage.local.set({ expanded: true });
-                push(`/${id}`);
+                if (id === 'manual-testing' && config.isActive) {
+                  push(`/${id}/in-progress`);
+                } else {
+                  push(`/${id}`);
+                }
               }}
               active
             >

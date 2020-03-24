@@ -15,26 +15,15 @@
   &__content {
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
     margin: 24px 20px;
     color: $slate-gray;
   }
 
-  &__timer-wrapper {
-    margin-left: 16px;
-    font-size: 20px;
-    line-height: 32px;
-    text-align: center;
-    color: map-get($color-palette, dark-blue);
-  }
-
-  &__instructions {
-    font-size: 14px;
-    line-height: 20px;
-    margin-top: 8px;
+  &__test-results-panel {
+    display: flex;
+    flex-direction: column;
     margin-bottom: 32px;
-    color: $slate-gray;
   }
 
   &__finish-button {
