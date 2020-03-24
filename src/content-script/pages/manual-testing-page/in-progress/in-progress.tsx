@@ -7,9 +7,11 @@ import {
 } from '@drill4j/ui-kit';
 import axios from 'axios';
 
-import { useAgentConfig } from '../../../../hooks';
+import { percentFormatter } from '../../../../utils';
+import { useAgentConfig, useActiveScope } from '../../../../hooks';
 import { AgentConfig } from '../../../../types/agent-config';
 import { Timer } from './timer';
+import { TestResult } from '../test-result';
 
 import styles from './in-progress.module.scss';
 
@@ -43,6 +45,7 @@ export const InProgress = inProgress(({ className }: Props) => {
   const { push } = useHistory();
   const activeTab = window.location.host;
   const config = useAgentConfig() || {};
+  const scope: any = useActiveScope(config.drillAdminUrl);
 
   return (
     <div className={className}>
@@ -50,13 +53,12 @@ export const InProgress = inProgress(({ className }: Props) => {
         <OverflowText>{config.testName}</OverflowText>
       </Header>
       <Content>
-        <Panel>
-          <Icons.Stopwatch height={32} width={28} />
-          <TimerWrapper>
-            <Timer />
-          </TimerWrapper>
-        </Panel>
-        <Instructions>Recording and analyzing your code coverage...</Instructions>
+        <TestResultsPanel>
+          <TestResult label="Test time" value={<Timer />} color="blue" />
+          <TestResult label="Code coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
+          <TestResult label="Risks methods covered" value={scope?.coverage?.riskCount?.covered} color="red" />
+          <TestResult label="Total methods covered" value={scope?.coverage?.methodCount?.covered} color="blue" />
+        </TestResultsPanel>
         <Panel align="space-between">
           <FinishButton
             type="secondary"
@@ -86,8 +88,7 @@ export const InProgress = inProgress(({ className }: Props) => {
 
 const Header = inProgress.header('div');
 const Content = inProgress.content('div');
-const TimerWrapper = inProgress.timerWrapper('div');
-const Instructions = inProgress.instructions('div');
+const TestResultsPanel = inProgress.testResultsPanel('div');
 const FinishButton = inProgress.finishButton(Button);
 const FinishButtonIcon = inProgress.finishButtonIcon(Icons.Check);
 const CancelButton = inProgress.cancelButton(Button);

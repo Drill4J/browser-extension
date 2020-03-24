@@ -5,6 +5,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { AgentConfig } from 'types/agent-config';
 import { configureAxios } from './common/connection';
 import { App } from './content-script';
+import './content.css';
 
 let configMap: { [host: string]: AgentConfig } = {};
 

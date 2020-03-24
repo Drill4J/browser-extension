@@ -22,7 +22,10 @@ const options = {
     rules: [
       {
         test: /\.css$/,
-        loader: 'style-loader!css-loader',
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+        ],
         exclude: /node_modules/,
       },
       {
