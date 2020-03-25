@@ -36,8 +36,10 @@
     box-sizing: border-box;
     height: 48px;
     padding: 0 16px;
-    border-top: 1px solid map-get($color-palette, light-blue);
     color: $slate-gray;
+    font-size: 10px;
+    letter-spacing: 0;
+    line-height: 12px;
   }
 
   &__actions-panel {
