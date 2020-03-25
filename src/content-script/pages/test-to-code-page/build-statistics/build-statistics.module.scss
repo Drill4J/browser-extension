@@ -33,9 +33,14 @@
   }
 
   &__instruction {
-    margin-top: 20px;
+    margin-top: 76px;
     color: $slate-gray;
-    font-size: 14px;
-    line-height: 20px;
+    font-size: 10px;
+    letter-spacing: 0;
+    line-height: 12px;
+  }
+
+  &__info-icon {
+    margin-right: 8px;
   }
 }

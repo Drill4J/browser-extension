@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BEM, div } from '@redneckz/react-bem-helper';
-import { Panel } from '@drill4j/ui-kit';
+import { Panel, Icons } from '@drill4j/ui-kit';
 
 import { useBuildCoverage, useAgentConfig } from '../../../../hooks';
 import { percentFormatter } from '../../../../utils';
@@ -44,6 +44,9 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
         <Value>{totalMethodCount}</Value>
       </Panel>
       <Instruction>
+        <InfoIcon>
+          <Icons.Info height={16} width={16} />
+        </InfoIcon>
         To update your build statistics with tests results finish the scope on your agent web page.
       </Instruction>
     </div>
@@ -53,4 +56,5 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
 const Header = buildStatistics.header('div');
 const Label = buildStatistics.label('div');
 const Value = buildStatistics.value(div({} as { color?: 'red'}));
-const Instruction = buildStatistics.instruction('div');
+const Instruction = buildStatistics.instruction(Panel);
+const InfoIcon = buildStatistics.infoIcon('div');
