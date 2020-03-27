@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { MemoryRouter, Route } from 'react-router-dom';
+import { DraggableEventHandler } from 'react-draggable';
 import { Panel, PanelSpread, Icons } from '@drill4j/ui-kit';
 import { browser } from 'webextension-polyfill-ts';
 
@@ -23,6 +24,11 @@ export const App = () => {
     }
     loadConfig();
   }, []);
+
+  const handlePositionChange: DraggableEventHandler = (e, { x, y }) => {
+    browser.storage.local.set({ position: { x, y } });
+    dispatch(savePosition({ x, y }));
+  };
 
   return (
     <MemoryRouter>
@@ -52,6 +58,7 @@ export const App = () => {
         )}
         sidebar={<Sidebar />}
         position={state.position}
+        onPositionChange={handlePositionChange}
       >
         {state.expanded && (
           <Panel align="center" verticalAlign="center">
