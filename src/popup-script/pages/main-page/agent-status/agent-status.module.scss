@@ -8,7 +8,7 @@
         color: map-get($color-palette, green100);
       }
       &--offline {
-        color: map-get($color-palette, red100);
+        color: $shade-gray;
       }
       &--busy {
         color: map-get($color-palette, yellow50);

@@ -63,8 +63,8 @@ async function storeConfig(host: string, config?: { [key: string]: string | unde
   }
 }
 
-function compareConfigs({ drillAgentId, drillAdminUrl, drillGroupId }: AgentConfig, newConfig?: { [key: string]: string | undefined }) {
-  return drillAgentId === newConfig?.drillAgentId && drillAdminUrl === newConfig?.drillAdminUrl && drillGroupId === newConfig?.drillGroupId;
+function compareConfigs({ drillAgentId, drillAdminUrl }: AgentConfig, newConfig?: { [key: string]: string | undefined }) {
+  return drillAgentId === newConfig?.drillAgentId && drillAdminUrl === newConfig?.drillAdminUrl;
 }
 
 const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($match) => $match.toUpperCase()
