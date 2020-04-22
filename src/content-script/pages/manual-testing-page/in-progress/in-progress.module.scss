@@ -16,8 +16,20 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin: 24px 20px;
+    margin: 12px 20px;
     color: $slate-gray;
+  }
+
+  &__test-timer {
+    margin-bottom: 8px;
+    font-size: 20px;
+    letter-spacing: 0;
+    line-height: 32px;
+    color: map-get($color-palette, black100);
+
+    :first-child {
+      margin-right: 8px;
+    }
   }
 
   &__test-results-panel {

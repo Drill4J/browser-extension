@@ -22,7 +22,7 @@ const sidebar = BEM(styles);
 const mock = [{ name: 'Test', id: 'manual-testing' }, { name: 'TestToCodeMapping', id: 'test-to-code' }];
 
 export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
-  const { push } = useHistory();
+  const { push, location: { pathname } } = useHistory();
   const dispatcher = useDispatcher();
   const { [window.location.host]: config } = useLocalStorage<AgentConfig>(window.location.host) || {};
 
@@ -32,7 +32,7 @@ export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
         <Logo />
       </Agent>
       <PluginsLinks>
-        {plugins.map(({ id, name }) => {
+        {plugins.map(({ id = '', name }) => {
           const Icon = Icons[name as keyof typeof Icons] || Icons.Plugins;
           return (
             <PluginItem
@@ -46,7 +46,7 @@ export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
                   push(`/${id}`);
                 }
               }}
-              active
+              active={pathname.slice(1).startsWith(id)}
             >
               <Icon height={16} width={16} />
             </PluginItem>
