@@ -44,8 +44,6 @@ browser.webRequest.onHeadersReceived.addListener(
 
 const DRILL_RESPONSE_HEADERS = ['drill-group-id', 'drill-agent-id', 'drill-admin-url'];
 
-const DRILL_REQUEST_HEADER = ['drill-session-id', 'drill-test-name'];
-
 function responseInterceptor({ responseHeaders = [], initiator = '' }: WebRequest.OnHeadersReceivedDetailsType & { initiator?: string }) {
   const drillHeaders = responseHeaders.filter(
     ({ name }) => DRILL_RESPONSE_HEADERS.includes(name.toLowerCase()),
@@ -54,7 +52,7 @@ function responseInterceptor({ responseHeaders = [], initiator = '' }: WebReques
   Object.keys(drillHeaders).length && storeConfig(getHost(initiator), drillHeaders);
 }
 
-async function storeConfig(host: string, config?: { [key: string]: string | undefined }) {
+async function storeConfig(host: string, config: { [key: string]: string | undefined }) {
   const { [host]: currentConfig } = await browser.storage.local.get([host]);
 
   if (!currentConfig || !compareConfigs(currentConfig, config)) {
@@ -64,8 +62,9 @@ async function storeConfig(host: string, config?: { [key: string]: string | unde
   }
 }
 
-function compareConfigs({ drillAgentId, drillAdminUrl }: AgentConfig, newConfig?: { [key: string]: string | undefined }) {
-  return drillAgentId === newConfig?.drillAgentId && drillAdminUrl === newConfig?.drillAdminUrl;
+function compareConfigs({ drillAgentId, drillGroupId, drillAdminUrl }: AgentConfig, newConfig: AgentConfig) {
+  const { drillAgentId: agentId, drillGroupId: groupId, drillAdminUrl: adminUrl } = newConfig;
+  return (drillAgentId === agentId || drillGroupId === groupId) && drillAdminUrl === adminUrl;
 }
 
 const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($match) => $match.toUpperCase()
