@@ -53,8 +53,11 @@ export const InProgress = inProgress(({ className }: Props) => {
         <OverflowText>{config.testName}</OverflowText>
       </Header>
       <Content>
+        <TestTimer>
+          <Icons.Stopwatch width={22} height={24} />
+          <Timer />
+        </TestTimer>
         <TestResultsPanel>
-          <TestResult label="Test time" value={<Timer />} color="blue" />
           <TestResult label="Code coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
           <TestResult label="Risks methods covered" value={scope?.coverage?.riskCount?.covered} color="red" />
           <TestResult label="Total methods covered" value={scope?.coverage?.methodCount?.covered} color="blue" />
@@ -88,6 +91,7 @@ export const InProgress = inProgress(({ className }: Props) => {
 
 const Header = inProgress.header('div');
 const Content = inProgress.content('div');
+const TestTimer = inProgress.testTimer(Panel);
 const TestResultsPanel = inProgress.testResultsPanel('div');
 const FinishButton = inProgress.finishButton(Button);
 const FinishButtonIcon = inProgress.finishButtonIcon(Icons.Check);
