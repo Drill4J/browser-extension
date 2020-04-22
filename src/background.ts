@@ -48,14 +48,15 @@ const DRILL_REQUEST_HEADER = ['drill-session-id', 'drill-test-name'];
 
 function responseInterceptor({ responseHeaders = [], initiator = '' }: WebRequest.OnHeadersReceivedDetailsType & { initiator?: string }) {
   const drillHeaders = responseHeaders.filter(
-    ({ name }) => DRILL_RESPONSE_HEADERS.includes(name),
-  ).reduce((acc, { name, value }) => ({ ...acc, [toCamel(name)]: value }), {});
+    ({ name }) => DRILL_RESPONSE_HEADERS.includes(name.toLowerCase()),
+  ).reduce((acc, { name, value }) => ({ ...acc, [toCamel(name.toLowerCase())]: value }), {});
 
   Object.keys(drillHeaders).length && storeConfig(getHost(initiator), drillHeaders);
 }
 
 async function storeConfig(host: string, config?: { [key: string]: string | undefined }) {
   const { [host]: currentConfig } = await browser.storage.local.get([host]);
+
   if (!currentConfig || !compareConfigs(currentConfig, config)) {
     browser.storage.local.set({
       [host]: { ...config },
