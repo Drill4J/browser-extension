@@ -57,8 +57,9 @@ export const InProgress = inProgress(({ className }: Props) => {
           <Icons.Stopwatch width={22} height={24} />
           <Timer />
         </TestTimer>
+        <ResultsLabel>Active scope statistics</ResultsLabel>
         <TestResultsPanel>
-          <TestResult label="Code coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
+          <TestResult label="Scope coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
           <TestResult label="Risks methods covered" value={scope?.coverage?.riskCount?.covered} color="red" />
           <TestResult label="Total methods covered" value={scope?.coverage?.methodCount?.covered} color="blue" />
         </TestResultsPanel>
@@ -92,6 +93,7 @@ export const InProgress = inProgress(({ className }: Props) => {
 const Header = inProgress.header('div');
 const Content = inProgress.content('div');
 const TestTimer = inProgress.testTimer(Panel);
+const ResultsLabel = inProgress.resultsLabel('div');
 const TestResultsPanel = inProgress.testResultsPanel('div');
 const FinishButton = inProgress.finishButton(Button);
 const FinishButtonIcon = inProgress.finishButtonIcon(Icons.Check);

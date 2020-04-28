@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  height: 296px;
+  height: 304px;
   width: fit-content;
   background-color: map-get($color-palette, ultra-light-blue);
   box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.15);
@@ -15,8 +15,8 @@
     display: flex;
     align-items: center;
     width: 100%;
-    height: 16px;
-    padding: 0 4px;
+    height: 24px;
+    padding: 0 8px;
     cursor: grab;
     background-color: map-get($color-palette, blue100);
     color: map-get($color-palette, white);
