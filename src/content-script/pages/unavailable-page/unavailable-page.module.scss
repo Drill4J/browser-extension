@@ -1,0 +1,27 @@
+@import '../../../common/style-guide/index';
+
+.unavailable-page {
+  width: 320px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  &__header {
+    margin-top: 8px;
+    font-size: 16px;
+    letter-spacing: 0;
+    line-height: 24px;
+  }
+
+  &__content {
+    margin-top: 8px;
+    padding: 0 24px;
+    font-size: 14px;
+    letter-spacing: 0;
+    line-height: 20px;
+    text-align: center;
+    color: $shade-gray;
+  }
+}

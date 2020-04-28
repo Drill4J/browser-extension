@@ -35,25 +35,29 @@ export const App = () => {
       <Layout
         header={(
           <Panel align="space-between">
-            <Icons.Close
-              height={8}
-              width={8}
-              onClick={() => {
-                browser.storage.local.set({ active: false });
-              }}
-            />
+            <div style={{ cursor: 'pointer' }}>
+              <Icons.Close
+                height={8}
+                width={8}
+                onClick={() => {
+                  browser.storage.local.set({ active: false });
+                }}
+              />
+            </div>
             <PanelSpread>
-              <div className="drag-wrapper" style={{ height: '15px' }} />
+              <div className="drag-wrapper" style={{ height: '24px' }} />
             </PanelSpread>
-            <Icons.Expander
-              height={8}
-              width={8}
-              onClick={() => {
-                browser.storage.local.set({ expanded: !state.expanded });
-                dispatch(setExpanded(!state.expanded));
-              }}
-              rotate={state.expanded ? 180 : 0}
-            />
+            <div style={{ cursor: 'pointer' }}>
+              <Icons.Expander
+                height={8}
+                width={8}
+                onClick={() => {
+                  browser.storage.local.set({ expanded: !state.expanded });
+                  dispatch(setExpanded(!state.expanded));
+                }}
+                rotate={state.expanded ? 180 : 0}
+              />
+            </div>
           </Panel>
         )}
         sidebar={<Sidebar />}
