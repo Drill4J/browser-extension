@@ -21,7 +21,6 @@
   }
 
   &__test-timer {
-    margin-bottom: 8px;
     font-size: 20px;
     letter-spacing: 0;
     line-height: 32px;
@@ -30,6 +29,15 @@
     :first-child {
       margin-right: 8px;
     }
+  }
+
+  &__results-label {
+    margin: 8px 0;
+    color: map-get($color-palette, black100);
+    font-family: $semibold-font;
+    font-size: 14px;
+    letter-spacing: 0;
+    line-height: 20px;
   }
 
   &__test-results-panel {
