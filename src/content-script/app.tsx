@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { MemoryRouter, Route } from 'react-router-dom';
+import { MemoryRouter, Route, Redirect } from 'react-router-dom';
 import { DraggableEventHandler } from 'react-draggable';
 import { Panel, PanelSpread, Icons } from '@drill4j/ui-kit';
 import { browser } from 'webextension-polyfill-ts';
