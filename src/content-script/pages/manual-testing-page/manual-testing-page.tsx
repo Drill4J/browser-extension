@@ -3,20 +3,21 @@ import {
   Switch, Route, useHistory,
 } from 'react-router-dom';
 
-import { useAgentConfig, useAgentInfo } from '../../../hooks';
+import { useLocalStorage, useAgentInfo } from '../../../hooks';
 
 import { StartRecording } from './start-recording';
 import { InProgress } from './in-progress';
 import { FinishRecording } from './finish-recording';
 import { UnavailablePage } from '../unavailable-page';
+import { AgentConfig } from '../../../types/agent-config';
 
 export const ManualTestingPage = () => {
   const { push, location: { pathname } } = useHistory();
-  const config = useAgentConfig();
+  const { [window.location.host]: config } = useLocalStorage<AgentConfig>(window.location.host) || {};
   const { status = '' } = useAgentInfo(config?.drillAdminUrl, config?.drillAgentId) || {};
 
   React.useEffect(() => {
-    if ((status === 'BUSY' || status === 'OFFLINE') && pathname === '/manual-testing') {
+    if ((status === 'BUSY' || status === 'OFFLINE') && pathname.startsWith('/manual-testing')) {
       push('/unavailable-page');
     } else if (pathname !== '/unavailable-page' && pathname !== '/test-to-code') {
       config?.isActive ? push('/manual-testing/in-progress') : push('/manual-testing');
