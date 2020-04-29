@@ -50,7 +50,7 @@ export const MainPage = withConfigs(mainPage(({ className, configs: { drillAdmin
           <Content>
             <div>Drill4J web widget allows you to record your test sessions and see test coverage results in real time.</div>
             <ActionsPanel>
-              <Button type="primary" size="large" onClick={() => browser.storage.local.set({ active: !active })}>
+              <Button type="primary" size="large" onClick={() => browser.storage.local.set({ active: !active })} disabled={!active && status !== 'ONLINE'}>
                 {active ? 'Close widget' : 'Run widget'}
               </Button>
               <Button type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
