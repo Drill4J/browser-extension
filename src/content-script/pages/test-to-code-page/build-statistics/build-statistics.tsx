@@ -17,7 +17,7 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
   const config = useAgentConfig() || {};
   const {
     ratio = 0,
-    methodCount: { total: totalMethodCount = 0 } = {},
+    methodCount: { total: totalMethodCount = 0, covered: coveredMethodCount = 0 } = {},
     riskCount: { total: totalRiskCount = 0, covered: coveredRiskCount = 0 } = {},
   }: any = useBuildCoverage(config.drillAdminUrl) || {};
 
@@ -33,7 +33,7 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
       </Panel>
       <Panel align="space-between">
         <Label>Covered methods:</Label>
-        <Value>{totalMethodCount}</Value>
+        <Value>{coveredMethodCount}</Value>
       </Panel>
       <Panel align="space-between">
         <Label>Risk methods to cover:</Label>
