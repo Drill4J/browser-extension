@@ -31,6 +31,13 @@
     }
   }
 
+  &__warning-message {
+    margin: 8px 0;
+    font-size: 14px;
+    letter-spacing: 0;
+    line-height: 20px;
+  }
+
   &__results-label {
     margin: 8px 0;
     color: map-get($color-palette, black100);
