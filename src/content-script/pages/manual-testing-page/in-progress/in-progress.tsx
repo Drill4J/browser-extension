@@ -57,12 +57,21 @@ export const InProgress = inProgress(({ className }: Props) => {
           <Icons.Stopwatch width={22} height={24} />
           <Timer />
         </TestTimer>
-        <ResultsLabel>Active scope statistics</ResultsLabel>
-        <TestResultsPanel>
-          <TestResult label="Scope coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
-          <TestResult label="Risks methods covered" value={scope?.coverage?.riskCount?.covered} color="red" />
-          <TestResult label="Total methods covered" value={scope?.coverage?.methodCount?.covered} color="blue" />
-        </TestResultsPanel>
+        {config.drillGroupId ? (
+          <WarningMessage>
+            Realtime coverage collection is unavailable for service groups.
+          </WarningMessage>
+        )
+          : (
+            <>
+              <ResultsLabel>Active scope statistics</ResultsLabel>
+              <TestResultsPanel>
+                <TestResult label="Scope coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
+                <TestResult label="Risks methods covered" value={scope?.coverage?.riskCount?.covered} color="red" />
+                <TestResult label="Total methods covered" value={scope?.coverage?.methodCount?.covered} color="blue" />
+              </TestResultsPanel>
+            </>
+          )}
         <Panel align="space-between">
           <FinishButton
             type="secondary"
@@ -93,6 +102,7 @@ export const InProgress = inProgress(({ className }: Props) => {
 const Header = inProgress.header('div');
 const Content = inProgress.content('div');
 const TestTimer = inProgress.testTimer(Panel);
+const WarningMessage = inProgress.warningMessage('span');
 const ResultsLabel = inProgress.resultsLabel('div');
 const TestResultsPanel = inProgress.testResultsPanel('div');
 const FinishButton = inProgress.finishButton(Button);
