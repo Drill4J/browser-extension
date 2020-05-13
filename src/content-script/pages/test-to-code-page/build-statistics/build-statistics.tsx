@@ -41,7 +41,7 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
       </Panel>
       <Panel align="space-between">
         <Label>Total methods to cover:</Label>
-        <Value>{totalMethodCount}</Value>
+        <Value>{totalMethodCount - coveredMethodCount}</Value>
       </Panel>
       <Instruction>
         <InfoIcon>
