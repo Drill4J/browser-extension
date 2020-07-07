@@ -20,7 +20,7 @@ export const withConfigs = <P extends InjectedProps = InjectedProps>(
     async function setupConnection() {
       const currentConfigs = await getConfigs();
       if (currentConfigs.drillAdminUrl) {
-        configureAxios(currentConfigs.drillAdminUrl);
+        await configureAxios(currentConfigs.drillAdminUrl);
         setConfigs(currentConfigs);
       }
     }

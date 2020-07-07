@@ -3,8 +3,11 @@ import { browser } from 'webextension-polyfill-ts';
 
 import { TOKEN_HEADER } from '../constants';
 
+// TODO: temprorary solution should be removed
+import { checkHttps } from './check-https';
+
 export async function configureAxios(drillAdminUrl: string) {
-  axios.defaults.baseURL = `http://${drillAdminUrl}/api`;
+  await checkHttps(drillAdminUrl);
 
   axios.interceptors.request.use(
     async (config) => {
