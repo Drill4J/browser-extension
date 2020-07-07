@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
-    "@drill4j/ui-kit": "^0.1.8",
+    "@drill4j/ui-kit": "^0.1.13",
     "@redneckz/react-bem-helper": "^2.0.3",
     "@redneckz/react-dispatcher": "^0.0.6",
     "@types/axios": "^0.14.0",

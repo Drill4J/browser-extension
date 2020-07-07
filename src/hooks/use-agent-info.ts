@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { browser } from 'webextension-polyfill-ts';
+import axios from 'axios';
 
 import { getDefaultAdminSocket } from '../common/connection';
 import { useLocalStorage } from './use-local-storage';
