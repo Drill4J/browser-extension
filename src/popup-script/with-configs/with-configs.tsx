@@ -2,11 +2,11 @@
 import * as React from 'react';
 import { browser } from 'webextension-polyfill-ts';
 
-import { AgentConfig } from 'types/agent-config';
+import { DomainConfig } from 'types/domain-config';
 import { configureAxios } from '../../common/connection';
 
 interface InjectedProps {
-  configs?: AgentConfig;
+  configs?: DomainConfig;
 }
 
 type ReturnType<T> = React.SFC<Pick<T, Exclude<keyof T, keyof InjectedProps>>>
@@ -36,7 +36,7 @@ export const withConfigs = <P extends InjectedProps = InjectedProps>(
 async function getConfigs() {
   const [{ url = '' }] = await browser.tabs.query({ active: true, currentWindow: true });
   const { host } = new URL(url);
-  const { [host]: config } = await browser.storage.local.get(host);
+  const { domains: { [host]: config } } = await browser.storage.local.get('domains');
 
   return config;
 }

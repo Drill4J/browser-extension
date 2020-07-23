@@ -26,7 +26,6 @@ export const FinishRecording = finishRecording(({ className }: Props) => {
     } = {},
   }: any = useActiveScope(drillAdminUrl) || {};
 
-
   const seconds = (`0${Math.floor((Date.now() - timerStart) / 1000) % 60}`).slice(-2);
   const minutes = (`0${Math.floor((Date.now() - timerStart) / 60000) % 60}`).slice(-2);
   const hours = (`0${Math.floor((Date.now() - timerStart) / 3600000)}`).slice(-2);
