@@ -9,7 +9,7 @@ import axios from 'axios';
 
 import { percentFormatter } from '../../../../utils';
 import { useAgentConfig, useActiveScope } from '../../../../hooks';
-import { AgentConfig } from '../../../../types/agent-config';
+import { DomainConfig } from '../../../../types/domain-config';
 import { Timer } from './timer';
 import { TestResult } from '../test-result';
 
@@ -21,18 +21,38 @@ interface Props {
 
 const inProgress = BEM(styles);
 
-function finishRecordingSession(activeTab: string, config: AgentConfig) {
-  browser.storage.local.set({ [activeTab]: { ...config, isActive: false } });
-  const { drillAgentId, drillGroupId, sessionId } = config;
-  const requestURL = `${drillAgentId ? `/agents/${drillAgentId}` : `/service-groups/${drillGroupId}`}/plugins/test2code/dispatch-action`;
-  axios.post(requestURL, {
-    type: 'STOP',
-    payload: { sessionId },
-  });
+async function finishRecordingSession(activeTab: string, config: DomainConfig) {
+  const { domains } = await browser.storage.local.get('domains') || {};
+  browser.storage.local.set({ domains: { ...domains, [activeTab]: { ...config, isActive: false } } });
+  const {
+    drillAgentId, drillGroupId, sessionId, drillAgentType = 'Java', drillAdminUrl, testName,
+  } = config;
+
+  if (drillAgentType === 'JS') {
+    const connection = axios.create({ baseURL: `http://${drillAdminUrl}` });
+
+    const { coverage, scriptSources } = await browser.runtime.sendMessage({ action: 'FINISH_TEST', testName });
+
+    connection.patch(`/agents/${drillAgentId}/plugins/test2code/sessions/${sessionId} `, {
+      test: {
+        name: testName,
+        type: 'manual',
+      },
+      coverage,
+      scriptSources,
+    });
+  } else {
+    const requestURL = `${drillAgentId ? `/agents/${drillAgentId}` : `/service-groups/${drillGroupId}`}/plugins/test2code/dispatch-action`;
+    axios.post(requestURL, {
+      type: 'STOP',
+      payload: { sessionId },
+    });
+  }
 }
 
-function cancelRecordingSession(activeTab: string, config: AgentConfig) {
-  browser.storage.local.set({ [activeTab]: { ...config, isActive: false } });
+async function cancelRecordingSession(activeTab: string, config: DomainConfig) {
+  const { domains } = await browser.storage.local.get('domains') || {};
+  browser.storage.local.set({ domains: { ...domains, [activeTab]: { ...config, isActive: false } } });
   const { drillAgentId, drillGroupId, sessionId } = config;
   const requestURL = `${drillAgentId ? `/agents/${drillAgentId}` : `/service-groups/${drillGroupId}`}/plugins/test2code/dispatch-action`;
   axios.post(requestURL, {

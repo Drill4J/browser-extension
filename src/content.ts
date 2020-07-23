@@ -2,17 +2,17 @@ import * as React from 'react';
 import { render } from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 
-import { AgentConfig } from 'types/agent-config';
+import { DomainConfig } from 'types/domain-config';
 import { configureAxios } from './common/connection';
 import { App } from './content-script';
 import './content.css';
 
-let configMap: { [host: string]: AgentConfig } = {};
+let configMap: { domains?: { [host: string]: DomainConfig }; active?: boolean } = {};
 
 browser.storage.local.get().then((value) => {
   if (value) {
     configMap = value;
-    configMap[window.location.host] && configMap.active && renderWidget();
+    configMap.domains && configMap.domains[window.location.host] && configMap.active && renderWidget();
   }
 });
 
@@ -30,7 +30,7 @@ function renderWidget() {
     root.id = 'drill-widget-root';
     document.body.appendChild(root);
     injectFonts();
-    const { drillAdminUrl = '' } = configMap[window.location.host];
+    const { drillAdminUrl = '' } = configMap.domains ? configMap.domains[window.location.host] : {};
     configureAxios(drillAdminUrl).then(() => render(React.createElement(App), root));
   }
 }
