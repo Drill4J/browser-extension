@@ -1,6 +1,6 @@
 {
   "name": "@drill4j/browser-extension",
-  "version": "0.3.15",
+  "version": "0.3.16",
   "license": "Apache-2.0",
   "scripts": {
     "build": "NODE_ENV=production webpack",
