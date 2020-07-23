@@ -1,0 +1,19 @@
+@import '../../../common/style-guide/index';
+
+.actions-column {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 16px;
+  color: map-get($color-palette, blue100);
+
+  & > * {
+    cursor: pointer;
+  }
+
+  & > :not(:last-child) {
+    margin-right: 39px;
+  }
+}

@@ -6,7 +6,7 @@ import {
   Panel, PanelSpread, Button, OverflowText,
 } from '@drill4j/ui-kit';
 
-import { AgentConfig } from 'types/agent-config';
+import { DomainConfig } from 'types/domain-config';
 import { UnavailablePage } from '../unavailable-page';
 import { useAgentInfo, useLocalStorage } from '../../../hooks';
 import { AgentStatus } from './agent-status';
@@ -17,7 +17,7 @@ import styles from './main-page.module.scss';
 
 interface Props {
   className?: string;
-  configs: AgentConfig;
+  configs: DomainConfig;
 }
 
 const mainPage = BEM(styles);
