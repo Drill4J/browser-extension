@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { Inputs, Button } from '@drill4j/ui-kit';
 
 import { useAgentConfig } from '../../../../hooks';
-import { startAgentSession, startGroupSession } from '../api';
+import { startGroupSession, startSession } from '../api';
 
 import styles from './start-recording.module.scss';
 
@@ -46,7 +46,7 @@ export const StartRecording = startRecording(({ className }: Props) => {
             disabled={!testName}
             onClick={async () => {
               config.drillAgentId
-                ? await startAgentSession(activeTab, testName, config)
+                ? await startSession(activeTab, testName, config)
                 : await startGroupSession(activeTab, testName, config);
               push('/manual-testing/in-progress');
             }}

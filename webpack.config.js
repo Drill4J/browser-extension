@@ -3,7 +3,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExtensionReloader = require('webpack-extension-reloader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-
 const fileExtensions = ['jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'svg', 'ttf', 'woff', 'woff2'];
 
 const options = {
@@ -79,6 +78,7 @@ const options = {
       entries: {
         contentScript: 'content',
         background: 'background',
+        optionsScript: 'options',
         extensionPage: ['popup', 'options'],
       },
     }),

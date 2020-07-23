@@ -13,7 +13,7 @@ import { AgentConfig } from '../../../types/agent-config';
 
 export const ManualTestingPage = () => {
   const { push, location: { pathname } } = useHistory();
-  const { [window.location.host]: config } = useLocalStorage<AgentConfig>(window.location.host) || {};
+  const { domains: { [window.location.host]: config } = {} } = useLocalStorage<AgentConfig>('domains') || {};
   const { status = '' } = useAgentInfo(config?.drillAdminUrl, config?.drillAgentId) || {};
 
   React.useEffect(() => {

@@ -10,7 +10,6 @@ import { reducer, savePosition, setExpanded } from './reducer';
 import { Sidebar } from './sidebar';
 import { ManualTestingPage, TestToCodePage } from './pages';
 
-
 export const App = () => {
   const [state, dispatch] = React.useReducer(reducer, { expanded: false });
   useDispatcher(state, dispatch);
