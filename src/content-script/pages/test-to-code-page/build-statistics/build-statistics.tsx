@@ -16,7 +16,7 @@ const buildStatistics = BEM(styles);
 export const BuildStatistics = buildStatistics(({ className }: Props) => {
   const config = useAgentConfig() || {};
   const {
-    ratio = 0,
+    percentage = 0,
     methodCount: { total: totalMethodCount = 0, covered: coveredMethodCount = 0 } = {},
     riskCount: { total: totalRiskCount = 0, covered: coveredRiskCount = 0 } = {},
   }: any = useBuildCoverage(config.drillAdminUrl) || {};
@@ -27,7 +27,7 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
       <Panel align="space-between">
         <Label>Code coverage</Label>
         <Value>
-          {percentFormatter(ratio)}
+          {percentFormatter(percentage)}
           %
         </Value>
       </Panel>
