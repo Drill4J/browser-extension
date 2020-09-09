@@ -86,7 +86,7 @@ export const InProgress = inProgress(({ className }: Props) => {
             <>
               <ResultsLabel>Active scope statistics</ResultsLabel>
               <TestResultsPanel>
-                <TestResult label="Scope coverage" value={`${percentFormatter(scope?.coverage?.ratio || 0)}%`} color="blue" />
+                <TestResult label="Scope coverage" value={`${percentFormatter(scope?.coverage?.percentage || 0)}%`} color="blue" />
                 <TestResult label="Risks methods covered" value={scope?.coverage?.riskCount?.covered} color="red" />
                 <TestResult label="Total methods covered" value={scope?.coverage?.methodCount?.covered} color="blue" />
               </TestResultsPanel>

@@ -76,7 +76,7 @@ const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($match) => $match
 
 const getHost = (url: string) => new URL(url).host;
 
-browser.runtime.onMessage.addListener((request: any, sender: any, sendResponse: any) => {
+browser.runtime.onMessage.addListener((request: any, sender: any) => {
   if (request.action === 'START_TEST') {
     startTest(sender.tab);
   }
