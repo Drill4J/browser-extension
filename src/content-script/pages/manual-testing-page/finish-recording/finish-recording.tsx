@@ -20,7 +20,7 @@ export const FinishRecording = finishRecording(({ className }: Props) => {
   const { testName = '', timerStart = 0, drillAdminUrl = '' } = useAgentConfig() || {};
   const {
     coverage: {
-      ratio = 0,
+      percentage = 0,
       riskCount: { covered: risksCovered = 0 } = {},
       methodCount: { covered: methodCount = 0 } = {},
     } = {},
@@ -39,7 +39,7 @@ export const FinishRecording = finishRecording(({ className }: Props) => {
         <Title>Testing finished</Title>
         <TestResultsPanel>
           <TestResult label="Test time" value={`${hours}:${minutes}:${seconds}`} />
-          <TestResult label="Code coverage" value={`${percentFormatter(ratio)}%`} />
+          <TestResult label="Code coverage" value={`${percentFormatter(percentage)}%`} />
           <TestResult label="Risks methods covered" value={risksCovered} />
           <TestResult label="Total methods covered" value={methodCount} />
         </TestResultsPanel>
