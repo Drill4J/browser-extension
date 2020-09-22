@@ -9,3 +9,4 @@ localization/translated/en.json
 .DS_Store
 
 *.iml
+build.zip

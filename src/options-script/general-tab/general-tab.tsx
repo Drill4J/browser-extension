@@ -31,7 +31,7 @@ export const GeneralTab = generalTab(({ className }: Props) => {
           <Column
             name="host"
             label="Host"
-            Cell={({ value }) => <LinkColumn value={value} convertToUrl={false} />}
+            Cell={LinkColumn}
 
           />
           <Column name="drillAgentId" label="Agent ID" />
