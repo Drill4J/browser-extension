@@ -55,7 +55,7 @@ export const EditSettingsModal = editSettingsModal(({ className, domain = {}, on
                 <Field
                   name="drillAdminUrl"
                   component={Fields.Input}
-                  placeholder="hostname:port"
+                  placeholder="protocol://hostname:port"
                 />
               </FormGroup>
               <FormGroup label="Agent Type">
@@ -96,7 +96,7 @@ const ActionsPanel = editSettingsModal.actionsPanel(Panel);
 function saveDomain(callback: (value: boolean) => void) {
   return async ({ host, ...rest }: { host: string} & DomainConfig) => {
     const { domains } = await browser.storage.local.get('domains');
-    await browser.storage.local.set({ domains: { ...domains, [host]: { ...rest } } });
+    await browser.storage.local.set({ domains: { ...domains, [host]: { ...rest, custom: true } } });
     callback(false);
   };
 }

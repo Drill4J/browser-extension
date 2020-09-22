@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { getDefaultPluginSocket } from '../common/connection';
+import { getDefaultTest2CodeSocket } from '../common/connection';
 import { useLocalStorage } from './use-local-storage';
 import { Agent } from '../types/agent';
 
@@ -16,7 +16,7 @@ export function useActiveScope(adminUrl?: string) {
       }
 
       const unsubscribe = id && adminUrl
-        ? getDefaultPluginSocket(adminUrl, token).subscribe(
+        ? getDefaultTest2CodeSocket(token).subscribe(
           '/active-scope',
           handleDataChange,
           { agentId: id, buildVersion },

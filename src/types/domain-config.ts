@@ -7,4 +7,5 @@ export interface DomainConfig {
   testName?: string;
   sessionId?: string;
   timerStart?: number;
+  custom?: boolean;
 }

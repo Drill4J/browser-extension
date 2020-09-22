@@ -11,11 +11,8 @@ interface Props {
 
 const linkColumn = BEM(styles);
 
-export const LinkColumn = linkColumn(({ className, value, convertToUrl = true }: Props) => {
-  const url = `http://${value}`;
-  return (
-    <a className={className} href={url} target="_blank" rel="noopener noreferrer">
-      {convertToUrl ? url : value}
-    </a>
-  );
-});
+export const LinkColumn = linkColumn(({ className, value }: Props) => (
+  <a className={className} href={value} target="_blank" rel="noopener noreferrer">
+    {value}
+  </a>
+));

@@ -17,7 +17,7 @@ export function useAgentInfo(adminUrl?: string, agentId?: string) {
       }
 
       const unsubscribe = agentId && adminUrl
-        ? getDefaultAdminSocket(adminUrl, token).subscribe(
+        ? getDefaultAdminSocket(token).subscribe(
           `/agents/${agentId}`,
           handleDataChange,
         )
