@@ -72,7 +72,7 @@ async function storeConfig(host: string, config: { [key: string]: string }) {
 
 function compareConfigs({ drillAgentId, drillGroupId, drillAdminUrl }: DomainConfig, newConfig: DomainConfig) {
   const { drillAgentId: agentId, drillGroupId: groupId, drillAdminUrl: adminUrl } = newConfig;
-  return (drillAgentId === agentId || drillGroupId === groupId) && drillAdminUrl === adminUrl;
+  return (drillAgentId === agentId || drillGroupId === groupId) && drillAdminUrl === `http://${adminUrl}`;
 }
 
 const toCamel = (srt: string) => srt.replace(/([-_][a-z])/ig, ($match) => $match.toUpperCase()
