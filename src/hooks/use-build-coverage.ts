@@ -19,7 +19,7 @@ export function useBuildCoverage(adminUrl?: string) {
         ? getDefaultTest2CodeSocket(token).subscribe(
           '/build/coverage',
           handleDataChange,
-          { agentId: id, buildVersion },
+          { agentId: id, buildVersion, type: 'AGENT' },
         )
         : null;
 
