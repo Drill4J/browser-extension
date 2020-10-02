@@ -19,7 +19,7 @@ export function useActiveScope(adminUrl?: string) {
         ? getDefaultTest2CodeSocket(token).subscribe(
           '/active-scope',
           handleDataChange,
-          { agentId: id, buildVersion },
+          { agentId: id, buildVersion, type: 'AGENT' },
         )
         : null;
 
