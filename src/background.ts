@@ -90,11 +90,15 @@ const getHost = (url: string) => {
 
 browser.runtime.onMessage.addListener((request: any, sender: any) => {
   if (request.action === 'START_TEST') {
-    startTest(sender.tab);
+    startTest(sender.tab); // TODO why not return
   }
 
   if (request.action === 'FINISH_TEST') {
     return Promise.resolve(stopTest(sender.tab));
+  }
+
+  if (request.action === 'IS_JS_RECORDING_IN_PROGRESS') {
+    return Promise.resolve(isJsRecordingInProgress);
   }
 
   return Promise.resolve(true);
@@ -131,41 +135,47 @@ const devTools = {
 };
 
 const scriptSources: any = {};
+let isJsRecordingInProgress = false;
 
 const startTest = async (tab: any) => {
-  const target = {
-    tabId: tab.id,
-  };
-
-  await devTools.attach(target);
-
-  await devTools.sendCommand(target, 'Profiler.enable', {});
-  await devTools.sendCommand(target, 'Profiler.startPreciseCoverage', {
-    callCount: false,
-    detailed: true,
-  });
-
-  chrome.debugger.onEvent.addListener(async (source, method, params) => {
-    if (method !== 'Debugger.scriptParsed') {
-      return;
-    }
-
-    const { url, scriptId } = params as { url: string; scriptId: string };
-
-    if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com')) {
-      return;
-    }
-
-    const rawScriptSource: any = await devTools.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
-
-    scriptSources[url] = {
-      id: scriptId,
-      source: rawScriptSource.scriptSource,
+  try {
+    const target = {
+      tabId: tab.id,
     };
-  });
 
-  await devTools.sendCommand(target, 'Debugger.enable', {});
-  await devTools.sendCommand(target, 'Debugger.setSkipAllPauses', { skip: true });
+    await devTools.attach(target);
+
+    await devTools.sendCommand(target, 'Profiler.enable', {});
+    await devTools.sendCommand(target, 'Profiler.startPreciseCoverage', {
+      callCount: false,
+      detailed: true,
+    });
+    isJsRecordingInProgress = true;
+
+    chrome.debugger.onEvent.addListener(async (source, method, params) => {
+      if (method !== 'Debugger.scriptParsed') {
+        return;
+      }
+
+      const { url, scriptId } = params as { url: string; scriptId: string };
+
+      if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com')) {
+        return;
+      }
+
+      const rawScriptSource: any = await devTools.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
+
+      scriptSources[url] = {
+        id: scriptId,
+        source: rawScriptSource.scriptSource,
+      };
+    });
+
+    await devTools.sendCommand(target, 'Debugger.enable', {});
+    await devTools.sendCommand(target, 'Debugger.setSkipAllPauses', { skip: true });
+  } catch (e) {
+    isJsRecordingInProgress = false;
+  }
 };
 
 const stopTest = async (tab: any) => {
@@ -180,5 +190,6 @@ const stopTest = async (tab: any) => {
 
   await devTools.detach(target);
 
+  isJsRecordingInProgress = false;
   return { coverage: data.result, scriptSources };
 };

@@ -20,7 +20,11 @@ export const ManualTestingPage = () => {
     if ((status === 'BUSY' || status === 'OFFLINE') && pathname.startsWith('/manual-testing')) {
       push('/unavailable-page');
     } else if (pathname !== '/unavailable-page' && pathname !== '/test-to-code' && pathname !== '/manual-testing/finish-recording') {
-      config?.isActive ? push('/manual-testing/in-progress') : push('/manual-testing');
+      if (config?.isActive) {
+        push('/manual-testing/in-progress');
+      } else {
+        push('/manual-testing');
+      }
     }
   }, [config, status, pathname]);
 

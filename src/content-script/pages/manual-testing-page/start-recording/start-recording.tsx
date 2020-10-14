@@ -3,7 +3,7 @@ import { BEM } from '@redneckz/react-bem-helper';
 import { useHistory } from 'react-router-dom';
 import { Inputs, Button } from '@drill4j/ui-kit';
 
-import { useAgentConfig } from '../../../../hooks';
+import { useAgentConfig, useJsAgentInGroup } from '../../../../hooks';
 import { startGroupSession, startSession } from '../api';
 
 import styles from './start-recording.module.scss';
@@ -22,6 +22,7 @@ export const StartRecording = startRecording(({ className }: Props) => {
   const handleOnChange: React.ChangeEventHandler<HTMLInputElement> = ({ currentTarget: { value } }) => {
     setTestName(value);
   };
+  const jsAgentInGroup = useJsAgentInGroup();
 
   return (
     <div className={className}>
@@ -47,7 +48,7 @@ export const StartRecording = startRecording(({ className }: Props) => {
             onClick={async () => {
               config.drillAgentId
                 ? await startSession(activeTab, testName, config)
-                : await startGroupSession(activeTab, testName, config);
+                : await startGroupSession(activeTab, testName, config, jsAgentInGroup);
               push('/manual-testing/in-progress');
             }}
           >
