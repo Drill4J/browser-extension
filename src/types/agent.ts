@@ -3,6 +3,7 @@ export interface Agent {
   name?: string;
   group?: string;
   description?: string;
+  agentType: string;
   status?: 'ONLINE' | 'OFFLINE' | 'BUSY';
   drillAdminUrl?: string;
   address?: string;

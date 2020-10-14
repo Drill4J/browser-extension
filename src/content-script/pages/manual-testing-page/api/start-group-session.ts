@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { Agent } from 'types/agent';
 import { browser } from 'webextension-polyfill-ts';
 
 import { DomainConfig } from '../../../../types/domain-config';
 
-export async function startGroupSession(activeTab: string, testName: string, config: DomainConfig) {
+export async function startGroupSession(activeTab: string, testName: string, config: DomainConfig, jsAgentInGroup: Agent | null) {
   const { drillGroupId } = config;
   const { domains } = await browser.storage.local.get('domains') || {};
   const { data: [response] } = await axios.post(`/service-groups/${drillGroupId}/plugins/test2code/dispatch-action`, {
@@ -20,4 +21,8 @@ export async function startGroupSession(activeTab: string, testName: string, con
       },
     },
   });
+
+  if (jsAgentInGroup) {
+    await browser.runtime.sendMessage({ action: 'START_TEST', testName });
+  }
 }
