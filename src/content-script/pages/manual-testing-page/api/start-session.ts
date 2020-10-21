@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { browser } from 'webextension-polyfill-ts';
-
+import * as backgroundInterop from '../../../../common/background-interop';
 import { DomainConfig } from '../../../../types/domain-config';
 
 export async function startSession(activeTab: string, testName: string, config: DomainConfig) {
@@ -8,7 +8,10 @@ export async function startSession(activeTab: string, testName: string, config: 
   const { domains } = await browser.storage.local.get('domains') || {};
 
   if (drillAgentType === 'JS') {
-    browser.runtime.sendMessage({ action: 'START_TEST' });
+    // see an updated example method bellow
+    await backgroundInterop.sendMessage({ type: 'START_TEST' });
+    // or even "better" with
+    await backgroundInterop.startTest();
   }
 
   const { data } = await axios.post(`/agents/${drillAgentId}/plugins/test2code/dispatch-action`, {
@@ -17,12 +20,13 @@ export async function startSession(activeTab: string, testName: string, config: 
   });
   const { data: { payload: { sessionId } } } = data;
 
-  browser.storage.local.set({
-    domains: {
-      ...domains,
-      [activeTab]: {
-        ...config, testName, isActive: true, sessionId, timerStart: Date.now(), // TODO let the backend keep track of time
-      },
-    },
-  });
+  // ? no longer necessary, as background script will handle it in START_TEST handler
+  // browser.storage.local.set({
+  //   domains: {
+  //     ...domains,
+  //     [activeTab]: {
+  //       ...config, testName, isActive: true, sessionId, timerStart: Date.now(), // TODO let the backend keep track of time
+  //     },
+  //   },
+  // });
 }

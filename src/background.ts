@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+// see src/background/index.ts
 import { browser, WebRequest } from 'webextension-polyfill-ts';
 
 import { DEBUGGER_VERSION } from './common/constants';
@@ -17,29 +18,6 @@ browser.storage.onChanged.addListener(() => {
     configMap = value;
   });
 });
-
-function requestInteceptor({ requestHeaders = [], initiator = '' }: WebRequest.OnBeforeSendHeadersDetailsType & { initiator?: string}) {
-  const requestHost = getHost(initiator);
-
-  if (!requestHost) {
-    return { requestHeaders };
-  }
-
-  const { sessionId = '', testName = '', isActive = false } = configMap.domains ? configMap.domains[requestHost] || {} : {};
-  if (isActive) {
-    requestHeaders.push({ name: 'drill-session-id', value: sessionId });
-    requestHeaders.push({ name: 'drill-test-name', value: testName });
-  }
-  return { requestHeaders };
-}
-
-browser.webRequest.onBeforeSendHeaders.addListener(
-  requestInteceptor,
-  {
-    urls: ['*://*/*'],
-  },
-  ['blocking', 'requestHeaders'],
-);
 
 browser.webRequest.onHeadersReceived.addListener(
   responseInterceptor,
@@ -89,19 +67,22 @@ const getHost = (url: string) => {
 };
 
 browser.runtime.onMessage.addListener((request: any, sender: any) => {
-  if (request.action === 'START_TEST') {
-    startTest(sender.tab); // TODO why not return
-  }
+  switch (request.action) {
+    case 'START_TEST':
+      return startTest(sender.tab);
 
-  if (request.action === 'FINISH_TEST') {
-    return Promise.resolve(stopTest(sender.tab));
-  }
+    case '':
+      return Promise.resolve(); // FIXME
 
-  if (request.action === 'IS_JS_RECORDING_IN_PROGRESS') {
-    return Promise.resolve(isJsRecordingInProgress);
-  }
+    case 'FINISH_TEST':
+      return Promise.resolve(stopTest(sender.tab));
 
-  return Promise.resolve(true);
+    case 'IS_JS_RECORDING_IN_PROGRESS':
+      return Promise.resolve(isJsRecordingInProgress);
+
+    default:
+      return Promise.reject(new Error(`Background script received unknown action: ${request.action}`));
+  }
 });
 
 const asPromised = (block: any) => new Promise((resolve, reject) => {
@@ -175,6 +156,7 @@ const startTest = async (tab: any) => {
     await devTools.sendCommand(target, 'Debugger.setSkipAllPauses', { skip: true });
   } catch (e) {
     isJsRecordingInProgress = false;
+    console.error('failed to attach', e);
   }
 };
 
