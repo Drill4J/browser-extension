@@ -5,6 +5,10 @@ export interface DrillResponse {
   message: string;
   destination: string;
   type: string;
+  to?: {
+    agentId: string;
+    buildVersion: string;
+  };
 }
 
 export class DrillSocket {
@@ -19,9 +23,9 @@ export class DrillSocket {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public subscribe(topic: string, callback: (arg: any) => void, message?: object) {
+  public subscribe(topic: string, callback: (...arg: any) => void, message?: object) {
     const subscription = this.connection$.subscribe(
-      ({ destination, message: responseMessage }: DrillResponse) => destination === topic && callback(responseMessage || null),
+      ({ destination, message: responseMessage, to }: DrillResponse) => destination === topic && callback(responseMessage || null, to),
     );
     this.send(topic, 'SUBSCRIBE', message);
 

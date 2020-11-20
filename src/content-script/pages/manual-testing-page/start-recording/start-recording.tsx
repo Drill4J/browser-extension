@@ -1,11 +1,7 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { useHistory } from 'react-router-dom';
 import { Inputs, Button } from '@drill4j/ui-kit';
-
-import { useAgentConfig, useJsAgentInGroup } from '../../../../hooks';
-import { startGroupSession, startSession } from '../api';
-
+import * as bgInterop from '../../../../common/background-interop';
 import styles from './start-recording.module.scss';
 
 interface Props {
@@ -15,14 +11,7 @@ interface Props {
 const startRecording = BEM(styles);
 
 export const StartRecording = startRecording(({ className }: Props) => {
-  const { push } = useHistory();
   const [testName, setTestName] = React.useState('');
-  const activeTab = window.location.host;
-  const config = useAgentConfig() || {};
-  const handleOnChange: React.ChangeEventHandler<HTMLInputElement> = ({ currentTarget: { value } }) => {
-    setTestName(value);
-  };
-  const jsAgentInGroup = useJsAgentInGroup();
 
   return (
     <div className={className}>
@@ -39,17 +28,22 @@ export const StartRecording = startRecording(({ className }: Props) => {
           <Inputs.Text
             placeholder="Give this test a name"
             value={testName}
-            onChange={handleOnChange as any}
+            onChange={({ currentTarget: { value } }) => {
+              setTestName(value);
+            }}
           />
           <StartButton
             type="primary"
             size="large"
             disabled={!testName}
             onClick={async () => {
-              config.drillAgentId
-                ? await startSession(activeTab, testName, config)
-                : await startGroupSession(activeTab, testName, config, jsAgentInGroup);
-              push('/manual-testing/in-progress');
+              try {
+                const data = await bgInterop.startTest(testName);
+                console.log('START_TEST data', data);
+              } catch (e) {
+                console.log(e);
+                debugger;
+              }
             }}
           >
             Start a new test

@@ -1,6 +1,6 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ExtensionReloader = require('webpack-extension-reloader');
+// const ExtensionReloader = require('webpack-extension-reloader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const fileExtensions = ['jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'svg', 'ttf', 'woff', 'woff2'];
@@ -11,7 +11,7 @@ const options = {
     content: path.join(__dirname, 'src', 'content.ts'),
     popup: path.join(__dirname, 'src', 'popup.ts'),
     options: path.join(__dirname, 'src', 'options.ts'),
-    background: path.join(__dirname, 'src', 'background.ts'),
+    background: path.join(__dirname, 'src', 'background/index.ts'),
   },
   output: {
     path: path.join(__dirname, 'build'),
@@ -74,14 +74,14 @@ const options = {
       .concat(['.jsx', '.js', '.tsx', '.ts', '.css']),
   },
   plugins: [
-    new ExtensionReloader({
-      entries: {
-        contentScript: 'content',
-        background: 'background',
-        optionsScript: 'options',
-        extensionPage: ['popup', 'options'],
-      },
-    }),
+    // new ExtensionReloader({
+    //   entries: {
+    //     contentScript: 'content',
+    //     background: 'background',
+    //     optionsScript: 'options',
+    //     extensionPage: ['popup', 'options'],
+    //   },
+    // }),
     new MiniCssExtractPlugin(),
     new CopyWebpackPlugin([
       { from: path.join(__dirname, 'src', 'manifest.json') },

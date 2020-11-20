@@ -1,41 +1,41 @@
 import * as React from 'react';
 
-import { useAgentConfig } from '../../../../hooks';
-
-function useTimer() {
-  const config = useAgentConfig() || {};
+function useTimer(start?: number) {
   const [time, setTime] = React.useState(0);
 
   React.useEffect(
     () => {
-      function updateTimer(timerStart?: number) {
-        timerStart && setTime(Date.now() - timerStart);
-      }
-
-      const { timerStart } = config;
-      updateTimer(timerStart);
-      const interval = setInterval(() => updateTimer(timerStart), 1000);
+      const interval = setInterval(() => {
+        start && setTime(Date.now() - start);
+      }, 1000);
 
       return () => {
         clearInterval(interval);
       };
     },
-    [config.timerStart],
+    [start],
   );
 
   return time;
 }
 
-export const Timer = () => {
-  const time = useTimer();
+interface Props {
+  start?: number;
+}
+
+export const Timer = ({ start }: Props) => {
+  if (start) {
+    console.log('start', start, 'duration', Date.now() - start);
+  } else {
+    console.log('start', start);
+  }
+  const time = useTimer(start);
 
   const seconds = (`0${Math.floor(time / 1000) % 60}`).slice(-2);
   const minutes = (`0${Math.floor(time / 60000) % 60}`).slice(-2);
   const hours = (`0${Math.floor(time / 3600000)}`).slice(-2);
 
   return (
-    <div>
-      <div>{`${hours}:${minutes}:${seconds}`}</div>
-    </div>
+    <div>{`${hours}:${minutes}:${seconds}`}</div>
   );
 };
