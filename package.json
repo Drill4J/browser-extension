@@ -1,6 +1,6 @@
 {
   "name": "@drill4j/browser-extension",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "license": "Apache-2.0",
   "scripts": {
     "build": "NODE_ENV=production webpack",
@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
-    "@drill4j/ui-kit": "^0.1.38",
+    "@drill4j/ui-kit": "^0.1.44",
     "@redneckz/react-bem-helper": "^2.0.3",
     "@redneckz/react-dispatcher": "^0.0.6",
     "@types/axios": "^0.14.0",
