@@ -54,6 +54,10 @@ export const MainPage = mainPage(({ className }: Props) => {
               Error:
               <br />
               {isError}
+              <div style={{ marginTop: '15px' }}> Please, make sure to enter required data at the extension settings page </div>
+              <Button style={{ marginTop: '15px' }} type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
+                Widget settings
+              </Button>
             </div>)}
           { !isLoading && !isError && agent === undefined && (
             <div>
@@ -71,9 +75,6 @@ export const MainPage = mainPage(({ className }: Props) => {
               >
                 {hostStorage?.isWidgetVisible ? 'Close widget' : 'Run widget'}
               </Button>
-              {/* <Button type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
-                Widget settings
-              </Button> */}
             </ActionsPanel>
           )}
         </Content>

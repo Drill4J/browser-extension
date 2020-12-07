@@ -9,6 +9,7 @@ import { DomainConfig } from '../../types/domain-config';
 import { LinkColumn } from './link-column';
 import { EditSettingsModal } from './edit-settings-modal';
 import { ActionsColumn } from './actions-column';
+import { EditSettingsForm } from './edit-settings-form';
 
 import styles from './general-tab.module.scss';
 
@@ -19,15 +20,17 @@ interface Props {
 const generalTab = BEM(styles);
 
 export const GeneralTab = generalTab(({ className }: Props) => {
-  const { domains = {} } = useLocalStorage<{ [host: string]: DomainConfig }>('domains') || {};
-  const data = Object.keys(domains).map(host => ({ host, ...domains[host] }));
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  console.log('GeneralTab');
+  // const { domains = {} } = useLocalStorage<{ [host: string]: DomainConfig }>('domains') || {};
+  // const data = Object.keys(domains).map(host => ({ host, ...domains[host] }));
+  // const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   return (
     <div className={className}>
-      <Header>Domains</Header>
+      {/* <Header>Domains</Header> */}
       <Content>
-        <Table data={data}>
+        <EditSettingsForm />
+        {/* <Table data={data}>
           <Column
             name="host"
             label="Host"
@@ -54,9 +57,9 @@ export const GeneralTab = generalTab(({ className }: Props) => {
             )}
             Cell={ActionsColumn}
           />
-        </Table>
+        </Table> */}
       </Content>
-      {isEditModalOpen && <EditSettingsModal onToggle={setIsEditModalOpen} />}
+      {/* {isEditModalOpen && <EditSettingsModal onToggle={setIsEditModalOpen} />} */}
     </div>
   );
 });

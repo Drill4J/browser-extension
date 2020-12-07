@@ -1,3 +1,4 @@
+import { browser } from 'webextension-polyfill-ts';
 import createMessageRouter from './message-router';
 import setupRuntimeMessageListener from './runtime-message-listener';
 import initBackendApi from './backend-api';
@@ -5,9 +6,41 @@ import jsCoverageRecorder from './js-coverage-recorder';
 
 init();
 async function init() {
-  const backendAddress = 'http://localhost:8090';
-  const backend = await initBackendApi(backendAddress);
+  const backend = await connectToBackend();
+  console.log('ready to start');
+  start(backend);
+}
 
+async function connectToBackend(): Promise<BackendCreator> {
+  // TODO add timeout and a way to restart
+  const backendAddress = await repeatAsync<string>(async () => {
+    const storage = await browser.storage.local.get('backendAddress');
+    return storage?.backendAddress;
+  });
+  console.log('received backendAddress', backendAddress);
+
+  const backend = await repeatAsync<BackendCreator>(async () => initBackendApi(backendAddress));
+  console.log('connected to backend', backendAddress);
+  return backend;
+}
+
+async function repeatAsync<T>(fn: (params?: any) => Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const intervalId = setInterval(async () => {
+      let data;
+      try {
+        data = await fn();
+      } catch (e) {
+        console.log('repeatAsync error', e);
+      }
+      if (!data) return;
+      clearInterval(intervalId);
+      resolve(data);
+    }, 5000);
+  });
+}
+
+async function start(backend: BackendCreator) {
   let adapters: Record<string, AgentAdapter> = {};
 
   // agent subscriptions
@@ -37,12 +70,11 @@ async function init() {
         notifySubscribers(agentSubs[host], agentsData[host]);
       }
     });
-    // notifyAgentSubs(agentsData);
 
     adapters = createAdaptersFromInfo(newInfo, backend);
   });
 
-  chrome.runtime.onConnect.addListener((port) => {
+  const runtimeConnectHandler = (port: chrome.runtime.Port) => {
     const portId = port.sender?.tab ? port.sender?.tab.id : port.sender?.id;
     if (!portId) throw new Error(`Can't assign port id for ${port}`);
     const senderHost = transformHost(port.sender?.url);
@@ -126,7 +158,8 @@ async function init() {
     });
 
     port.onMessage.addListener(handler);
-  });
+  };
+  chrome.runtime.onConnect.addListener(runtimeConnectHandler);
 
   const router = createMessageRouter();
 
@@ -346,4 +379,6 @@ interface BackendApi {
 
 interface BackendCreator {
   getMethods(baseUrl: string): BackendApi;
+  subscribeAdmin(route: string, handler: any): () => void;
+  subscribeTest2Code(route: string, handler: any, agentId: string, buildVersion?: string | undefined): () => void;
 }
