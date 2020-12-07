@@ -4,55 +4,6 @@ import initBackendApi from './backend-api';
 import jsCoverageRecorder from './js-coverage-recorder';
 
 init();
-
-function agentAdaptersReducer(agentsList: any): AdapterInfo[] {
-  return agentsList
-    .filter((x: any) => !x.serviceGroup)
-    .map((x: any) => ({
-      adapterType: 'agents',
-      id: x.id,
-      host: transformHost(x.systemSettings?.targetHost),
-      status: x.status,
-      buildVersion: x.buildVersion,
-      mustRecordJsCoverage: x.agentType.toLowerCase() === AGENT_TYPES.JAVA_SCRIPT,
-    }));
-}
-
-function sgAdaptersReducer(agentsList: any): AdapterInfo[] {
-  const sgAdaptersInfoMap: Record<string, AdapterInfo> = agentsList
-    .filter((x: any) => x.serviceGroup)
-    .reduce((a: any, x: any) => {
-      if (!a[x.serviceGroup]) {
-        // eslint-disable-next-line no-param-reassign
-        a[x.serviceGroup] = {
-          adapterType: 'service-groups',
-          id: x.serviceGroup,
-          host: transformHost(x.systemSettings?.targetHost),
-          // TODO think what to do with the SG status
-          status: x.status,
-          buildVersion: x.buildVersion,
-          mustRecordJsCoverage: false,
-        };
-      }
-
-      if (x.agentType.toLowerCase() === AGENT_TYPES.JAVA_SCRIPT) {
-        // eslint-disable-next-line no-param-reassign
-        a[x.serviceGroup].mustRecordJsCoverage = true;
-      }
-      if (!a[x.serviceGroup].host) {
-        // eslint-disable-next-line no-param-reassign
-        a[x.serviceGroup].host = transformHost(x.systemSettings?.targetHost);
-      }
-      return a;
-    }, {});
-  return objectPropsToArray(sgAdaptersInfoMap);
-}
-
-function objectPropsToArray<T>(obj: Record<string, T>): T[] {
-  const keys = Object.keys(obj);
-  return keys.map((x) => obj[x]);
-}
-
 async function init() {
   const backendAddress = 'http://localhost:8090';
   const backend = await initBackendApi(backendAddress);
@@ -81,42 +32,15 @@ async function init() {
     ];
 
     agentsData = newInfo.reduce((a, x) => ({ ...a, [x.host]: x }), {});
-    notifyAgentSubs(agentsData);
-
-    adapters = createAdaptersFromInfo(newInfo);
-  });
-
-  function createAdaptersFromInfo(data: AdapterInfo[]) {
-    return data.reduce((a, x) => ({ ...a, [x.host]: createAdapter(x, backend) }), {});
-  }
-
-  function notifyAgentSubs(data: Record<string, AdapterInfo>) {
-    // IMPROVEMENT diff data with prev data and update ONLY changed adapters
-    Object.keys(data).forEach((host) => {
-      if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0 && data[host]) {
-        console.log('NOTIFY SUBS', Object.keys(agentSubs[host]));
-        objectPropsToArray(agentSubs[host]).forEach((subscriber: any) => {
-          console.log(`host *${host}* notify`);
-          // #FIRST! for some reason, after the SECOND agent is registered,
-          // while popup on it's page is open, the subscriber (popup) does not receive update?
-          subscriber(data[host]);
-        });
-      } else {
-        console.log(`host *${host}* has no subscribers`);
+    Object.keys(agentsData).forEach((host) => {
+      if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
+        notifySubscribers(agentSubs[host], agentsData[host]);
       }
     });
-  }
+    // notifyAgentSubs(agentsData);
 
-  function notifySubscribers(subscribers: Record<string, SubNotifyFunction>, data: unknown) {
-    objectPropsToArray<SubNotifyFunction>(subscribers).forEach(notify => notify(data));
-  }
-
-  function createPortUpdater(port: chrome.runtime.Port, resource: string): SubNotifyFunction {
-    return (data: any) => {
-      console.log(resource, 'UPDATE', 'with', data);
-      port.postMessage({ resource, payload: data });
-    };
-  }
+    adapters = createAdaptersFromInfo(newInfo, backend);
+  });
 
   chrome.runtime.onConnect.addListener((port) => {
     const portId = port.sender?.tab ? port.sender?.tab.id : port.sender?.id;
@@ -262,6 +186,69 @@ async function init() {
   });
 
   router.init(setupRuntimeMessageListener);
+}
+
+function agentAdaptersReducer(agentsList: any): AdapterInfo[] {
+  return agentsList
+    .filter((x: any) => !x.serviceGroup)
+    .map((x: any) => ({
+      adapterType: 'agents',
+      id: x.id,
+      host: transformHost(x.systemSettings?.targetHost),
+      status: x.status,
+      buildVersion: x.buildVersion,
+      mustRecordJsCoverage: x.agentType.toLowerCase() === AGENT_TYPES.JAVA_SCRIPT,
+    }));
+}
+
+function sgAdaptersReducer(agentsList: any): AdapterInfo[] {
+  const sgAdaptersInfoMap: Record<string, AdapterInfo> = agentsList
+    .filter((x: any) => x.serviceGroup)
+    .reduce((a: any, x: any) => {
+      if (!a[x.serviceGroup]) {
+        // eslint-disable-next-line no-param-reassign
+        a[x.serviceGroup] = {
+          adapterType: 'service-groups',
+          id: x.serviceGroup,
+          host: transformHost(x.systemSettings?.targetHost),
+          // TODO think what to do with the SG status
+          status: x.status,
+          buildVersion: x.buildVersion,
+          mustRecordJsCoverage: false,
+        };
+      }
+
+      if (x.agentType.toLowerCase() === AGENT_TYPES.JAVA_SCRIPT) {
+        // eslint-disable-next-line no-param-reassign
+        a[x.serviceGroup].mustRecordJsCoverage = true;
+      }
+      if (!a[x.serviceGroup].host) {
+        // eslint-disable-next-line no-param-reassign
+        a[x.serviceGroup].host = transformHost(x.systemSettings?.targetHost);
+      }
+      return a;
+    }, {});
+  return objectPropsToArray(sgAdaptersInfoMap);
+}
+
+function objectPropsToArray<T>(obj: Record<string, T>): T[] {
+  const keys = Object.keys(obj);
+  return keys.map((x) => obj[x]);
+}
+
+function createAdaptersFromInfo(data: AdapterInfo[], backend: BackendCreator) {
+  return data.reduce((a, x) => ({ ...a, [x.host]: createAdapter(x, backend) }), {});
+}
+
+function notifySubscribers(subscribers: Record<string, SubNotifyFunction>, data: unknown) {
+  objectPropsToArray<SubNotifyFunction>(subscribers).forEach(notify => notify(data));
+}
+
+function createPortUpdater(port: chrome.runtime.Port, resource: string): SubNotifyFunction {
+  return (data: any) => {
+    console.log(resource, 'UPDATE', 'with', data);
+    port.postMessage({ resource, payload: data });
+  };
 }
 
 function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): AgentAdapter {
