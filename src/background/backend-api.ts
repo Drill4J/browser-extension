@@ -8,13 +8,11 @@ export default async (backendUrl: string) => {
   const token = await setupAxios(backendUrl);
   const adminSocket = createAdminSocket(backendUrl, token);
   const test2CodeSocket = createTest2CodeSocket(backendUrl, token);
-
-  // const adminSubs: Record<string, any> = {};
   const test2CodeSubs: Record<string, any> = {};
 
   return {
     subscribeAdmin(route: string, handler: any) {
-      // adminSubs[route] = handler;
+      // TODO check for duplicate subscriptions
       const unsubscribe = adminSocket.subscribe(
         route,
         handler,
@@ -43,8 +41,7 @@ export default async (backendUrl: string) => {
         (data: any, to?: any) => {
           console.log('TEST2CODESOCKET HANDLER', route, agentId, buildVersion);
 
-          // COMMENT OUT THAT AND CHECK IF HANDLER IS STILL CALLED WITH THE CORRECT DATA
-          // HOW?
+          // TODO comment that out and check if that still works as intended (most likely it will not)
           if (to.agentId !== agentId || to.buildVersion !== buildVersion) return;
 
           const toHandler = test2CodeSubs[`${to.agentId}${to.buildVersion}`][route];
@@ -60,8 +57,7 @@ export default async (backendUrl: string) => {
       );
       return () => {
         unsubscribe();
-        delete test2CodeSubs[`${agentId}${buildVersion}`][route]; // TODO  might break other subs for the same agent+buildVersion
-        //                                                          e.g. when multiple pages are open
+        delete test2CodeSubs[`${agentId}${buildVersion}`][route]; // will break other subs for the same agent+buildVersion
       };
     },
 
@@ -156,68 +152,4 @@ async function login() {
   const authToken = headers[AUTH_TOKEN_HEADER_NAME.toLowerCase()];
   if (!authToken) throw new Error('Backend authentication failed');
   return authToken;
-}
-
-// WS stuff
-// async function getAgentsList(authToken: string, adminHost: string): Promise<any[]> {
-//   const connection = await connectWs(authToken, adminHost);
-//   const data = await socketMessageRequest(connection, '/api/agents');
-//   return data as any[];
-// }
-
-// async function connectWs(token: string, adminHost: string) {
-//   const socketApiUrl = `ws://${adminHost.replace('http://', '')}/ws/drill-admin-socket?token=${token}`;
-//   const connection = new WebSocket(socketApiUrl);
-//   await socketEvent(connection, 'open', 30000);
-//   return connection;
-// }
-
-// async function socketEvent(connection: WebSocket, event: string, timeout = 10000): Promise<unknown[]> {
-//   return new Promise((resolve, reject) => {
-//     connection.addEventListener(event, (...args: unknown[]) => {
-//       resolve(args);
-//     });
-//     setTimeout(() => reject(new Error(`await socket event ${event}: timeout of ${timeout}ms exceeded`)), timeout);
-//   });
-// }
-
-interface BackendMessage {
-  destination: string;
-  type: string;
-  message: any; // TODO type it
-}
-
-// async function socketMessageRequest(connection: WebSocket, destination: string, timeout = 10000): Promise<unknown> {
-//   const responsePromise = new Promise<unknown>((resolve, reject) => {
-//     connection.addEventListener('message', async (rawMessage) => {
-//       const message = parseJsonRecursive(rawMessage.data) as BackendMessage;
-//       if (message.type !== 'MESSAGE') {
-//         reject(new Error(`socket message request to ${destination} failed: ${message.type}`));
-//       } else if (message.type === 'MESSAGE' && message.destination === destination) {
-//         resolve(message.message);
-//         connection.send(JSON.stringify({ destination, type: 'UNSUBSCRIBE' }));
-//       }
-//     });
-//     setTimeout(() => reject(new Error(`socket message request to ${destination} failed: timeout of ${timeout}ms exceeded`)), timeout);
-//   });
-//   connection.send(JSON.stringify({ destination, type: 'SUBSCRIBE' }));
-//   return responsePromise;
-// }
-
-function parseJsonRecursive(rawMessage: string, l = 0): unknown {
-  if (l > 3) {
-    // magic number due to unknown number of nested messages
-    throw new Error(`Max recursive parse depth reached.\n   Not-parsed content: ${rawMessage}`);
-  }
-  const result = JSON.parse(rawMessage);
-  // check both fields due to naming inconsistency on different message levels
-  const content = result.text || result.message;
-
-  const isContentJSON = content && (content[0] === '{' || content[0] === '[');
-  if (isContentJSON) {
-    // note that parsed data either from .text or .message gets assigned to "message" field
-    result.message = parseJsonRecursive(content, l + 1);
-    delete result.text;
-  }
-  return result;
 }
