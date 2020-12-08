@@ -68,6 +68,14 @@ export default async (backendUrl: string) => {
             type: 'START',
             payload: { testType: 'MANUAL', testName, isRealtime: true },
           });
+
+          if (Array.isArray(data)) {
+            const index = data.findIndex(x => x.code === 200);
+            if (index === -1) throw new Error(`Internal server error. Response: ${JSON.stringify(data)}`);
+            return data[index].data.payload.sessionId;
+          }
+
+          if (!data?.data?.payload?.sessionId) throw new Error(`Internal server error. Response: ${JSON.stringify(data)}`);
           return data.data.payload.sessionId;
         },
 
