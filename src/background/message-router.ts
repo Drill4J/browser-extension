@@ -1,3 +1,7 @@
+import type {
+  Handler, MessageReceiver, MessageRouter, MessageSource,
+} from './types';
+
 export default function createMessageRouter(): MessageRouter {
   const routes: Record<string, Handler> = {};
 

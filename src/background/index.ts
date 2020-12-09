@@ -1,8 +1,20 @@
-import { browser } from 'webextension-polyfill-ts';
+import { browser, WebRequest } from 'webextension-polyfill-ts';
 import createMessageRouter from './message-router';
 import setupRuntimeMessageListener from './runtime-message-listener';
 import initBackendApi from './backend-api';
 import jsCoverageRecorder from './js-coverage-recorder';
+import { transformHost } from '../common/util/transform-host';
+import type {
+  AdapterInfo,
+  AgentAdapter,
+  BackendApi,
+  BackendCreator,
+  ScopeData,
+  SessionData,
+  SubNotifyFunction,
+} from './types';
+
+import { SessionStatus, AgentType } from './enums';
 
 init();
 async function init() {
@@ -38,6 +50,28 @@ async function repeatAsync<T>(fn: (params?: any) => Promise<T>): Promise<T> {
       resolve(data);
     }, 5000);
   });
+}
+
+function setupRequestInterceptor(sessionsStorage: Record<string, SessionData>) {
+  const interceptor = ({ requestHeaders = [], initiator = '' }: WebRequest.OnBeforeSendHeadersDetailsType & { initiator?: string}) => {
+    const host = transformHost(initiator);
+    if (!host) return { requestHeaders };
+
+    const session = sessionsStorage[host];
+    if (session && session.status === SessionStatus.ACTIVE) {
+      requestHeaders.push({ name: 'drill-session-id', value: session.sessionId });
+      requestHeaders.push({ name: 'drill-test-name', value: session.testName });
+    }
+    return { requestHeaders };
+  };
+  browser.webRequest.onBeforeSendHeaders.addListener(
+    interceptor,
+    {
+      urls: ['*://*/*'],
+    },
+    ['blocking', 'requestHeaders'],
+  );
+  return () => browser.webRequest.onBeforeSendHeaders.removeListener(interceptor);
 }
 
 async function start(backend: BackendCreator) {
@@ -161,9 +195,11 @@ async function start(backend: BackendCreator) {
   };
   chrome.runtime.onConnect.addListener(runtimeConnectHandler);
 
+  setupRequestInterceptor(sessionsData);
+
   const router = createMessageRouter();
 
-  router.add('START_TEST', async (sender, testName: string) => {
+  router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     const sessionId = await adapter.startTest(testName, sender);
@@ -176,7 +212,7 @@ async function start(backend: BackendCreator) {
     notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
-  router.add('STOP_TEST', async (sender) => {
+  router.add('STOP_TEST', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     // TODO !adapter check?
@@ -191,7 +227,7 @@ async function start(backend: BackendCreator) {
     notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
-  router.add('CANCEL_TEST', async (sender) => {
+  router.add('CANCEL_TEST', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     // TODO !adapter check?
@@ -206,13 +242,13 @@ async function start(backend: BackendCreator) {
     notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
-  router.add('CLEANUP_TEST_SESSION', async (sender) => {
+  router.add('CLEANUP_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     delete sessionsData[host];
     notifySubscribers(sessionSubs[host], sessionsData[host]); // FIXME
   });
 
-  router.add('GET_HOST_INFO', async (sender) => {
+  router.add('GET_HOST_INFO', async (sender: chrome.runtime.MessageSender) => {
     const hostConfig = agentsData[transformHost(sender.url)];
     if (!hostConfig) return false;
     return hostConfig;
@@ -230,7 +266,7 @@ function agentAdaptersReducer(agentsList: any): AdapterInfo[] {
       host: transformHost(x.systemSettings?.targetHost),
       status: x.status,
       buildVersion: x.buildVersion,
-      mustRecordJsCoverage: x.agentType.toLowerCase() === AGENT_TYPES.JAVA_SCRIPT,
+      mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
     }));
 }
 
@@ -251,7 +287,7 @@ function sgAdaptersReducer(agentsList: any): AdapterInfo[] {
         };
       }
 
-      if (x.agentType.toLowerCase() === AGENT_TYPES.JAVA_SCRIPT) {
+      if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT) {
         // eslint-disable-next-line no-param-reassign
         a[x.serviceGroup].mustRecordJsCoverage = true;
       }
@@ -322,63 +358,4 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       await backendApi.cancelTest(sessionId);
     },
   };
-}
-
-export function transformHost(targetHost: string | undefined) {
-  if (!targetHost) return '';
-  const url = new URL(targetHost);
-  const { protocol, host } = url;
-  return `${protocol}//${host}`;
-}
-
-const AGENT_TYPES = {
-  JAVA: 'java',
-  JAVA_SCRIPT: 'node.js',
-};
-
-interface AgentAdapter {
-  startTest: (testName: string, sender?: chrome.runtime.MessageSender) => Promise<string>;
-  stopTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
-  cancelTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
-}
-
-export type SessionData = {
-  testName: string;
-  sessionId: string;
-  start: number;
-  end?: number;
-  status: SessionStatus;
-}
-
-export type ScopeData = Record<string, any>; // TODO type it properly!
-
-export enum SessionStatus {
-  ACTIVE = 'active',
-  STOPPED = 'stopped',
-  CANCELED = 'canceled',
-}
-
-export type SubNotifyFunction = (data: unknown) => void;
-type AdapterType = 'agents' | 'service-groups';
-
-interface AdapterInfo {
-  adapterType: AdapterType;
-  id: string;
-  host: string;
-  status: 'ONLINE' | 'OFFLINE' | 'BUSY' | '';
-  mustRecordJsCoverage: boolean;
-  buildVersion?: string;
-}
-
-interface BackendApi {
-  startTest: (testName: string) => Promise<string>;
-  stopTest: (sessionId: string) => Promise<void>;
-  cancelTest: (sessionId: string) => Promise<void>;
-  addSessionData: (sessionId: string, data: unknown) => Promise<void>;
-}
-
-interface BackendCreator {
-  getMethods(baseUrl: string): BackendApi;
-  subscribeAdmin(route: string, handler: any): () => void;
-  subscribeTest2Code(route: string, handler: any, agentId: string, buildVersion?: string | undefined): () => void;
 }

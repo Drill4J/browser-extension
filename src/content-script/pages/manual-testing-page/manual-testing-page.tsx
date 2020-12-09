@@ -10,7 +10,7 @@ import { UnavailablePage } from '../unavailable-page';
 import { AgentContext } from '../../context/agent-context';
 import { withSessionContext, SessionContext } from '../../context/session-context';
 import { withActiveScopeContext } from '../../context/active-scope-context';
-import { SessionStatus } from '../../../background';
+import { SessionStatus } from '../../../background/enums';
 
 export const ManualTestingPage = withActiveScopeContext(withSessionContext(((props: any) => {
   const { push } = useHistory();

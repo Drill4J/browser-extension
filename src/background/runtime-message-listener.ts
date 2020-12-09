@@ -1,3 +1,5 @@
+import type { MessageReceiver } from './types';
+
 export default function setupRuntimeMessageListener(handler: MessageReceiver) {
   chrome.runtime.onMessage.addListener((message, sender, callback) => {
     (async () => {

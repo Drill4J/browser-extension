@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { render } from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-import { transformHost } from './background/index';
+import { transformHost } from './common/util/transform-host';
 import * as bgInterop from './common/background-interop';
 import { App } from './content-script';
 import './content.css';

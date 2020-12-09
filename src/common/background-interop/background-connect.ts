@@ -1,4 +1,4 @@
-import { SubNotifyFunction } from '../../background';
+import type { SubNotifyFunction } from '../../background/types'; // TODO fix module resolution problem
 
 // export function connect(caller: string) {
 export function connect() {
