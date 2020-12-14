@@ -4,10 +4,9 @@ import {
   FormGroup, Button, Panel,
 } from '@drill4j/ui-kit';
 import { Form, Field } from 'react-final-form';
-import { browser } from 'webextension-polyfill-ts';
 
 import { Fields, composeValidators, required } from '../../../forms';
-
+import * as localStorageUtil from '../../../common/util/local-storage';
 import styles from './edit-settings-form.module.scss';
 
 interface Props {
@@ -24,7 +23,7 @@ export const EditSettingsForm = editSettingsForm(({ className }: Props) => {
   const [initial, setInitial] = React.useState<Record<string, any> | null>(null);
   React.useEffect(() => {
     (async () => {
-      const data = await getFromLocalStorage();
+      const data = await localStorageUtil.get('backendAddress');
       setInitial(data);
     })();
   });
@@ -33,7 +32,7 @@ export const EditSettingsForm = editSettingsForm(({ className }: Props) => {
       <Form
         initialValues={initial}
         onSubmit={async (data: any) => {
-          await saveToLocalStorage(data);
+          await localStorageUtil.save(data);
         }}
         validate={validateDomain as any}
         render={({
@@ -74,13 +73,3 @@ export const EditSettingsForm = editSettingsForm(({ className }: Props) => {
 });
 
 const ActionsPanel = editSettingsForm.actionsPanel(Panel);
-
-async function getFromLocalStorage() {
-  return browser.storage.local.get(['backendAddress']);
-}
-
-async function saveToLocalStorage(data: any) {
-  const storage = await browser.storage.local.get();
-  console.log('storage', storage, 'new data', data);
-  await browser.storage.local.set({ ...storage, ...data });
-}

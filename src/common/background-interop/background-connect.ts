@@ -1,11 +1,47 @@
-import type { SubNotifyFunction } from '../../background/types'; // TODO fix module resolution problem
+import type { SubNotifyFunction } from '../../background/types';
+import { repeatAsync } from '../util/repeat-async';
+import type { BackgroundConnection, ConnectCallback, DisconnectCallback } from './types';
 
-// export function connect(caller: string) {
-export function connect() {
-  const port = chrome.runtime.connect();
+export async function connect(connectCb: ConnectCallback, disconnectCb: DisconnectCallback) {
+  const repeatUntilConnect = () => repeatAsync(async () => {
+    const connection = await connectPort(() => {
+      const reconnectPromise = repeatUntilConnect();
+      disconnectCb(reconnectPromise);
+    });
+    connectCb(connection);
+    return connection;
+  });
+  return repeatUntilConnect();
+}
+
+async function asyncChromeRuntimeConnect(): Promise<chrome.runtime.Port> {
+  return new Promise((resolve, reject) => {
+    const port = chrome.runtime.connect();
+    // chrome.runtime.connect has no callback
+    // so chrome.runtime.lastError must be checked in port.onDisconnect
+    // reference https://bugs.chromium.org/p/chromium/issues/detail?id=836370#c11
+    const disconnectHandler = () => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError.message);
+      }
+    };
+    port.onDisconnect.addListener(disconnectHandler);
+
+    // hack-ish way of detecting if chrome.runtime.connect returned connected port
+    // chrome.runtime.connect is successful, if port.onDisconnect was not called "immediately"
+    // hence, the timeout
+    setTimeout(() => {
+      port.onDisconnect.removeListener(disconnectHandler);
+      resolve(port);
+    }, 100);
+  });
+}
+
+async function connectPort(disconnectCb: () => void): Promise<BackgroundConnection> {
+  const port = await asyncChromeRuntimeConnect();
   const subs: Record<string, SubNotifyFunction[]> = {};
 
-  port.onMessage.addListener((message) => {
+  const messageHandler = (message: any) => {
     const handlers = subs[message.resource];
     if (!Array.isArray(handlers) || handlers.length === 0) {
       console.log('No handler for resource', message.resource);
@@ -13,7 +49,19 @@ export function connect() {
     }
     console.log('PORT RECEIVED MESSAGE', message, 'NOTIFY SUBS', handlers);
     handlers.forEach(handler => handler(message.payload));
-  });
+  };
+
+  const disconnectHandler = () => {
+    console.log('DISCONNECT disconnectHandler');
+    if (port.onMessage.hasListener(messageHandler)) {
+      port.onMessage.removeListener(messageHandler);
+    }
+    port.onDisconnect.removeListener(disconnectHandler);
+    disconnectCb();
+  };
+
+  port.onMessage.addListener(messageHandler);
+  port.onDisconnect.addListener(disconnectHandler);
 
   return {
     subscribe: (resource: string, handler: (...params: any) => any, options?: any) => {

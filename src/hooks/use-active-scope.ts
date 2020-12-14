@@ -1,6 +1,6 @@
 import * as backgroundInterop from '../common/background-interop';
-import { useSubscription } from './util/use-subscription';
+import { useSubscription, useSubscriptionWithAsyncOptions } from './util/use-subscription';
 
-export function useActiveScope(): any { // TODO type it!
-  return useSubscription(backgroundInterop.subscribeToActiveScope);
+export function useActiveScope() { // TODO type it!
+  return useSubscriptionWithAsyncOptions(backgroundInterop.subscribeToActiveScope);
 }

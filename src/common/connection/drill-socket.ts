@@ -16,16 +16,28 @@ export class DrillSocket {
 
   public subscription: Subscription;
 
-  constructor(url: string) {
-    this.connection$ = webSocket<DrillResponse>(url);
+  private errorCb: (error: null | undefined) => void;
 
-    this.subscription = this.connection$.subscribe();
+  private completeCb: () => void;
+
+  constructor(url: string, errorCb: any, completeCb: any) {
+    this.connection$ = webSocket<DrillResponse>(url);
+    this.errorCb = errorCb;
+    this.completeCb = completeCb;
+    this.subscription = this.connection$.subscribe(
+      () => {},
+      this.errorCb,
+      this.completeCb,
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public subscribe(topic: string, callback: (...arg: any) => void, message?: object) {
-    const subscription = this.connection$.subscribe(
+    console.log('this.errorCb', this.errorCb);
+    const subscription = this.connection$.subscribe( // FIXME previous subscription is lost and probably hangs forever
       ({ destination, message: responseMessage, to }: DrillResponse) => destination === topic && callback(responseMessage || null, to),
+      this.errorCb,
+      this.completeCb,
     );
     this.send(topic, 'SUBSCRIBE', message);
 
@@ -35,6 +47,12 @@ export class DrillSocket {
     };
   }
 
+  public cleanup() {
+    console.log('cleanup called', this.subscription);
+    // FIXME
+    // this.subscriptions.forEach(x => x.unsubscribe());
+  }
+
   public reconnect(url: string) {
     this.connection$ = webSocket<DrillResponse>(url);
 
@@ -42,6 +60,7 @@ export class DrillSocket {
   }
 
   public send(destination: string, type: string, message?: object) {
+    console.log();
     this.connection$.next({
       destination,
       type,

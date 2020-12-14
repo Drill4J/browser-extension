@@ -1,8 +1,42 @@
 import { connect } from './background-connect';
+import type { BackgroundConnection } from './types';
 
-const connection = connect();
+let connection: BackgroundConnection;
+let connectionEstablished = connect(
+  (x: BackgroundConnection) => {
+    console.log('Connection established!', Date.now());
+    connection = x;
+  },
+  (reconnectPromise) => {
+    console.log('Reconnecting...', Date.now());
+    connectionEstablished = reconnectPromise;
+  },
+);
 
-export async function sendMessage<T>(message: unknown): Promise<T> {
+export async function ready() { return connectionEstablished; }
+
+export async function subscribeToAgent(handler: (...params: unknown[]) => void, options?: unknown) {
+  await connectionEstablished;
+  const unsubscribe = connection.subscribe('agent', handler, options);
+  return unsubscribe;
+}
+
+export async function subscribeToSession(handler: (...params: unknown[]) => void) {
+  await connectionEstablished;
+  const unsubscribe = connection.subscribe('session', handler);
+  return unsubscribe;
+}
+
+export async function subscribeToActiveScope(handler: (...params: unknown[]) => void) {
+  await connectionEstablished;
+  const unsubscribe = connection.subscribe('scope', handler);
+  return unsubscribe;
+}
+
+async function sendMessage<T>(message: unknown): Promise<T> {
+  // chrome.runtime.sendMessage doesn't really utilize a port connection
+  // that "connectionEstablished" promise is used merely as an indication of the background script readyness to accept messages
+  await connectionEstablished;
   return new Promise((resolve, reject) => {
     // reference https://developer.chrome.com/extensions/runtime#method-sendMessage
     chrome.runtime.sendMessage('', message, {}, (response) => {
@@ -32,19 +66,4 @@ export async function cleanupTestSession() {
 
 export async function getHostInfo() {
   return sendMessage<Record<string, any>>({ type: 'GET_HOST_INFO' });
-}
-
-export function subscribeToAgent(handler: (...params: unknown[]) => void, options?: unknown) {
-  const unsubscribe = connection.subscribe('agent', handler, options);
-  return unsubscribe;
-}
-
-export function subscribeToSession(handler: (...params: unknown[]) => void) {
-  const unsubscribe = connection.subscribe('session', handler);
-  return unsubscribe;
-}
-
-export function subscribeToActiveScope(handler: (...params: unknown[]) => void) {
-  const unsubscribe = connection.subscribe('scope', handler);
-  return unsubscribe;
 }

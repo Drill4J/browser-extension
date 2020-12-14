@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import chromeApi from '../background/dev-tools-api';
+import chromeApi from '../common/chrome-api';
 
 export function useActiveTabUrl() {
   const [data, setData] = useState<string | undefined>(undefined);

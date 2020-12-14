@@ -1,4 +1,5 @@
-import chromeApi from '../background/dev-tools-api';
+import chromeApi from '../common/chrome-api';
+
 import * as backgroundInterop from '../common/background-interop';
 import { useSubscriptionWithAsyncOptions } from './util/use-subscription';
 

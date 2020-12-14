@@ -2,7 +2,6 @@ import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { useHistory } from 'react-router-dom';
 
-import { useAgentConfig, useAgentInfo } from '../../../hooks';
 import { BusyAgentLogo } from './busy-agent-logo';
 import { OfflineAgentLogo } from './offline-agent-logo';
 

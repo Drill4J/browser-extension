@@ -4,10 +4,14 @@ import { DrillSocket } from '../common/connection/drill-socket';
 
 const AUTH_TOKEN_HEADER_NAME = 'Authorization';
 
-export default async (backendUrl: string) => {
+export default async (backendUrl: string, errorCb: any, completeCb: any) => {
   const token = await setupAxios(backendUrl);
-  const adminSocket = createAdminSocket(backendUrl, token);
-  const test2CodeSocket = createTest2CodeSocket(backendUrl, token);
+  const adminSocket = createAdminSocket(backendUrl, token, () => {
+    adminSocket.cleanup();
+    test2CodeSocket.cleanup();
+    errorCb();
+  }, completeCb);
+  const test2CodeSocket = createTest2CodeSocket(backendUrl, token, () => {}, () => {}); // FIXME test2code - individual connection handling
   const test2CodeSubs: Record<string, any> = {};
 
   return {
@@ -107,16 +111,16 @@ export default async (backendUrl: string) => {
   };
 };
 
-function createAdminSocket(backendUrl: string, token: string) {
+function createAdminSocket(backendUrl: string, token: string, errorCb: any, completeCb: any) {
   const url = new URL(ensureProtocol(backendUrl));
   const protocol = url.protocol === 'https:' ? 'wss' : 'ws';
-  return new DrillSocket(`${protocol}://${url.host}/ws/drill-admin-socket?token=${token}`);
+  return new DrillSocket(`${protocol}://${url.host}/ws/drill-admin-socket?token=${token}`, errorCb, completeCb);
 }
 
-function createTest2CodeSocket(backendUrl: string, token: string) {
+function createTest2CodeSocket(backendUrl: string, token: string, errorCb: any, completeCb: any) {
   const url = new URL(ensureProtocol(backendUrl));
   const protocol = url.protocol === 'https:' ? 'wss' : 'ws';
-  return new DrillSocket(`${protocol}://${url.host}/ws/plugins/test2code?token=${token}`);
+  return new DrillSocket(`${protocol}://${url.host}/ws/plugins/test2code?token=${token}`, errorCb, completeCb);
 }
 
 function ensureProtocol(url: string) {

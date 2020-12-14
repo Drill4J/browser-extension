@@ -12,6 +12,8 @@ import { useAgentOnActiveTab } from '../../../hooks/use-agent-on-active-tab';
 import { AgentStatus } from './agent-status';
 
 import styles from './main-page.module.scss';
+import { repeatAsync } from '../../../common/util/repeat-async';
+import * as localStorageUtil from '../../../common/util/local-storage';
 
 interface Props {
   className?: string;
@@ -21,6 +23,19 @@ interface Props {
 const mainPage = BEM(styles);
 
 export const MainPage = mainPage(({ className }: Props) => {
+  // FIXME implicit dependency on background event via storage
+  // this is not obvious from other parts of the extension
+  const [isConfigured, setIsConfigured] = React.useState(false);
+  React.useEffect(() => {
+    (async () => {
+      await repeatAsync(async () => {
+        const storage = await localStorageUtil.get('backendAddress');
+        console.log('storage', storage);
+        if (storage?.backendAddress) setIsConfigured(true);
+      }, true);
+    })();
+  });
+
   const { data: agent, isLoading, isError }: any = useAgentOnActiveTab();
   const localStorage = useHostLocalStorage(agent?.host) || {};
   const { [agent?.host]: hostStorage } = localStorage;
@@ -49,15 +64,19 @@ export const MainPage = mainPage(({ className }: Props) => {
           )}
         </Header>
         <Content>
+          { !isConfigured && (
+            <>
+              <div style={{ marginTop: '15px' }}> Please, provide a backend address in the extension settings </div>
+              <Button style={{ marginTop: '15px' }} type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
+                Open settings page
+              </Button>
+            </>
+          )}
           { isError && !isLoading && (
             <div>
               Error:
               <br />
               {isError}
-              <div style={{ marginTop: '15px' }}> Please, make sure to enter required data at the extension settings page </div>
-              <Button style={{ marginTop: '15px' }} type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
-                Widget settings
-              </Button>
             </div>)}
           { !isLoading && !isError && agent === undefined && (
             <div>

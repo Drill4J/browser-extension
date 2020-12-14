@@ -7,7 +7,7 @@ export const AgentContext = React.createContext<any>(null);
 export const withAgentContext = (WrappedComponent: any) => (props: any) => {
   const { host, ...otherProps } = props;
   console.log('withAgentContext', host, otherProps);
-  const agent: any = useAgentOnHost(host);
+  const { data: agent } = useAgentOnHost(host);
   console.log('withAgentContext agent', agent);
   return (
     <AgentContext.Provider value={agent}>

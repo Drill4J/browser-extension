@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { SubscriptionState } from './types';
 
 export function useSubscription<T>(subscribe: (...params: any[]) => () => void, options?: any) {
   const [data, setData] = useState<T | null>(null);
@@ -14,7 +15,12 @@ export function useSubscription<T>(subscribe: (...params: any[]) => () => void, 
   return data;
 }
 
-export function useSubscriptionWithAsyncOptions<T>(subscribe: (...params: any[]) => () => void, getOptions: () => Promise<any>) {
+type asyncOp = () => Promise<any>;
+type syncOp = () => any;
+const noop = () => {};
+export function useSubscriptionWithAsyncOptions<T>(
+  subscribe: (...params: any[]) => Promise<() => void>, getOptions: asyncOp | syncOp | unknown = noop,
+): SubscriptionState<T> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState<string | null>(null);
@@ -24,15 +30,18 @@ export function useSubscriptionWithAsyncOptions<T>(subscribe: (...params: any[])
     let unsubscribe: () => any;
 
     const cleanup = () => {
+      console.log('ASYNC SUB CLEANUP', getOptions);
       isCleanupCalled = true;
       unsubscribe && unsubscribe();
     };
 
     (async () => {
       try {
-        const options = await getOptions();
+        const options = typeof getOptions === 'function' ? await (getOptions() as Promise<any>) : getOptions;
         if (isCleanupCalled) return;
-        unsubscribe = subscribe((newData: T) => {
+        console.log('ASYNC SUB CALL', getOptions);
+        unsubscribe = await subscribe((newData: T) => {
+          console.log('ASYNC SUB UPDATE', getOptions);
           setData(newData);
           setIsLoading(false);
         }, options);

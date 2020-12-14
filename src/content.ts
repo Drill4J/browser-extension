@@ -8,6 +8,7 @@ import './content.css';
 
 init();
 async function init() {
+  await bgInterop.ready();
   const hostInfo = await bgInterop.getHostInfo();
   const host = transformHost(window.location.href);
   if (hostInfo) {

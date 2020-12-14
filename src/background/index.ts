@@ -1,9 +1,9 @@
-import { browser, WebRequest } from 'webextension-polyfill-ts';
 import createMessageRouter from './message-router';
 import setupRuntimeMessageListener from './runtime-message-listener';
 import initBackendApi from './backend-api';
 import jsCoverageRecorder from './js-coverage-recorder';
 import { transformHost } from '../common/util/transform-host';
+import * as localStorageUtil from '../common/util/local-storage';
 import type {
   AdapterInfo,
   AgentAdapter,
@@ -15,63 +15,83 @@ import type {
 } from './types';
 
 import { SessionStatus, AgentType } from './enums';
+import { setupResponseInterceptor } from './response-interceptor';
+import { repeatAsync } from '../common/util/repeat-async';
+import { setupRequestInterceptor } from './request-interceptor';
+import { objectPropsToArray } from '../common/util/object-props-to-array';
 
 init();
 async function init() {
-  const backend = await connectToBackend();
-  console.log('ready to start');
-  start(backend);
+  const responseInterceptorsCleanup = setupResponseInterceptors();
+
+  let backend: any;
+  let connectionEstablished = connect(
+    (x: any) => {
+      backend = x;
+      console.log('Connection established!', Date.now());
+    },
+    (reconnectPromise: any) => {
+      console.log('Reconnecting...', Date.now());
+      connectionEstablished = reconnectPromise;
+    },
+  );
+
+  // console.log('ready to start');
+  // start(backend);
 }
 
-async function connectToBackend(): Promise<BackendCreator> {
+export async function connect(connectCb: any, disconnectCb: any) {
   // TODO add timeout and a way to restart
-  const backendAddress = await repeatAsync<string>(async () => {
-    const storage = await browser.storage.local.get('backendAddress');
-    return storage?.backendAddress;
-  });
+  const repeatUntilConnect = () => repeatAsync(async () => {
+    const connection = await connectToBackend(() => {
+      const reconnectPromise = repeatUntilConnect();
+      disconnectCb(reconnectPromise);
+    });
+    connectCb(connection);
+    return connection;
+  }, true);
+  return repeatUntilConnect();
+}
+
+async function connectToBackend(disconnectCb: any): Promise<BackendCreator | null> {
+  const storage = await localStorageUtil.get('backendAddress');
+  const backendAddress = storage?.backendAddress;
+  if (!backendAddress) throw new Error('Backend address is not set');
+
   console.log('received backendAddress', backendAddress);
 
-  const backend = await repeatAsync<BackendCreator>(async () => initBackendApi(backendAddress));
+  const backend = await initBackendApi(
+    backendAddress,
+    (error: any) => {
+      console.log('admin', error);
+      disconnectCb(error);
+    },
+    (data: any) => {
+      console.log('admin complete', data);
+    },
+  );
   console.log('connected to backend', backendAddress);
   return backend;
 }
 
-async function repeatAsync<T>(fn: (params?: any) => Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const intervalId = setInterval(async () => {
-      let data;
-      try {
-        data = await fn();
-      } catch (e) {
-        console.log('repeatAsync error', e);
-      }
-      if (!data) return;
-      clearInterval(intervalId);
-      resolve(data);
-    }, 5000);
+function setupResponseInterceptors() {
+  const responseInterceptor = setupResponseInterceptor();
+
+  responseInterceptor.add('drill-admin-url', async (backendAddress) => {
+    await localStorageUtil.save({ backendAddress });
+    responseInterceptor.remove('drill-admin-url');
   });
-}
 
-function setupRequestInterceptor(sessionsStorage: Record<string, SessionData>) {
-  const interceptor = ({ requestHeaders = [], initiator = '' }: WebRequest.OnBeforeSendHeadersDetailsType & { initiator?: string}) => {
-    const host = transformHost(initiator);
-    if (!host) return { requestHeaders };
-
-    const session = sessionsStorage[host];
-    if (session && session.status === SessionStatus.ACTIVE) {
-      requestHeaders.push({ name: 'drill-session-id', value: session.sessionId });
-      requestHeaders.push({ name: 'drill-test-name', value: session.testName });
-    }
-    return { requestHeaders };
+  const interceptedAgentData: Record<string, string> = {};
+  const agentOrGroupHandler = async (agentOrGroupId: string, host: string) => {
+    interceptedAgentData[host] = agentOrGroupId;
+    console.log('interceptedAgentData', agentOrGroupId, host, interceptedAgentData);
   };
-  browser.webRequest.onBeforeSendHeaders.addListener(
-    interceptor,
-    {
-      urls: ['*://*/*'],
-    },
-    ['blocking', 'requestHeaders'],
-  );
-  return () => browser.webRequest.onBeforeSendHeaders.removeListener(interceptor);
+
+  responseInterceptor.add('drill-agent-id', agentOrGroupHandler);
+  responseInterceptor.add('drill-group-id', agentOrGroupHandler);
+
+  return () => responseInterceptor.cleanup();
 }
 
 async function start(backend: BackendCreator) {
@@ -92,7 +112,7 @@ async function start(backend: BackendCreator) {
   const scopeSubsCleanup: Record<string, any> = {};
   const scopesData: Record<string, ScopeData> = {};
 
-  backend.subscribeAdmin('/api/agents', (data: any) => {
+  const unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents', (data: any) => {
     const newInfo = [
       ...agentAdaptersReducer(data),
       ...sgAdaptersReducer(data),
@@ -112,7 +132,7 @@ async function start(backend: BackendCreator) {
     const portId = port.sender?.tab ? port.sender?.tab.id : port.sender?.id;
     if (!portId) throw new Error(`Can't assign port id for ${port}`);
     const senderHost = transformHost(port.sender?.url);
-    const handler = (message: any) => {
+    const portMessageHandler = (message: any) => {
       const {
         type, resource, options,
       } = message;
@@ -174,8 +194,8 @@ async function start(backend: BackendCreator) {
     port.onDisconnect.addListener(() => {
       console.log('port.onDisconnect', 'portId', portId);
 
-      if (port.onMessage.hasListener(handler)) {
-        port.onMessage.removeListener(handler);
+      if (port.onMessage.hasListener(portMessageHandler)) {
+        port.onMessage.removeListener(portMessageHandler);
       }
 
       if (agentSubsCleanup[portId]) {
@@ -191,11 +211,11 @@ async function start(backend: BackendCreator) {
       }
     });
 
-    port.onMessage.addListener(handler);
+    port.onMessage.addListener(portMessageHandler);
   };
   chrome.runtime.onConnect.addListener(runtimeConnectHandler);
 
-  setupRequestInterceptor(sessionsData);
+  const requestInterceptorCleanup = setupRequestInterceptor(sessionsData);
 
   const router = createMessageRouter();
 
@@ -248,6 +268,7 @@ async function start(backend: BackendCreator) {
     notifySubscribers(sessionSubs[host], sessionsData[host]); // FIXME
   });
 
+  // FIXME rename that to getIsHostAssociatedWithAgent
   router.add('GET_HOST_INFO', async (sender: chrome.runtime.MessageSender) => {
     const hostConfig = agentsData[transformHost(sender.url)];
     if (!hostConfig) return false;
@@ -298,11 +319,6 @@ function sgAdaptersReducer(agentsList: any): AdapterInfo[] {
       return a;
     }, {});
   return objectPropsToArray(sgAdaptersInfoMap);
-}
-
-function objectPropsToArray<T>(obj: Record<string, T>): T[] {
-  const keys = Object.keys(obj);
-  return keys.map((x) => obj[x]);
 }
 
 function createAdaptersFromInfo(data: AdapterInfo[], backend: BackendCreator) {
