@@ -107,20 +107,28 @@ export default async (backendUrl: string) => {
   };
 };
 
-function createAdminSocket(adminUrl: string, token: string) {
-  const url = new URL(adminUrl);
+function createAdminSocket(backendUrl: string, token: string) {
+  const url = new URL(ensureProtocol(backendUrl));
   const protocol = url.protocol === 'https:' ? 'wss' : 'ws';
   return new DrillSocket(`${protocol}://${url.host}/ws/drill-admin-socket?token=${token}`);
 }
 
-function createTest2CodeSocket(adminUrl: string, token: string) {
-  const url = new URL(adminUrl);
+function createTest2CodeSocket(backendUrl: string, token: string) {
+  const url = new URL(ensureProtocol(backendUrl));
   const protocol = url.protocol === 'https:' ? 'wss' : 'ws';
   return new DrillSocket(`${protocol}://${url.host}/ws/plugins/test2code?token=${token}`);
 }
 
+function ensureProtocol(url: string) {
+  const hasProtocol = url.indexOf('http') > -1 || url.indexOf('https') > -1;
+  if (!hasProtocol) {
+    return `http://${url}`;
+  }
+  return url;
+}
+
 async function setupAxios(backendUrl: string) {
-  axios.defaults.baseURL = `${backendUrl}/api/`;
+  axios.defaults.baseURL = `${ensureProtocol(backendUrl)}/api/`;
 
   const authToken = await getAuthToken(); // TODO move that out of setupAxios method
 
