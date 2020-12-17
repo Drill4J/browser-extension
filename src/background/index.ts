@@ -13,8 +13,7 @@ import type {
   SessionData,
   SubNotifyFunction,
 } from './types';
-
-import { SessionStatus, AgentType } from './enums';
+import { SessionStatus, AgentType, BackendConnectionStatus } from './enums';
 import { setupResponseInterceptor } from './response-interceptor';
 import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
@@ -22,80 +21,55 @@ import { objectPropsToArray } from '../common/util/object-props-to-array';
 
 init();
 async function init() {
-  const responseInterceptorsCleanup = setupResponseInterceptors();
+  const iterceptedDataStore: Record<string, any> = {};
+  const responseInterceptorsCleanup = setupResponseInterceptors(iterceptedDataStore);
 
   let backend: any;
+  let unsubscribeFromAdmin: any;
   let connectionEstablished = connect(
     (x: any) => {
+      // FIXME this is awful
+      const prevSubs = backend?.getTest2CodeSubs();
       backend = x;
-      console.log('Connection established!', Date.now());
+      if (prevSubs) {
+        backend.setTest2CodeSubs(prevSubs);
+      }
+
+      backendConnectionStatusData = BackendConnectionStatus.AVAILABLE;
+      console.log('Connection established!');
+
+      unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents', (data: any) => {
+        const newInfo = [
+          ...agentAdaptersReducer(data, iterceptedDataStore?.agents),
+          ...sgAdaptersReducer(data, iterceptedDataStore?.agents),
+        ];
+        agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
+        Object.keys(agentsData).forEach((host) => {
+          if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
+            notifySubscribers(agentSubs[host], agentsData[host]);
+          }
+        });
+        adapters = createAdaptersFromInfo(newInfo, backend);
+      });
+
+      notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
     },
     (reconnectPromise: any) => {
-      console.log('Reconnecting...', Date.now());
+      backendConnectionStatusData = BackendConnectionStatus.RECONNECTING;
+      unsubscribeFromAdmin();
+      notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
       connectionEstablished = reconnectPromise;
     },
   );
 
   // console.log('ready to start');
   // start(backend);
-}
-
-export async function connect(connectCb: any, disconnectCb: any) {
-  // TODO add timeout and a way to restart
-  const repeatUntilConnect = () => repeatAsync(async () => {
-    const connection = await connectToBackend(() => {
-      const reconnectPromise = repeatUntilConnect();
-      disconnectCb(reconnectPromise);
-    });
-    connectCb(connection);
-    return connection;
-  }, true);
-  return repeatUntilConnect();
-}
-
-async function connectToBackend(disconnectCb: any): Promise<BackendCreator | null> {
-  const storage = await localStorageUtil.get('backendAddress');
-  const backendAddress = storage?.backendAddress;
-  if (!backendAddress) throw new Error('Backend address is not set');
-
-  console.log('received backendAddress', backendAddress);
-
-  const backend = await initBackendApi(
-    backendAddress,
-    (error: any) => {
-      console.log('admin', error);
-      disconnectCb(error);
-    },
-    (data: any) => {
-      console.log('admin complete', data);
-    },
-  );
-  console.log('connected to backend', backendAddress);
-  return backend;
-}
-
-function setupResponseInterceptors() {
-  const responseInterceptor = setupResponseInterceptor();
-
-  responseInterceptor.add('drill-admin-url', async (backendAddress) => {
-    await localStorageUtil.save({ backendAddress });
-    responseInterceptor.remove('drill-admin-url');
-  });
-
-  const interceptedAgentData: Record<string, string> = {};
-  const agentOrGroupHandler = async (agentOrGroupId: string, host: string) => {
-    interceptedAgentData[host] = agentOrGroupId;
-    console.log('interceptedAgentData', agentOrGroupId, host, interceptedAgentData);
-  };
-
-  responseInterceptor.add('drill-agent-id', agentOrGroupHandler);
-  responseInterceptor.add('drill-group-id', agentOrGroupHandler);
-
-  return () => responseInterceptor.cleanup();
-}
-
-async function start(backend: BackendCreator) {
   let adapters: Record<string, AgentAdapter> = {};
+
+  // session subscriptions
+  const backendConnectionStatusSubs: Record<string, any> = {};
+  const backendConnectionStatusSubsCleanup: Record<string, any> = {};
+  let backendConnectionStatusData: BackendConnectionStatus = BackendConnectionStatus.UNAVAILABLE;
 
   // agent subscriptions
   const agentSubs: Record<string, Record<string, SubNotifyFunction>> = {};
@@ -112,22 +86,6 @@ async function start(backend: BackendCreator) {
   const scopeSubsCleanup: Record<string, any> = {};
   const scopesData: Record<string, ScopeData> = {};
 
-  const unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents', (data: any) => {
-    const newInfo = [
-      ...agentAdaptersReducer(data),
-      ...sgAdaptersReducer(data),
-    ];
-
-    agentsData = newInfo.reduce((a, x) => ({ ...a, [x.host]: x }), {});
-    Object.keys(agentsData).forEach((host) => {
-      if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
-        notifySubscribers(agentSubs[host], agentsData[host]);
-      }
-    });
-
-    adapters = createAdaptersFromInfo(newInfo, backend);
-  });
-
   const runtimeConnectHandler = (port: chrome.runtime.Port) => {
     const portId = port.sender?.tab ? port.sender?.tab.id : port.sender?.id;
     if (!portId) throw new Error(`Can't assign port id for ${port}`);
@@ -140,6 +98,15 @@ async function start(backend: BackendCreator) {
       console.log('MESSAGE from', portId, host, 'with', message);
 
       if (type === 'SUBSCRIBE') {
+        if (resource === 'backend-connection-status') {
+          if (!backendConnectionStatusSubs[host]) {
+            backendConnectionStatusSubs[host] = {};
+          }
+          backendConnectionStatusSubs[host][portId] = createPortUpdater(port, 'backend-connection-status');
+          backendConnectionStatusSubs[host][portId](backendConnectionStatusData);
+          backendConnectionStatusSubsCleanup[portId] = () => delete backendConnectionStatusSubs[host][portId];
+        }
+
         if (resource === 'agent') {
           if (!agentSubs[host]) {
             agentSubs[host] = {};
@@ -172,7 +139,6 @@ async function start(backend: BackendCreator) {
           const unsubscribe = backend.subscribeTest2Code('/active-scope', scopeSubs[host][portId], agentInfo.id, agentInfo.buildVersion);
 
           scopeSubsCleanup[portId] = () => {
-            console.log('scopeSubsCleanup', portId);
             unsubscribe();
             delete scopeSubs[host][portId];
           };
@@ -187,6 +153,9 @@ async function start(backend: BackendCreator) {
         }
         if (resource === 'scope') {
           scopeSubsCleanup[portId]();
+        }
+        if (resource === 'backend-connection-status') {
+          backendConnectionStatusSubsCleanup[portId]();
         }
       }
     };
@@ -209,6 +178,10 @@ async function start(backend: BackendCreator) {
       if (scopeSubsCleanup[portId]) {
         scopeSubsCleanup[portId]();
       }
+
+      if (backendConnectionStatusSubsCleanup[portId]) {
+        backendConnectionStatusSubsCleanup[portId]();
+      }
     });
 
     port.onMessage.addListener(portMessageHandler);
@@ -222,6 +195,7 @@ async function start(backend: BackendCreator) {
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
+    if (!adapter) throw new Error('Backend connection unavailable');
     const sessionId = await adapter.startTest(testName, sender);
     sessionsData[host] = {
       testName,
@@ -235,6 +209,7 @@ async function start(backend: BackendCreator) {
   router.add('STOP_TEST', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
+    if (!adapter) throw new Error('Backend connection unavailable');
     // TODO !adapter check?
     // TODO !sessionsData[host] check?
     await adapter.stopTest(sessionsData[host].sessionId, sender);
@@ -250,6 +225,7 @@ async function start(backend: BackendCreator) {
   router.add('CANCEL_TEST', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
+    if (!adapter) throw new Error('Backend connection unavailable');
     // TODO !adapter check?
     // TODO !sessionsData[host] check?
     await adapter.cancelTest(sessionsData[host].sessionId, sender);
@@ -278,20 +254,78 @@ async function start(backend: BackendCreator) {
   router.init(setupRuntimeMessageListener);
 }
 
-function agentAdaptersReducer(agentsList: any): AdapterInfo[] {
+async function connect(connectCb: any, disconnectCb: any) {
+  // TODO add timeout and a way to restart
+  const repeatUntilConnect = () => repeatAsync(async () => {
+    const connection = await connectToBackend(() => {
+      const reconnectPromise = repeatUntilConnect();
+      disconnectCb(reconnectPromise);
+    });
+    connectCb(connection);
+    return connection;
+  }, true);
+  return repeatUntilConnect();
+}
+
+async function connectToBackend(disconnectCb: any): Promise<BackendCreator | null> {
+  const storage = await localStorageUtil.get('backendAddress');
+  const backendAddress = storage?.backendAddress;
+  if (!backendAddress) throw new Error('Backend address is not set');
+
+  console.log('received backendAddress', backendAddress);
+
+  const backend = await initBackendApi(
+    backendAddress,
+    (error: any) => {
+      disconnectCb(error);
+    },
+    () => {
+      console.log('admin complete');
+    },
+  );
+  return backend;
+}
+
+function notifyAllSubs(subsPerHost: Record<string, Record<string, SubNotifyFunction>>, data: BackendConnectionStatus) {
+  objectPropsToArray(subsPerHost).forEach(x => notifySubscribers(x, data));
+}
+
+function setupResponseInterceptors(interceptedDataStore: Record<string,any>) {
+  // response interceptors
+  const responseInterceptor = setupResponseInterceptor();
+
+  responseInterceptor.add('drill-admin-url', async (backendAddress) => {
+    await localStorageUtil.save({ backendAddress });
+    responseInterceptor.remove('drill-admin-url');
+  });
+
+  // eslint-disable-next-line no-param-reassign
+  interceptedDataStore.agents = {};
+  const agentOrGroupHandler = async (id: string, host: string) => {
+    // eslint-disable-next-line no-param-reassign
+    interceptedDataStore.agents[id] = host;
+  };
+
+  responseInterceptor.add('drill-agent-id', agentOrGroupHandler);
+  responseInterceptor.add('drill-group-id', agentOrGroupHandler);
+
+  return () => responseInterceptor.cleanup();
+}
+
+function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>): AdapterInfo[] {
   return agentsList
     .filter((x: any) => !x.serviceGroup)
     .map((x: any) => ({
       adapterType: 'agents',
       id: x.id,
-      host: transformHost(x.systemSettings?.targetHost),
+      host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
       status: x.status,
       buildVersion: x.buildVersion,
       mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
     }));
 }
 
-function sgAdaptersReducer(agentsList: any): AdapterInfo[] {
+function sgAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>): AdapterInfo[] {
   const sgAdaptersInfoMap: Record<string, AdapterInfo> = agentsList
     .filter((x: any) => x.serviceGroup)
     .reduce((a: any, x: any) => {
@@ -300,7 +334,7 @@ function sgAdaptersReducer(agentsList: any): AdapterInfo[] {
         a[x.serviceGroup] = {
           adapterType: 'service-groups',
           id: x.serviceGroup,
-          host: transformHost(x.systemSettings?.targetHost),
+          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
           // TODO think what to do with the SG status
           status: x.status,
           buildVersion: x.buildVersion,
@@ -331,7 +365,6 @@ function notifySubscribers(subscribers: Record<string, SubNotifyFunction>, data:
 
 function createPortUpdater(port: chrome.runtime.Port, resource: string): SubNotifyFunction {
   return (data: any) => {
-    console.log(resource, 'UPDATE', 'with', data);
     port.postMessage({ resource, payload: data });
   };
 }

@@ -24,11 +24,6 @@ interface Props {
 }
 
 export const Timer = ({ start }: Props) => {
-  if (start) {
-    console.log('start', start, 'duration', Date.now() - start);
-  } else {
-    console.log('start', start);
-  }
   const time = useTimer(start);
 
   const seconds = (`0${Math.floor(time / 1000) % 60}`).slice(-2);

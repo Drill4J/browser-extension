@@ -9,6 +9,7 @@ import {
 import { DomainConfig } from 'types/domain-config';
 import { useHostLocalStorage } from '../../../hooks/use-host-local-storage';
 import { useAgentOnActiveTab } from '../../../hooks/use-agent-on-active-tab';
+import { useBackendConnectionStatus } from '../../../hooks/use-backend-connection-status';
 import { AgentStatus } from './agent-status';
 
 import styles from './main-page.module.scss';
@@ -37,6 +38,13 @@ export const MainPage = mainPage(({ className }: Props) => {
   });
 
   const { data: agent, isLoading, isError }: any = useAgentOnActiveTab();
+
+  const {
+    data: backendConnectionStatus,
+    isLoading: backendConnectionStatusIsLoading,
+    isError: backendConnectionStatusIsError,
+  }: any = useBackendConnectionStatus();
+
   const localStorage = useHostLocalStorage(agent?.host) || {};
   const { [agent?.host]: hostStorage } = localStorage;
 
@@ -64,6 +72,17 @@ export const MainPage = mainPage(({ className }: Props) => {
           )}
         </Header>
         <Content>
+          { backendConnectionStatusIsLoading && (<div> Loading backend connection status... </div>)}
+          { backendConnectionStatusIsError && !backendConnectionStatusIsLoading && (
+            <div>
+              Backend connection error:
+              { backendConnectionStatusIsError }
+            </div>
+          )}
+          <div>
+            Backend connection:
+            { backendConnectionStatus }
+          </div>
           { !isConfigured && (
             <>
               <div style={{ marginTop: '15px' }}> Please, provide a backend address in the extension settings </div>

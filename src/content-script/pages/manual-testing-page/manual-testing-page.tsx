@@ -31,7 +31,6 @@ export const ManualTestingPage = withActiveScopeContext(withSessionContext(((pro
         break;
     }
   }, [push, session?.status]);
-
   return (
     <AgentContext.Consumer>
       { agent => (

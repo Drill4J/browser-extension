@@ -33,6 +33,12 @@ export async function subscribeToActiveScope(handler: (...params: unknown[]) => 
   return unsubscribe;
 }
 
+export async function subscribeToBackendConnectionStatus(handler: (...params: unknown[]) => void) {
+  await connectionEstablished;
+  const unsubscribe = connection.subscribe('backend-connection-status', handler);
+  return unsubscribe;
+}
+
 async function sendMessage<T>(message: unknown): Promise<T> {
   // chrome.runtime.sendMessage doesn't really utilize a port connection
   // that "connectionEstablished" promise is used merely as an indication of the background script readyness to accept messages

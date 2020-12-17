@@ -1,6 +1,6 @@
 {
   "name": "@drill4j/browser-extension",
-  "version": "0.3.23",
+  "version": "0.3.24",
   "license": "Apache-2.0",
   "scripts": {
     "build": "NODE_ENV=production webpack",
@@ -20,6 +20,7 @@
     "react-final-form": "^6.5.1",
     "react-router-dom": "^5.1.2",
     "rxjs": "^6.5.5",
+    "uuid": "^8.3.2",
     "webextension-polyfill-ts": "^0.14.0",
     "xxhashjs": "^0.2.2"
   },
@@ -30,6 +31,7 @@
     "@types/react": "^16.14.0",
     "@types/react-dom": "^16.9.9",
     "@types/react-router-dom": "^5.1.6",
+    "@types/uuid": "^8.3.0",
     "@types/xxhashjs": "^0.2.2",
     "@typescript-eslint/eslint-plugin": "^2.29.0",
     "@typescript-eslint/parser": "^2.29.0",

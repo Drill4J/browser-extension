@@ -1,4 +1,5 @@
-import axios from 'axios';
+import { v4 as uuid } from 'uuid';
+import axios, { AxiosError } from 'axios';
 import { browser } from 'webextension-polyfill-ts';
 import { DrillSocket } from '../common/connection/drill-socket';
 
@@ -12,7 +13,7 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
     errorCb();
   }, completeCb);
   const test2CodeSocket = createTest2CodeSocket(backendUrl, token, () => {}, () => {}); // FIXME test2code - individual connection handling
-  const test2CodeSubs: Record<string, any> = {};
+  let test2CodeSubs: Record<string, any> = {};
 
   return {
     subscribeAdmin(route: string, handler: any) {
@@ -22,6 +23,12 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
         handler,
       );
       return unsubscribe;
+    },
+    getTest2CodeSubs() {
+      return test2CodeSubs;
+    },
+    setTest2CodeSubs(newSubs: Record<string, any>) {
+      test2CodeSubs = newSubs;
     },
     subscribeTest2Code(route: string, handler: any, agentId: string, buildVersion?: string) {
       // TODO I don't like that hairy ball of a subscription management
@@ -43,7 +50,6 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
       const unsubscribe = test2CodeSocket.subscribe(
         route,
         (data: any, to?: any) => {
-          console.log('TEST2CODESOCKET HANDLER', route, agentId, buildVersion);
 
           // TODO comment that out and check if that still works as intended (most likely it will not)
           if (to.agentId !== agentId || to.buildVersion !== buildVersion) return;
@@ -68,37 +74,35 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
     getMethods(baseUrl: string) {
       return {
         async startTest(testName: string) { // TODO add isRealTime param
-          const { data } = await axios.post(baseUrl, {
+          const sessionId = uuid();
+          await axiosPost(baseUrl, {
             type: 'START',
-            payload: { testType: 'MANUAL', testName, isRealtime: true },
+            payload: {
+              sessionId,
+              testName,
+              testType: 'MANUAL',
+              isRealtime: true,
+            },
           });
-
-          if (Array.isArray(data)) {
-            const index = data.findIndex(x => x.code === 200);
-            if (index === -1) throw new Error(`Internal server error. Response: ${JSON.stringify(data)}`);
-            return data[index].data.payload.sessionId;
-          }
-
-          if (!data?.data?.payload?.sessionId) throw new Error(`Internal server error. Response: ${JSON.stringify(data)}`);
-          return data.data.payload.sessionId;
+          return sessionId;
         },
 
         async stopTest(sessionId: string) {
-          await axios.post(baseUrl, {
+          await axiosPost(baseUrl, {
             type: 'STOP',
             payload: { sessionId },
           });
         },
 
         async cancelTest(sessionId: string) {
-          await axios.post(baseUrl, {
+          await axiosPost(baseUrl, {
             type: 'CANCEL',
             payload: { sessionId },
           });
         },
 
         async addSessionData(sessionId: string, data: unknown) {
-          await axios.post(baseUrl, {
+          await axiosPost(baseUrl, {
             type: 'ADD_SESSION_DATA',
             payload: {
               sessionId,
@@ -172,4 +176,48 @@ async function login() {
   const authToken = headers[AUTH_TOKEN_HEADER_NAME.toLowerCase()];
   if (!authToken) throw new Error('Backend authentication failed');
   return authToken;
+}
+
+async function axiosPost(baseUrl: string, payload: unknown) {
+  let data;
+  try {
+    const res = await axios.post(baseUrl, payload);
+    data = res?.data;
+  } catch (e) {
+    throw new Error(getErrorMessage(e));
+  }
+
+  if (Array.isArray(data)) {
+    if (!data.some(x => x.code === 200)) { // TODO change when we will figure out SG actions handling
+      throw new Error('unexpected error');
+    }
+  } else if (data.code !== 200) { // TODO if backend always sets correct status codes that must not happen
+    throw new Error('unexpected error');
+  }
+  return data;
+}
+
+function getErrorMessage(e: unknown): string {
+  if (typeof e === 'string') return e;
+
+  if (typeof e === 'object') {
+    if (isAxiosError(e)) {
+      if (e.response?.data?.message) {
+        return e.response.data.message;
+      }
+      if (e.code === '400') {
+        return 'bad request';
+      }
+      if (e.code === '500') {
+        return 'internal server error';
+      }
+    }
+  }
+
+  return 'unexpected error';
+}
+
+function isAxiosError(e: unknown): e is AxiosError {
+  if (e && (e as any).isAxiosError) return true;
+  return false;
 }
