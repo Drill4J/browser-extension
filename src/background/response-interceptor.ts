@@ -3,7 +3,7 @@ import { browser, WebRequest } from 'webextension-polyfill-ts';
 export function setupResponseInterceptor() {
   const interceptor = ({ responseHeaders = [], initiator = '' }: WebRequest.OnHeadersReceivedDetailsType & { initiator?: string }) => {
     headerHandlers.forEach(handler => {
-      const matchedHeader = responseHeaders.find(x => x.name === handler.name);
+      const matchedHeader = responseHeaders.find(x => x.name.toLowerCase() === handler.name.toLowerCase());
       if (matchedHeader) handler.cb(matchedHeader.value, initiator);
     });
   };
