@@ -1,6 +1,6 @@
 import { browser, WebRequest } from 'webextension-polyfill-ts';
 import { transformHost } from '../common/util/transform-host';
-import { SessionStatus } from './enums';
+import { SessionStatus } from '../common/enums';
 import { SessionData } from './types';
 
 export function setupRequestInterceptor(sessionsStorage: Record<string, SessionData>) {

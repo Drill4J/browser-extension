@@ -13,11 +13,12 @@ import type {
   SessionData,
   SubNotifyFunction,
 } from './types';
-import { SessionStatus, AgentType, BackendConnectionStatus } from './enums';
+import { SessionStatus, AgentType, BackendConnectionStatus } from '../common/enums';
 import { setupResponseInterceptor } from './response-interceptor';
 import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
+import { SessionActionError } from '../common/errors/session-action-error';
 
 init();
 async function init() {
@@ -210,15 +211,28 @@ async function init() {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
-    // TODO !adapter check?
     // TODO !sessionsData[host] check?
-    await adapter.stopTest(sessionsData[host].sessionId, sender);
+    try {
+      await adapter.stopTest(sessionsData[host].sessionId, sender);
+      sessionsData[host] = {
+        ...sessionsData[host],
+        status: SessionStatus.STOPPED,
+        end: Date.now(),
+      };
+    } catch (e) {
+      // TODO conditional throwing/not-throwing is kinda unintuitive
+      if (e instanceof SessionActionError) {
+        sessionsData[host] = {
+          ...sessionsData[host],
+          status: SessionStatus.ERROR,
+          end: Date.now(),
+          error: e,
+        };
+      } else {
+        throw e;
+      }
+    }
 
-    sessionsData[host] = {
-      ...sessionsData[host],
-      status: SessionStatus.STOPPED,
-      end: Date.now(),
-    };
     notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
@@ -226,15 +240,27 @@ async function init() {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
-    // TODO !adapter check?
     // TODO !sessionsData[host] check?
-    await adapter.cancelTest(sessionsData[host].sessionId, sender);
-
-    sessionsData[host] = {
-      ...sessionsData[host],
-      status: SessionStatus.CANCELED,
-      end: Date.now(),
-    };
+    try {
+      await adapter.cancelTest(sessionsData[host].sessionId, sender);
+      sessionsData[host] = {
+        ...sessionsData[host],
+        status: SessionStatus.CANCELED,
+        end: Date.now(),
+      };
+    } catch (e) {
+      // TODO conditional throwing/not-throwing is kinda unintuitive
+      if (e instanceof SessionActionError) {
+        sessionsData[host] = {
+          ...sessionsData[host],
+          status: SessionStatus.ERROR,
+          end: Date.now(),
+          error: e,
+        };
+      } else {
+        throw e;
+      }
+    }
     notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
@@ -290,7 +316,7 @@ function notifyAllSubs(subsPerHost: Record<string, Record<string, SubNotifyFunct
   objectPropsToArray(subsPerHost).forEach(x => notifySubscribers(x, data));
 }
 
-function setupResponseInterceptors(interceptedDataStore: Record<string,any>) {
+function setupResponseInterceptors(interceptedDataStore: Record<string, any>) {
   // response interceptors
   const responseInterceptor = setupResponseInterceptor();
 

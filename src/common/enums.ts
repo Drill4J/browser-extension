@@ -2,6 +2,7 @@ export enum SessionStatus {
   ACTIVE = 'active',
   STOPPED = 'stopped',
   CANCELED = 'canceled',
+  ERROR = 'error',
 }
 
 export enum BackendConnectionStatus {

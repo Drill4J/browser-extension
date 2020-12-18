@@ -20,6 +20,7 @@ interface Props {
 const inProgress = BEM(styles);
 
 export const InProgress = inProgress(({ className }: Props) => {
+  // const [actionError, setActionError] = React.useState('');
   const session = React.useContext(SessionContext);
   const scope = React.useContext(ActiveScopeContext);
   console.log('InProgress SessionContext', session);
@@ -76,7 +77,6 @@ export const InProgress = inProgress(({ className }: Props) => {
                 try {
                   await bgInterop.cancelTest();
                 } catch (e) {
-                  debugger;
                   console.log('cancel recording session failed', e);
                 }
                 updateRequestStatus(false);

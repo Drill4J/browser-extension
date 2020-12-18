@@ -6,11 +6,12 @@ import {
 import { StartRecording } from './start-recording';
 import { InProgress } from './in-progress';
 import { FinishRecording } from './finish-recording';
+import { SessionError } from './session-error';
 import { UnavailablePage } from '../unavailable-page';
 import { AgentContext } from '../../context/agent-context';
 import { withSessionContext, SessionContext } from '../../context/session-context';
 import { withActiveScopeContext } from '../../context/active-scope-context';
-import { SessionStatus } from '../../../background/enums';
+import { SessionStatus } from '../../../common/enums';
 
 export const ManualTestingPage = withActiveScopeContext(withSessionContext(((props: any) => {
   const { push } = useHistory();
@@ -24,6 +25,9 @@ export const ManualTestingPage = withActiveScopeContext(withSessionContext(((pro
         break;
       case SessionStatus.STOPPED:
         push('/manual-testing/finish-recording');
+        break;
+      case SessionStatus.ERROR:
+        push('/manual-testing/error');
         break;
       case SessionStatus.CANCELED:
       default:
@@ -40,6 +44,7 @@ export const ManualTestingPage = withActiveScopeContext(withSessionContext(((pro
               <Switch>
                 <Route exact path="/manual-testing" component={StartRecording} />
                 <Route exact path="/manual-testing/in-progress" component={InProgress} />
+                <Route exact path="/manual-testing/error" component={SessionError} />
                 <Route exact path="/manual-testing/finish-recording" component={FinishRecording} />
               </Switch>
             )

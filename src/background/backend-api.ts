@@ -2,6 +2,7 @@ import { v4 as uuid } from 'uuid';
 import axios, { AxiosError } from 'axios';
 import { browser } from 'webextension-polyfill-ts';
 import { DrillSocket } from '../common/connection/drill-socket';
+import { SessionActionError } from '../common/errors/session-action-error';
 
 const AUTH_TOKEN_HEADER_NAME = 'Authorization';
 
@@ -50,7 +51,6 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
       const unsubscribe = test2CodeSocket.subscribe(
         route,
         (data: any, to?: any) => {
-
           // TODO comment that out and check if that still works as intended (most likely it will not)
           if (to.agentId !== agentId || to.buildVersion !== buildVersion) return;
 
@@ -184,6 +184,13 @@ async function axiosPost(baseUrl: string, payload: unknown) {
     const res = await axios.post(baseUrl, payload);
     data = res?.data;
   } catch (e) {
+    // FIXME this is specific to session actions, might as well move it elsewhere or rename a function
+    if (isAxiosError(e)) {
+      if (e.response?.data?.code === 404) {
+        throw (new SessionActionError(e.response?.data?.message, (payload as any).payload.sessionId));
+      }
+    }
+
     throw new Error(getErrorMessage(e));
   }
 
@@ -205,10 +212,10 @@ function getErrorMessage(e: unknown): string {
       if (e.response?.data?.message) {
         return e.response.data.message;
       }
-      if (e.code === '400') {
+      if (e.response?.status === 400) {
         return 'bad request';
       }
-      if (e.code === '500') {
+      if (e.response?.status === 500) {
         return 'internal server error';
       }
     }

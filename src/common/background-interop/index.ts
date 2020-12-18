@@ -48,8 +48,9 @@ async function sendMessage<T>(message: unknown): Promise<T> {
     chrome.runtime.sendMessage('', message, {}, (response) => {
       if (response?.error) {
         reject(response.error);
+      } else {
+        resolve(response);
       }
-      resolve(response);
     });
   });
 }
