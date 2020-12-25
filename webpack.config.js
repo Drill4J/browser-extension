@@ -19,24 +19,16 @@ const options = {
   },
   module: {
     rules: [
-      {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-        ],
-        exclude: /node_modules/,
-      },
+      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
       {
         test: new RegExp(`.(${fileExtensions.join('|')})$`),
         loader: 'file-loader?name=[name].[ext]',
         exclude: /node_modules/,
       },
-      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
       {
         test: /\.module\.s(a|c)ss$/,
         loader: [
-          process.env.NODE_ENV === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+          MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
             options: {
@@ -53,10 +45,18 @@ const options = {
         ],
       },
       {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+        ],
+        exclude: /node_modules/,
+      },
+      {
         test: /\.s(a|c)ss$/,
         exclude: /\.module.(s(a|c)ss)$/,
         loader: [
-          process.env.NODE_ENV === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+          MiniCssExtractPlugin.loader,
           'css-loader',
           {
             loader: 'sass-loader',
@@ -88,6 +88,7 @@ const options = {
       { from: path.join(__dirname, 'src', 'background.html') },
       { from: path.join(__dirname, 'src', 'popup.html') },
       { from: path.join(__dirname, 'src', 'options.html') },
+      { from: path.join(__dirname, 'src', 'uikit.css') },
     ]),
   ],
 };

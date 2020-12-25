@@ -37,9 +37,11 @@ async function asyncChromeRuntimeConnect(): Promise<chrome.runtime.Port> {
   });
 }
 
+type UnsubscribeFunction = () => void;
 async function connectPort(disconnectCb: () => void): Promise<BackgroundConnection> {
   const port = await asyncChromeRuntimeConnect();
   const subs: Record<string, SubNotifyFunction[]> = {};
+  let unsubscribeFunctions: UnsubscribeFunction[] = [];
 
   const messageHandler = (message: any) => {
     const handlers = subs[message.resource];
@@ -87,7 +89,12 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
           port.postMessage({ type: 'UNSUBSCRIBE', resource, options });
         }
       };
+      unsubscribeFunctions.push(unsubscribe);
       return unsubscribe;
+    },
+    unsubscribeAll() {
+      unsubscribeFunctions.forEach(x => x());
+      unsubscribeFunctions = [];
     },
   };
 }

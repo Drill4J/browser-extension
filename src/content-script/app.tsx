@@ -1,3 +1,6 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+// TODO a11y in future extension interations
 import * as React from 'react';
 import { MemoryRouter, Route, Redirect } from 'react-router-dom';
 import { DraggableEventHandler } from 'react-draggable';
@@ -6,7 +9,7 @@ import { browser } from 'webextension-polyfill-ts';
 import { Layout } from './layouts';
 import { useDispatcher } from './hooks';
 import {
-  reducer, savePosition, setExpanded, setInitial, setIsWidgetVisible,
+  reducer, savePosition, setExpanded, setInitial, setIsWidgetVisible, setCorner,
 } from './reducer';
 import { Sidebar } from './sidebar';
 import { ManualTestingPage, TestToCodePage } from './pages';
@@ -43,21 +46,36 @@ export const App = withAgentContext((props: any) => {
           <Layout
             header={(
               <Panel align="space-between">
-                <div style={{ cursor: 'pointer' }}>
+                <div
+                  style={{ cursor: 'pointer', padding: '7px' }}
+                  onClick={() => dispatch(setIsWidgetVisible(false))}
+                >
                   <Icons.Close
-                    height={8}
-                    width={8}
-                    onClick={() => dispatch(setIsWidgetVisible(false))}
+                    height={10}
+                    width={10}
                   />
                 </div>
                 <PanelSpread>
                   <div className="drag-wrapper" style={{ height: '24px' }} />
                 </PanelSpread>
-                <div style={{ cursor: 'pointer' }}>
+                { state.expanded && (
+                  <div
+                    style={{ cursor: 'pointer', padding: '7px' }}
+                    onClick={() => dispatch(setCorner(state.corner))}
+                  >
+                    <Icons.GridLayout
+                      height={10}
+                      width={10}
+                    />
+                  </div>
+                )}
+                <div
+                  style={{ cursor: 'pointer', padding: '7px' }}
+                  onClick={() => dispatch(setExpanded(!state.expanded))}
+                >
                   <Icons.Expander
-                    height={8}
-                    width={8}
-                    onClick={() => dispatch(setExpanded(!state.expanded))}
+                    height={10}
+                    width={10}
                     rotate={state.expanded ? 180 : 0}
                   />
                 </div>
@@ -76,7 +94,6 @@ export const App = withAgentContext((props: any) => {
           </Layout>
         )}
       </AgentContext.Consumer>
-
     </MemoryRouter>
   );
 });

@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { browser } from 'webextension-polyfill-ts';
+import chromeApi from '../common/chrome-api';
 
 export function useActiveTab() {
-  const [activeTab, setActiveTab] = useState('');
+  const [activeTab, setActiveTab] = useState<chrome.tabs.Tab | undefined>(undefined);
 
   useEffect(() => {
-    browser.tabs.query({ active: true, currentWindow: true }).then(([{ url = '' }]) => {
-      const hostname = new URL(url).host;
-      setActiveTab(hostname);
-    });
-  }, []);
+    (async () => {
+      const data = await chromeApi.getActiveTab();
+      setActiveTab(data);
+    })();
+  });
 
   return activeTab;
 }

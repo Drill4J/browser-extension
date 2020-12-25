@@ -1,9 +1,0 @@
-#drill-widget-root {
-  font-family: 'OpenSans', sans-serif;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 0;
-  width: 0;
-  z-index: 9999999;
-}

@@ -9,6 +9,7 @@ import {
 import { DomainConfig } from 'types/domain-config';
 import { useHostLocalStorage } from '../../../hooks/use-host-local-storage';
 import { useAgentOnActiveTab } from '../../../hooks/use-agent-on-active-tab';
+import { useActiveTab } from '../../../hooks/use-active-tab';
 import { useBackendConnectionStatus } from '../../../hooks/use-backend-connection-status';
 import { AgentStatus } from './agent-status';
 
@@ -24,20 +25,21 @@ interface Props {
 const mainPage = BEM(styles);
 
 export const MainPage = mainPage(({ className }: Props) => {
-  // FIXME implicit dependency on background event via storage
-  // this is not obvious from other parts of the extension
-  const [isConfigured, setIsConfigured] = React.useState(false);
-  React.useEffect(() => {
-    (async () => {
-      await repeatAsync(async () => {
-        const storage = await localStorageUtil.get('backendAddress');
-        console.log('storage', storage);
-        if (storage?.backendAddress) setIsConfigured(true);
-      }, true);
-    })();
-  });
+  // // FIXME implicit dependency on background event via storage
+  // // this is not obvious from other parts of the extension
+  // const [isConfigured, setIsConfigured] = React.useState(false);
+  // React.useEffect(() => {
+  //   (async () => {
+  //     await repeatAsync(async () => {
+  //       const storage = await localStorageUtil.get('backendAddress');
+  //       console.log('storage', storage);
+  //       if (storage?.backendAddress) setIsConfigured(true);
+  //     }, true);
+  //   })();
+  // });
 
   const { data: agent, isLoading, isError }: any = useAgentOnActiveTab();
+  // const activeTab = useActiveTab();
 
   const {
     data: backendConnectionStatus,
@@ -83,10 +85,10 @@ export const MainPage = mainPage(({ className }: Props) => {
             Backend connection:
             { backendConnectionStatus }
           </div>
-          { !isConfigured && (
+          { backendConnectionStatus !== 'available' && (
             <>
-              <div style={{ marginTop: '15px' }}> Please, provide a backend address in the extension settings </div>
-              <Button style={{ marginTop: '15px' }} type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
+              <div style={{ margin: '15px 0' }}> Check extension settings </div>
+              <Button type="secondary" size="large" onClick={() => browser.runtime.openOptionsPage()}>
                 Open settings page
               </Button>
             </>
@@ -98,7 +100,7 @@ export const MainPage = mainPage(({ className }: Props) => {
               {isError}
             </div>)}
           { !isLoading && !isError && agent === undefined && (
-            <div>
+            <div style={{ marginTop: '15px' }}>
               Host has no associated agent
             </div>
           )}
@@ -108,7 +110,19 @@ export const MainPage = mainPage(({ className }: Props) => {
                 type="primary"
                 size="large"
                 onClick={
-                  () => browser.storage.local.set({ [agent.host]: { ...hostStorage, isWidgetVisible: !hostStorage?.isWidgetVisible } })
+                  () => {
+                    // if (!activeTab?.id) return; // FIXME
+                    browser.storage.local.set({ [agent.host]: { ...hostStorage, isWidgetVisible: !hostStorage?.isWidgetVisible } });
+                    // // "css": ["content.css"],
+                    // // "js": ["content.bundle.js"]
+                    // chrome.tabs.executeScript(activeTab?.id, { file: 'content.css' }, (result) => {
+                    //   console.log('css injection result', result);
+                    //   if (!activeTab?.id) return; // FIXME
+                    //   chrome.tabs.executeScript(activeTab?.id, { file: 'content.bundle.js' }, (result2) => {
+                    //     console.log('js injection result', result2);
+                    //   });
+                    // });
+                  }
                 }
               >
                 {hostStorage?.isWidgetVisible ? 'Close widget' : 'Run widget'}

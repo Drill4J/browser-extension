@@ -23,13 +23,10 @@ async function start(sender: chrome.runtime.MessageSender) {
   };
 
   try {
-    // await reloadTabWithId(sender?.tab?.id as number);
     await devToolsApi.attach(target);
   } catch (e) {
-    // TODO investigate if that approach is safe
-    await devToolsApi.detach(target);
-    // await reloadTabWithId(sender?.tab?.id as number);
-    await devToolsApi.attach(target);
+    console.log('Failed to attach', target, e);
+    throw new Error(`Failed to attach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
   }
 
   await devToolsApi.sendCommand(target, 'Profiler.enable', {});
@@ -51,7 +48,15 @@ async function start(sender: chrome.runtime.MessageSender) {
 
     const rawScriptSource: any = await devToolsApi.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
     const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
-    scriptSources[hash] = url; // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
+    // TODO check source hashes agains expected build hashes
+    //      what about filenames?
+
+    // FIXME tabId undefined checks
+    if (!scriptSources[sender?.tab?.id as any]) {
+      scriptSources[sender?.tab?.id as any] = {};
+    }
+    // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
+    scriptSources[sender?.tab?.id as any][hash] = url;
   });
 
   await devToolsApi.sendCommand(target, 'Debugger.enable', {});
@@ -66,6 +71,8 @@ async function cancel(sender: chrome.runtime.MessageSender) {
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
   await devToolsApi.detach(target);
+
+  delete scriptSources[sender?.tab?.id as any];
 }
 
 async function stop(sender: chrome.runtime.MessageSender) {
@@ -79,8 +86,10 @@ async function stop(sender: chrome.runtime.MessageSender) {
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
   await devToolsApi.detach(target);
 
-  return { coverage: data.result, scriptSources };
   // FIXME see FIXME #1, also scriptsources probably won't change every test. Or will they? (e.g. bundle splitting, modular design etc)
+  const sources = scriptSources[sender?.tab?.id as any];
+  delete scriptSources[sender?.tab?.id as any];
+  return { coverage: data.result, scriptSources: sources };
 }
 
 function getHash(data: any) {
