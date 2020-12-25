@@ -58,6 +58,7 @@ export const InProgress = inProgress(({ className }: Props) => {
           <Panel align="space-between">
             <FinishButton
               type="secondary"
+              disabled={isRequestInProgress}
               onClick={async () => {
                 updateRequestStatus(true);
                 try {
@@ -72,6 +73,7 @@ export const InProgress = inProgress(({ className }: Props) => {
               Finish testing
             </FinishButton>
             <CancelButton
+              disabled={isRequestInProgress}
               onClick={async () => {
                 updateRequestStatus(true);
                 try {

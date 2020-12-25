@@ -13,7 +13,7 @@ const startRecording = BEM(styles);
 
 export const StartRecording = startRecording(({ className }: Props) => {
   const [testName, setTestName] = React.useState('');
-  const [isStartPressed, setStartPressed] = React.useState(false);
+  const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
   return (
@@ -52,10 +52,10 @@ export const StartRecording = startRecording(({ className }: Props) => {
                 <StartButton
                   type="primary"
                   size="large"
-                  disabled={!testName || isStartPressed}
+                  disabled={!testName || isFormSubmitted}
                   onClick={async () => {
+                    setIsFormSubmitted(true);
                     try {
-                      setStartPressed(true);
                       const data = await bgInterop.startTest(testName);
                       console.log('start pressed', agent);
                       if (agent.mustRecordJsCoverage) {
@@ -64,8 +64,8 @@ export const StartRecording = startRecording(({ className }: Props) => {
                       console.log('START_TEST data', data);
                     } catch (e) {
                       console.log(e);
-                      debugger;
                     }
+                    setIsFormSubmitted(false);
                   }}
                 >
                   Start a new test
