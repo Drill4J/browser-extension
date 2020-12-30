@@ -33,7 +33,7 @@ function renderWidget(host: string) {
   if (widgetIframe) return;
   const iframe = document.createElement('iframe');
   widgetIframe = iframe;
-  document.documentElement.appendChild(iframe);
+  document.body.appendChild(iframe);
   positionWidget(host);
   if (!iframe.contentDocument) throw new Error('failed to create iframe or it got deleted');
 
@@ -61,7 +61,7 @@ async function positionWidget(host: string) {
 function removeWidget() {
   if (!widgetIframe) return;
   bgInterop.unsubscribeAll();
-  document.documentElement.removeChild(widgetIframe);
+  document.body.removeChild(widgetIframe);
   widgetIframe = null;
 }
 
