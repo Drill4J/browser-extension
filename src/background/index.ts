@@ -429,7 +429,13 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
     },
     cancelTest: async (sessionId, sender) => {
       if (!sender) throw new Error('CANCEL_TEST_NO_SENDER');
-      await jsCoverageRecorder.cancel(sender);
+      // TODO that could mask other errors
+      // quick hack to handle situations when debugger was already disconnected
+      try {
+        await jsCoverageRecorder.cancel(sender);
+      } catch (e) {
+        console.log('WARNING', 'failed to disconnect debugger:', e);
+      }
       await backendApi.cancelTest(sessionId);
     },
   };
