@@ -56,11 +56,6 @@ export class DrillSocket {
     this.connection$.unsubscribe();
   }
 
-  // public reconnect(url: string) {
-  //   this.connection$ = webSocket<DrillResponse>(url);
-  //   this.subscription = this.connection$.subscribe();
-  // }
-
   public send(destination: string, type: string, message?: object) {
     this.connection$.next({
       destination,

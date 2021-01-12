@@ -18,12 +18,6 @@ const layout = BEM(styles);
 export const Layout = layout(({
   className, sidebar, children, header, position, onPositionChange,
 }: Props) => (
-  // <Draggable
-  //   bounds="body"
-  //   handle=".drag-wrapper"
-  //   onStop={onPositionChange}
-  //   position={position}
-  // >
   <div className={className}>
     <Header>
       {header}
@@ -39,7 +33,6 @@ export const Layout = layout(({
       )}
     </ContentWrapper>
   </div>
-  // </Draggable>
 ));
 
 const Header = layout.header('div');

@@ -16,7 +16,6 @@ export const ManualTestingPage = withActiveScopeContext(withSessionContext(((pro
   const session = React.useContext(SessionContext);
   console.log('ManualTestingPage SessionContext', session);
 
-  // TODO try react-router-dom redirect?
   React.useEffect(() => {
     switch (session?.status) {
       case SessionStatus.ACTIVE:

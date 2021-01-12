@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { Button, OverflowText, Panel } from '@drill4j/ui-kit';
 
-// import { percentFormatter } from '../../../../utils';
 import { TestResult } from '../test-result';
 import * as bgInterop from '../../../../common/background-interop';
 import styles from './finish-recording.module.scss';

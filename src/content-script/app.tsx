@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-// TODO a11y in future extension interations
+// TODO a11y in future extension iterations
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { MemoryRouter, Route, Redirect } from 'react-router-dom';

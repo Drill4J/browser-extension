@@ -63,8 +63,6 @@ async function init() {
     },
   );
 
-  // console.log('ready to start');
-  // start(backend);
   let adapters: Record<string, AgentAdapter> = {};
 
   // session subscriptions
