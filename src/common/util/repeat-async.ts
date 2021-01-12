@@ -1,4 +1,4 @@
-export async function repeatAsync<T>(fn: (params?: any) => Promise<T> | T, mustReturnData = false, ms = 5000): Promise<T> {
+export async function repeatAsync<T>(fn: (params?: any) => Promise<T> | T, mustReturnData = false, ms = 5000): Promise<T | void> {
   return new Promise((resolve, reject) => {
     // FIXME add total timeout / number of retries?
     // FIXME add cleanup/cancel
@@ -25,14 +25,3 @@ export async function repeatAsync<T>(fn: (params?: any) => Promise<T> | T, mustR
     wrapper();
   });
 }
-
-// async function setIntervalAsync(fn, ms) {
-//   const start = Date.now()
-//   try { await fn() } catch(e) {
-//     console.log(e)
-//   }
-
-//   const elapsed = Date.now() - start
-//   const timeout = ms - elapsed > 0 ? ms - elapsed : 0
-//   setTimeout(() => wrapper(fn, ms), timeout)
-// }
