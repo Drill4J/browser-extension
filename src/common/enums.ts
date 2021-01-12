@@ -11,6 +11,13 @@ export enum BackendConnectionStatus {
   RECONNECTING = 'reconnecting',
 }
 
+export enum AgentStatus {
+  ONLINE = 'ONLINE',
+  OFFLINE = 'OFFLINE',
+  BUSY = 'BUSY',
+  NOT_REGISTERED = 'NOT_REGISTERED',
+}
+
 export enum AgentType {
   JAVA = 'java',
   JAVA_SCRIPT = 'node.js',

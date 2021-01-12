@@ -2,6 +2,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 // TODO a11y in future extension interations
 import * as React from 'react';
+import { BEM } from '@redneckz/react-bem-helper';
 import { MemoryRouter, Route, Redirect } from 'react-router-dom';
 import { DraggableEventHandler } from 'react-draggable';
 import { Panel, PanelSpread, Icons } from '@drill4j/ui-kit';
@@ -15,9 +16,25 @@ import { Sidebar } from './sidebar';
 import { ManualTestingPage, TestToCodePage } from './pages';
 import { withAgentContext, AgentContext } from './context/agent-context';
 
+import styles from './app.module.scss';
+import { useBackendConnectionStatus } from '../hooks/use-backend-connection-status';
+import { BackendConnectionStatus, AgentStatus } from '../common/enums';
+
+const style = BEM(styles);
+const UnavailableOverlay = style.unavailableOverlay('div');
+const RelativeWrapper = style.relativeWrapper('div');
+
 export const App = withAgentContext((props: any) => {
   const { host } = props;
   console.log('Content app.tsx', props);
+
+  const {
+    data: backendConnectionStatus,
+    isLoading: backendConnectionStatusIsLoading,
+    isError: backendConnectionStatusIsError,
+  }: any = useBackendConnectionStatus();
+
+  const agent = React.useContext(AgentContext);
 
   const [state, dispatch] = React.useReducer(reducer(async (newState: any) => {
     console.log('newState', newState);
@@ -38,62 +55,76 @@ export const App = withAgentContext((props: any) => {
     dispatch(savePosition({ x, y }));
   };
 
-  // TODO remove unused <AgentContext.Consumer>
   return (
     <MemoryRouter>
-      <AgentContext.Consumer>
-        {agent => (
-          <Layout
-            header={(
-              <Panel align="space-between">
-                <div
-                  style={{ cursor: 'pointer', padding: '7px' }}
-                  onClick={() => dispatch(setIsWidgetVisible(false))}
-                >
-                  <Icons.Close
-                    height={10}
-                    width={10}
-                  />
-                </div>
-                <PanelSpread>
-                  <div className="drag-wrapper" style={{ height: '24px' }} />
-                </PanelSpread>
-                { state.expanded && (
-                  <div
-                    style={{ cursor: 'pointer', padding: '7px' }}
-                    onClick={() => dispatch(setCorner(state.corner))}
-                  >
-                    <Icons.GridLayout
-                      height={10}
-                      width={10}
-                    />
-                  </div>
-                )}
-                <div
-                  style={{ cursor: 'pointer', padding: '7px' }}
-                  onClick={() => dispatch(setExpanded(!state.expanded))}
-                >
-                  <Icons.Expander
-                    height={10}
-                    width={10}
-                    rotate={state.expanded ? 180 : 0}
-                  />
-                </div>
-              </Panel>
+      <Layout
+        header={(
+          <Panel align="space-between">
+            <div
+              style={{ cursor: 'pointer', padding: '7px' }}
+              onClick={() => dispatch(setIsWidgetVisible(false))}
+            >
+              <Icons.Close
+                height={10}
+                width={10}
+              />
+            </div>
+            <PanelSpread>
+              <div className="drag-wrapper" style={{ height: '24px' }} />
+            </PanelSpread>
+            { state.expanded && (
+              <div
+                style={{ cursor: 'pointer', padding: '7px' }}
+                onClick={() => dispatch(setCorner(state.corner))}
+              >
+                <Icons.GridLayout
+                  height={10}
+                  width={10}
+                />
+              </div>
             )}
-            sidebar={<Sidebar />}
-            position={state.position}
-            onPositionChange={handlePositionChange}
-          >
-            {state.expanded && (
-              <Panel align="center" verticalAlign="center">
-                <ManualTestingPage />
-                {/* <Route path="/test-to-code" component={TestToCodePage} /> */}
-              </Panel>
-            )}
-          </Layout>
+            <div
+              style={{ cursor: 'pointer', padding: '7px' }}
+              onClick={() => dispatch(setExpanded(!state.expanded))}
+            >
+              <Icons.Expander
+                height={10}
+                width={10}
+                rotate={state.expanded ? 180 : 0}
+              />
+            </div>
+          </Panel>
         )}
-      </AgentContext.Consumer>
+        sidebar={<Sidebar />}
+        position={state.position}
+        onPositionChange={handlePositionChange}
+      >
+        {state.expanded && (
+          <RelativeWrapper>
+            { backendConnectionStatus !== BackendConnectionStatus.AVAILABLE && (
+              <UnavailableOverlay>
+                Backend is not available.
+                {' '}
+                { (backendConnectionStatus === BackendConnectionStatus.RECONNECTING) && 'Reconnecting ...' }
+              </UnavailableOverlay>
+            )}
+            { backendConnectionStatus === BackendConnectionStatus.AVAILABLE && agent && agent.status !== AgentStatus.ONLINE && (
+              <UnavailableOverlay>
+                Agent
+                {' '}
+                { agent.id && `${agent.id} ` }
+                is
+                {' '}
+                { agent.status.split('_').join(' ').toLowerCase() || 'unavailable' }
+              </UnavailableOverlay>
+            )}
+            <Panel align="center" verticalAlign="center">
+              <ManualTestingPage />
+              {/* <Route path="/test-to-code" component={TestToCodePage} /> */}
+            </Panel>
+          </RelativeWrapper>
+        )}
+      </Layout>
     </MemoryRouter>
   );
 });
