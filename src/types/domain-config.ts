@@ -9,3 +9,7 @@ export interface DomainConfig {
   timerStart?: number;
   custom?: boolean;
 }
+
+export type HostConfig = {
+  isWidgetVisible: boolean;
+}

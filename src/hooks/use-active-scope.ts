@@ -1,34 +1,6 @@
-import { useState, useEffect } from 'react';
+import * as backgroundInterop from '../common/background-interop';
+import { useSubscription, useSubscriptionWithAsyncOptions } from './util/use-subscription';
 
-import { getDefaultTest2CodeSocket } from '../common/connection';
-import { useLocalStorage } from './use-local-storage';
-import { Agent } from '../types/agent';
-
-export function useActiveScope(adminUrl?: string) {
-  const { token = '' } = useLocalStorage<any>('token') || {};
-  const { agent: { id = '', buildVersion = '' } = {} } = useLocalStorage<any>('agent') || {};
-  const [data, setData] = useState<Agent | null>(null);
-
-  useEffect(
-    () => {
-      function handleDataChange(newData: Agent) {
-        setData(newData);
-      }
-
-      const unsubscribe = id && adminUrl
-        ? getDefaultTest2CodeSocket(token).subscribe(
-          '/active-scope',
-          handleDataChange,
-          { agentId: id, buildVersion, type: 'AGENT' },
-        )
-        : null;
-
-      return () => {
-        unsubscribe && unsubscribe();
-      };
-    },
-    [adminUrl, id, token, buildVersion],
-  );
-
-  return data;
+export function useActiveScope() { // TODO type it!
+  return useSubscriptionWithAsyncOptions(backgroundInterop.subscribeToActiveScope);
 }

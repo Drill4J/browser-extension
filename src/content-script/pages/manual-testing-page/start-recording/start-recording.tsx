@@ -1,28 +1,26 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { useHistory } from 'react-router-dom';
 import { Inputs, Button } from '@drill4j/ui-kit';
-
-import { useAgentConfig, useJsAgentInGroup } from '../../../../hooks';
-import { startGroupSession, startSession } from '../api';
-
+import * as bgInterop from '../../../../common/background-interop';
 import styles from './start-recording.module.scss';
+import { AgentContext } from '../../../context/agent-context';
 
 interface Props {
   className?: string;
 }
 
 const startRecording = BEM(styles);
+const Header = startRecording.header('div');
+const Content = startRecording.content('div');
+const Message = startRecording.message('div');
+const ErrorMessage = startRecording.errorMessage('div');
+const StartButton = startRecording.startButton(Button);
 
 export const StartRecording = startRecording(({ className }: Props) => {
-  const { push } = useHistory();
+  const [submitError, setSubmitError] = React.useState('');
   const [testName, setTestName] = React.useState('');
-  const activeTab = window.location.host;
-  const config = useAgentConfig() || {};
-  const handleOnChange: React.ChangeEventHandler<HTMLInputElement> = ({ currentTarget: { value } }) => {
-    setTestName(value);
-  };
-  const jsAgentInGroup = useJsAgentInGroup();
+  const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
+  const agent = React.useContext(AgentContext);
 
   return (
     <div className={className}>
@@ -30,39 +28,67 @@ export const StartRecording = startRecording(({ className }: Props) => {
         New manual test
       </Header>
       <Content>
-        <Message>
-          Enter the name of a manual test and click the Start button. The System will begin to
-          collect coverage.
-        </Message>
-        <TestName>Test name</TestName>
-        <form onSubmit={(event) => event.preventDefault()}>
-          <Inputs.Text
-            placeholder="Give this test a name"
-            value={testName}
-            onChange={handleOnChange as any}
-          />
-          <StartButton
-            type="primary"
-            size="large"
-            disabled={!testName}
-            onClick={async () => {
-              config.drillAgentId
-                ? await startSession(activeTab, testName, config)
-                : await startGroupSession(activeTab, testName, config, jsAgentInGroup);
-              push('/manual-testing/in-progress');
-            }}
-          >
-            Start a new test
-          </StartButton>
-        </form>
-
+        { (window as any).reloadRequired
+          ? (
+            <>
+              <Message> JS coverage recording requires page reload between each test </Message>
+              <Button
+                onClick={() => window.location.reload()}
+                type="primary"
+                size="large"
+                style={{ marginTop: '15px' }}
+              >
+                Reload page
+              </Button>
+            </>
+          )
+          : (
+            <>
+              <form onSubmit={(event) => event.preventDefault()}>
+                <Message>
+                  Enter the name of a manual test and click the Start button. The System will begin to
+                  collect coverage.
+                </Message>
+                <Inputs.Text
+                  placeholder="Give this test a name"
+                  value={testName}
+                  onChange={({ currentTarget: { value } }) => {
+                    setTestName(value);
+                  }}
+                />
+                <StartButton
+                  type="primary"
+                  size="large"
+                  disabled={!testName || isFormSubmitted}
+                  onClick={async () => {
+                    setSubmitError('');
+                    setIsFormSubmitted(true);
+                    try {
+                      const data = await bgInterop.startTest(testName);
+                      console.log('start pressed', agent);
+                      if (agent.mustRecordJsCoverage) {
+                        (window as any).reloadRequired = true;
+                      }
+                      console.log('START_TEST data', data);
+                    } catch (e) {
+                      console.log(e);
+                      const msg = `Failed to start test: ${e?.message || 'an unexpected error occurred'}`;
+                      setSubmitError(msg);
+                    }
+                    setIsFormSubmitted(false);
+                  }}
+                >
+                  Start a new test
+                </StartButton>
+                { submitError && (
+                  <ErrorMessage style={{ marginTop: '15px' }}>
+                    {submitError}
+                  </ErrorMessage>
+                )}
+              </form>
+            </>
+          )}
       </Content>
     </div>
   );
 });
-
-const Header = startRecording.header('div');
-const Content = startRecording.content('div');
-const Message = startRecording.message('div');
-const TestName = startRecording.testName('div');
-const StartButton = startRecording.startButton(Button);

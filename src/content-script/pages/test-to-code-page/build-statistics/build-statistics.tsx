@@ -2,8 +2,7 @@ import * as React from 'react';
 import { BEM, div } from '@redneckz/react-bem-helper';
 import { Panel, Icons } from '@drill4j/ui-kit';
 
-import { useBuildCoverage, useAgentConfig } from '../../../../hooks';
-import { percentFormatter } from '../../../../utils';
+// import { percentFormatter } from '../../../../utils';
 
 import styles from './build-statistics.module.scss';
 
@@ -14,12 +13,13 @@ interface Props {
 const buildStatistics = BEM(styles);
 
 export const BuildStatistics = buildStatistics(({ className }: Props) => {
-  const config = useAgentConfig() || {};
-  const {
-    percentage = 0,
-    methodCount: { total: totalMethodCount = 0, covered: coveredMethodCount = 0 } = {},
-    riskCount: { total: totalRiskCount = 0, covered: coveredRiskCount = 0 } = {},
-  }: any = useBuildCoverage(config.drillAdminUrl) || {};
+  const config = {};
+  // const config = useAgentConfig() || {};
+  // const {
+  //   percentage = 0,
+  //   methodCount: { total: totalMethodCount = 0, covered: coveredMethodCount = 0 } = {},
+  //   riskCount: { total: totalRiskCount = 0, covered: coveredRiskCount = 0 } = {},
+  // }: any = useBuildCoverage(config.drillAdminUrl) || {};
 
   return (
     <div className={className}>
@@ -27,21 +27,24 @@ export const BuildStatistics = buildStatistics(({ className }: Props) => {
       <Panel align="space-between">
         <Label>Code coverage</Label>
         <Value>
-          {percentFormatter(percentage)}
-          %
+          #P
+          {/* {percentFormatter(percentage)} */}
         </Value>
       </Panel>
       <Panel align="space-between">
         <Label>Covered methods:</Label>
-        <Value>{coveredMethodCount}</Value>
+        <Value>#P</Value>
+        {/* <Value>{coveredMethodCount}</Value> */}
       </Panel>
       <Panel align="space-between">
         <Label>Risk methods to cover:</Label>
-        <Value color="red">{totalRiskCount - coveredRiskCount}</Value>
+        <Value>#P</Value>
+        {/* <Value color="red">{totalRiskCount - coveredRiskCount}</Value> */}
       </Panel>
       <Panel align="space-between">
         <Label>Total methods to cover:</Label>
-        <Value>{totalMethodCount - coveredMethodCount}</Value>
+        <Value>#P</Value>
+        {/* <Value>{totalMethodCount - coveredMethodCount}</Value> */}
       </Panel>
       <Instruction>
         <InfoIcon>

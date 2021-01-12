@@ -1,6 +1,6 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ExtensionReloader = require('webpack-extension-reloader');
+// const ExtensionReloader = require('webpack-extension-reloader');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const fileExtensions = ['jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'svg', 'ttf', 'woff', 'woff2'];
@@ -11,7 +11,7 @@ const options = {
     content: path.join(__dirname, 'src', 'content.ts'),
     popup: path.join(__dirname, 'src', 'popup.ts'),
     options: path.join(__dirname, 'src', 'options.ts'),
-    background: path.join(__dirname, 'src', 'background.ts'),
+    background: path.join(__dirname, 'src', 'background/index.ts'),
   },
   output: {
     path: path.join(__dirname, 'build'),
@@ -19,24 +19,16 @@ const options = {
   },
   module: {
     rules: [
-      {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          'css-loader',
-        ],
-        exclude: /node_modules/,
-      },
+      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
       {
         test: new RegExp(`.(${fileExtensions.join('|')})$`),
         loader: 'file-loader?name=[name].[ext]',
         exclude: /node_modules/,
       },
-      { test: /\.tsx?$/, loader: 'awesome-typescript-loader' },
       {
         test: /\.module\.s(a|c)ss$/,
         loader: [
-          process.env.NODE_ENV === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+          MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
             options: {
@@ -53,10 +45,18 @@ const options = {
         ],
       },
       {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+        ],
+        exclude: /node_modules/,
+      },
+      {
         test: /\.s(a|c)ss$/,
         exclude: /\.module.(s(a|c)ss)$/,
         loader: [
-          process.env.NODE_ENV === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+          MiniCssExtractPlugin.loader,
           'css-loader',
           {
             loader: 'sass-loader',
@@ -74,20 +74,21 @@ const options = {
       .concat(['.jsx', '.js', '.tsx', '.ts', '.css']),
   },
   plugins: [
-    new ExtensionReloader({
-      entries: {
-        contentScript: 'content',
-        background: 'background',
-        optionsScript: 'options',
-        extensionPage: ['popup', 'options'],
-      },
-    }),
+    // new ExtensionReloader({
+    //   entries: {
+    //     contentScript: 'content',
+    //     background: 'background',
+    //     optionsScript: 'options',
+    //     extensionPage: ['popup', 'options'],
+    //   },
+    // }),
     new MiniCssExtractPlugin(),
     new CopyWebpackPlugin([
       { from: path.join(__dirname, 'src', 'manifest.json') },
       { from: path.join(__dirname, 'src', 'background.html') },
       { from: path.join(__dirname, 'src', 'popup.html') },
       { from: path.join(__dirname, 'src', 'options.html') },
+      { from: path.join(__dirname, 'src', 'uikit.css') },
     ]),
   ],
 };

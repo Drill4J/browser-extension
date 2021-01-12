@@ -1,52 +1,106 @@
 import * as React from 'react';
-import { render } from 'react-dom';
+import * as ReactDom from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
-
-import { DomainConfig } from 'types/domain-config';
-import { configureAxios } from './common/connection';
+import { transformHost } from './common/util/transform-host';
+import * as bgInterop from './common/background-interop';
 import { App } from './content-script';
-import './content.css';
+import './content.scss';
 
-let configMap: { domains?: { [host: string]: DomainConfig }; active?: boolean } = {};
+init();
 
-browser.storage.local.get().then((value) => {
-  if (value) {
-    configMap = value;
-    configMap.domains && configMap.domains[window.location.host] && configMap.active && renderWidget();
+async function init() {
+  let widget: HTMLIFrameElement | null;
+  await bgInterop.ready();
+  const hostInfo = await bgInterop.getHostInfo();
+  const host = transformHost(window.location.href);
+
+  if (hostInfo && await isWidgetVisible(host)) {
+    widget = injectIframe(host);
   }
-});
 
-browser.storage.onChanged.addListener(() => {
-  browser.storage.local.get().then((value) => {
-    configMap = value;
-    configMap.active ? renderWidget() : removeWidget();
+  // TODO remove listener on widget close
+  browser.storage.onChanged.addListener(async (changes) => {
+    console.log('browser.storage.onChanged', changes);
+
+    const shouldHideWidget = !(await isWidgetVisible(host));
+    if (shouldHideWidget && widget) {
+      removeIframe(widget);
+      widget = null;
+      return;
+    }
+
+    if (!widget) return;
+    positionIframe(host, widget);
   });
-});
-
-function renderWidget() {
-  const oldWidget = document.querySelector('#drill-widget-root');
-  if (!oldWidget) {
-    const root = document.createElement('div');
-    root.id = 'drill-widget-root';
-    document.body.appendChild(root);
-    injectFonts();
-    const { drillAdminUrl = '' } = configMap.domains ? configMap.domains[window.location.host] : {};
-    configureAxios(drillAdminUrl).then(() => render(React.createElement(App), root));
-  }
 }
 
-function removeWidget() {
-  const root = document.querySelector('#drill-widget-root');
-  root && root.remove();
+async function isWidgetVisible(host: string) {
+  const localStorage = await browser.storage.local.get();
+  return localStorage && localStorage[host] && localStorage[host].isWidgetVisible;
 }
 
-function injectFonts() {
-  const fonts = document.createElement('style');
+function injectIframe(host: string): HTMLIFrameElement | never {
+  const iframe = document.createElement('iframe');
+  document.body.appendChild(iframe);
+  positionIframe(host, iframe);
+  if (!iframe.contentDocument) throw new Error('failed to create iframe or it got deleted');
+
+  const root = iframe.contentDocument.createElement('div');
+  root.id = 'drill-widget-root';
+
+  iframe.contentDocument.body.appendChild(root);
+  injectCss(iframe.contentDocument, 'content.css');
+  injectCss(iframe.contentDocument, 'uikit.css');
+  injectFonts(iframe.contentDocument);
+  ReactDom.render(React.createElement(App, { host }), root);
+  return iframe;
+}
+
+// TODO implement storage access method to avoid passing host around
+async function positionIframe(host: string, iframe: HTMLIFrameElement) {
+  const localStorage = await browser.storage.local.get();
+  const corner = localStorage[host].corner || 'top-left';
+  const expanded = localStorage[host].expanded || false;
+  const className = `drill-widget-iframe drill-widget-iframe-position__${corner} drill-widget-iframe-expanded__${expanded}`;
+  if (!iframe) return;
+
+  // eslint-disable-next-line no-param-reassign
+  iframe.className = className;
+}
+
+function removeIframe(iframe: HTMLIFrameElement) {
+  if (!iframe) return;
+  bgInterop.unsubscribeAll();
+  document.body.removeChild(iframe);
+}
+
+function injectCss(targetDocument: Document, filename: string) {
+  const style = targetDocument.createElement('link');
+  style.setAttribute('rel', 'stylesheet');
+  style.setAttribute('type', 'text/css');
+  style.setAttribute('href', browser.extension.getURL(filename));
+  targetDocument.head.appendChild(style);
+}
+
+function injectFonts(targetDocument: Document) {
+  const fonts = targetDocument.createElement('style');
   fonts.type = 'text/css';
-  fonts.textContent = `@font-face { font-family: OpenSans; src: url("${
-    browser.extension.getURL('OpenSans-Regular.ttf')
-  }"); } @font-face { font-family: OpenSans-Semibold; src: url("${
-    browser.extension.getURL('OpenSans-SemiBold.ttf')
-  }"); }`;
-  document.head.appendChild(fonts);
+  fonts.textContent = `
+  @font-face {
+      font-family: OpenSans;
+      src: url("${browser.extension.getURL('OpenSans-Regular.ttf')}");
+  }
+  @font-face {
+      font-family: OpenSans-Semibold;
+      src: url("${browser.extension.getURL('OpenSans-SemiBold.ttf')}");
+  }
+  @font-face {
+      font-family: OpenSans-Light;
+      src: url("${browser.extension.getURL('OpenSans-Light.ttf')}");
+  }
+  @font-face {
+      font-family: OpenSans-Bold;
+      src: url("${browser.extension.getURL('OpenSans-Bold.ttf')}");
+  }`;
+  targetDocument.head.appendChild(fonts);
 }

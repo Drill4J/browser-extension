@@ -5,6 +5,10 @@ export interface DrillResponse {
   message: string;
   destination: string;
   type: string;
+  to?: {
+    agentId: string;
+    buildVersion: string;
+  };
 }
 
 export class DrillSocket {
@@ -12,17 +16,33 @@ export class DrillSocket {
 
   public subscription: Subscription;
 
-  constructor(url: string) {
-    this.connection$ = webSocket<DrillResponse>(url);
+  private subs: Subscription[] = [];
 
-    this.subscription = this.connection$.subscribe();
+  private errorCb: (error: any) => void;
+
+  private completeCb: () => void;
+
+  constructor(url: string, errorCb: any, completeCb: any) {
+    this.connection$ = webSocket<DrillResponse>(url);
+    this.errorCb = errorCb;
+    this.completeCb = completeCb;
+
+    this.subscription = this.connection$.subscribe(
+      () => {},
+      this.errorCb,
+      this.completeCb,
+    );
+    this.subs.push(this.subscription);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public subscribe(topic: string, callback: (arg: any) => void, message?: object) {
-    const subscription = this.connection$.subscribe(
-      ({ destination, message: responseMessage }: DrillResponse) => destination === topic && callback(responseMessage || null),
+  public subscribe(topic: string, callback: (...arg: any) => void, message?: object) {
+    const subscription = this.connection$.subscribe( // FIXME previous subscription is lost and probably hangs forever
+      ({ destination, message: responseMessage, to }: DrillResponse) => destination === topic && callback(responseMessage || null, to),
+      this.errorCb,
+      this.completeCb,
     );
+    this.subs.push(subscription);
     this.send(topic, 'SUBSCRIBE', message);
 
     return () => {
@@ -31,10 +51,9 @@ export class DrillSocket {
     };
   }
 
-  public reconnect(url: string) {
-    this.connection$ = webSocket<DrillResponse>(url);
-
-    this.subscription = this.connection$.subscribe();
+  public cleanup() {
+    this.subs.forEach(x => !x.closed && x.unsubscribe());
+    this.connection$.unsubscribe();
   }
 
   public send(destination: string, type: string, message?: object) {

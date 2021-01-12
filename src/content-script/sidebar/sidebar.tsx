@@ -3,8 +3,7 @@ import * as React from 'react';
 import { BEM, div } from '@redneckz/react-bem-helper';
 import { useHistory } from 'react-router-dom';
 import { Icons, Panel } from '@drill4j/ui-kit';
-import { browser } from 'webextension-polyfill-ts';
-
+import { setExpanded } from '../reducer';
 import { Plugin } from '../../types/plugin';
 import { useDispatcher } from '../hooks';
 
@@ -17,11 +16,14 @@ interface Props {
 
 const sidebar = BEM(styles);
 
-const mock = [{ name: 'Test', id: 'manual-testing' }, { name: 'TestToCodeMapping', id: 'test-to-code' }];
+const mock = [
+  { name: 'Test', id: 'manual-testing' },
+  // { name: 'TestToCodeMapping', id: 'test-to-code' }
+];
 
 export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
   const { push, location: { pathname } } = useHistory();
-  const dispatcher = useDispatcher();
+  const dispatch = useDispatcher();
 
   return (
     <div className={className}>
@@ -35,8 +37,7 @@ export const Sidebar = sidebar(({ className, plugins = mock }: Props) => {
             <PluginItem
               key={id}
               onClick={() => {
-                dispatcher({ type: 'SET_EXPANDED', payload: true });
-                browser.storage.local.set({ expanded: true });
+                dispatch(setExpanded(true));
                 push(`/${id}`);
               }}
               active={pathname.slice(1).startsWith(id)}
