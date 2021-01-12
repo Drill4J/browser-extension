@@ -7,11 +7,11 @@ import { browser } from 'webextension-polyfill-ts';
 
 export function promisifyBrowserApiCall<T>(apiFunction: any, ...params: unknown[]): Promise<T> {
   return new Promise((resolve, reject) => {
-    apiFunction(...params, (...results: any[]) => {
+    apiFunction(...params, (result: any) => {
       if (browser.runtime.lastError) {
         reject(browser.runtime.lastError);
       } else {
-        resolve(...results);
+        resolve(result);
       }
     });
   });
