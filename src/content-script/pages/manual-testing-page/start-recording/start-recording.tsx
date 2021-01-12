@@ -10,8 +10,14 @@ interface Props {
 }
 
 const startRecording = BEM(styles);
+const Header = startRecording.header('div');
+const Content = startRecording.content('div');
+const Message = startRecording.message('div');
+const ErrorMessage = startRecording.errorMessage('div');
+const StartButton = startRecording.startButton(Button);
 
 export const StartRecording = startRecording(({ className }: Props) => {
+  const [submitError, setSubmitError] = React.useState('');
   const [testName, setTestName] = React.useState('');
   const [isFormSubmitted, setIsFormSubmitted] = React.useState(false);
   const agent = React.useContext(AgentContext);
@@ -54,6 +60,7 @@ export const StartRecording = startRecording(({ className }: Props) => {
                   size="large"
                   disabled={!testName || isFormSubmitted}
                   onClick={async () => {
+                    setSubmitError('');
                     setIsFormSubmitted(true);
                     try {
                       const data = await bgInterop.startTest(testName);
@@ -64,12 +71,19 @@ export const StartRecording = startRecording(({ className }: Props) => {
                       console.log('START_TEST data', data);
                     } catch (e) {
                       console.log(e);
+                      const msg = `Failed to start test: ${e?.message || 'an unexpected error occurred'}`;
+                      setSubmitError(msg);
                     }
                     setIsFormSubmitted(false);
                   }}
                 >
                   Start a new test
                 </StartButton>
+                { submitError && (
+                  <ErrorMessage style={{ marginTop: '15px' }}>
+                    {submitError}
+                  </ErrorMessage>
+                )}
               </form>
             </>
           )}
@@ -77,9 +91,3 @@ export const StartRecording = startRecording(({ className }: Props) => {
     </div>
   );
 });
-
-const Header = startRecording.header('div');
-const Content = startRecording.content('div');
-const Message = startRecording.message('div');
-const TestName = startRecording.testName('div');
-const StartButton = startRecording.startButton(Button);
