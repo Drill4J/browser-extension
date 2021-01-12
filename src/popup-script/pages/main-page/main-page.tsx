@@ -10,6 +10,7 @@ import { DomainConfig } from 'types/domain-config';
 import { useHostLocalStorage } from '../../../hooks/use-host-local-storage';
 import { useAgentOnActiveTab } from '../../../hooks/use-agent-on-active-tab';
 import { useBackendConnectionStatus } from '../../../hooks/use-backend-connection-status';
+import { useActiveTab } from '../../../hooks/use-active-tab';
 import { AgentStatus } from './agent-status';
 
 import styles from './main-page.module.scss';
@@ -22,6 +23,8 @@ interface Props {
 const mainPage = BEM(styles);
 
 export const MainPage = mainPage(({ className }: Props) => {
+
+  const activeTab = useActiveTab();
   const { data: agent, isLoading, isError }: any = useAgentOnActiveTab();
 
   const {
@@ -89,17 +92,32 @@ export const MainPage = mainPage(({ className }: Props) => {
           )}
           { !isLoading && !isError && agent && (
             <ActionsPanel>
-              <Button
-                type="primary"
-                size="large"
-                onClick={
-                  () => {
-                    browser.storage.local.set({ [agent.host]: { ...hostStorage, isWidgetVisible: !hostStorage?.isWidgetVisible } });
+              { !hostStorage?.isWidgetVisible ? (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={
+                    () => {
+                      browser.storage.local.set({ [agent.host]: { ...hostStorage, isWidgetVisible: true } });
+                      injectContentScript(activeTab);
+                    }
                   }
-                }
-              >
-                {hostStorage?.isWidgetVisible ? 'Close widget' : 'Run widget'}
-              </Button>
+                >
+                  Run widget
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={
+                    () => {
+                      browser.storage.local.set({ [agent.host]: { ...hostStorage, isWidgetVisible: false } });
+                    }
+                  }
+                >
+                  Close widget
+                </Button>
+              )}
             </ActionsPanel>
           )}
         </Content>
@@ -121,3 +139,12 @@ const ActionsPanel = mainPage.actionsPanel(Panel);
 const Link = mainPage.link(
   tag('a')({ href: '', rel: '', target: '' } as { href: string; rel: string; target: string; children: React.ReactNode}),
 );
+
+function injectContentScript(activeTab: chrome.tabs.Tab | undefined) {
+  if (!activeTab?.id) return;
+  const activeTabId = activeTab?.id;
+  chrome.tabs.insertCSS(activeTabId, { file: 'content.css' }, () => {
+    chrome.tabs.executeScript(activeTabId, { file: 'content.bundle.js' }, () => {
+    });
+  });
+}

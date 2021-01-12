@@ -9,7 +9,7 @@ export function useActiveTab() {
       const data = await chromeApi.getActiveTab();
       setActiveTab(data);
     })();
-  });
+  }, []);
 
   return activeTab;
 }

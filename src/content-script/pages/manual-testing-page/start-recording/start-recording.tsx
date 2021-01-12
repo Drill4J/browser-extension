@@ -36,6 +36,7 @@ export const StartRecording = startRecording(({ className }: Props) => {
                 onClick={() => window.location.reload()}
                 type="primary"
                 size="large"
+                style={{ marginTop: '15px' }}
               >
                 Reload page
               </Button>
