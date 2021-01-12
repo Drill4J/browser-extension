@@ -31,4 +31,9 @@
   &__start-button {
     margin-top: 16px;
   }
+
+  &__error-message {
+    font-size: 14px;
+    color: map-get($color-palette, red100);
+  }
 }

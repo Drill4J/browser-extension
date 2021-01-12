@@ -3,37 +3,42 @@ import {
   Switch, Route, useHistory,
 } from 'react-router-dom';
 
-import { useLocalStorage, useAgentInfo } from '../../../hooks';
-
 import { StartRecording } from './start-recording';
 import { InProgress } from './in-progress';
 import { FinishRecording } from './finish-recording';
-import { UnavailablePage } from '../unavailable-page';
-import { AgentConfig } from '../../../types/agent-config';
+import { SessionError } from './session-error';
+import { withSessionContext, SessionContext } from '../../context/session-context';
+import { withActiveScopeContext } from '../../context/active-scope-context';
+import { SessionStatus } from '../../../common/enums';
 
-export const ManualTestingPage = () => {
-  const { push, location: { pathname } } = useHistory();
-  const { domains: { [window.location.host]: config } = {} } = useLocalStorage<AgentConfig>('domains') || {};
-  const { status = '' } = useAgentInfo(config?.drillAdminUrl, config?.drillAgentId) || {};
+export const ManualTestingPage = withActiveScopeContext(withSessionContext(((props: any) => {
+  const { push } = useHistory();
+  const session = React.useContext(SessionContext);
+  console.log('ManualTestingPage SessionContext', session);
 
   React.useEffect(() => {
-    if ((status === 'BUSY' || status === 'OFFLINE') && pathname.startsWith('/manual-testing')) {
-      push('/unavailable-page');
-    } else if (pathname !== '/unavailable-page' && pathname !== '/test-to-code' && pathname !== '/manual-testing/finish-recording') {
-      if (config?.isActive) {
+    switch (session?.status) {
+      case SessionStatus.ACTIVE:
         push('/manual-testing/in-progress');
-      } else {
+        break;
+      case SessionStatus.STOPPED:
+        push('/manual-testing/finish-recording');
+        break;
+      case SessionStatus.ERROR:
+        push('/manual-testing/error');
+        break;
+      case SessionStatus.CANCELED:
+      default:
         push('/manual-testing');
-      }
+        break;
     }
-  }, [config, status, pathname]);
-
+  }, [push, session?.status]);
   return (
     <Switch>
       <Route exact path="/manual-testing" component={StartRecording} />
       <Route exact path="/manual-testing/in-progress" component={InProgress} />
+      <Route exact path="/manual-testing/error" component={SessionError} />
       <Route exact path="/manual-testing/finish-recording" component={FinishRecording} />
-      <Route exact path="/unavailable-page" component={UnavailablePage} />
     </Switch>
   );
-};
+})));

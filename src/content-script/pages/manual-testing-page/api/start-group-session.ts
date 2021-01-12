@@ -9,7 +9,7 @@ export async function startGroupSession(activeTab: string, testName: string, con
   const { domains } = await browser.storage.local.get('domains') || {};
   const { data: [response] } = await axios.post(`/service-groups/${drillGroupId}/plugins/test2code/dispatch-action`, {
     type: 'START',
-    payload: { testType: 'MANUAL' },
+    payload: { testType: 'MANUAL', testName },
   });
   const { data: { payload: { sessionId } } } = response;
 

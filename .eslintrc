@@ -1,5 +1,5 @@
 {
-  "extends": ["airbnb", "plugin:@typescript-eslint/recommended"],
+  "extends": ["airbnb", "plugin:@typescript-eslint/recommended", "plugin:react-hooks/recommended"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "prettier"],
   "settings": {
@@ -11,7 +11,8 @@
     }
   },
   "env": {
-    "browser": true
+    "browser": true,
+    "webextensions": true
   },
   "rules": {
     "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }],
@@ -19,7 +20,8 @@
     "import/no-extraneous-dependencies": [2, { "devDependencies": ["**/spec.tsx", "**/spec.ts"] }],
     "import/extensions": 0,
     "@typescript-eslint/indent": [2, 2],
-    "no-console": 2,
+    "no-console": 0,
+    "no-debugger": "warn",
     "eofline": 0,
     "arrow-parens": 0,
     "ordered-imports": 0,
