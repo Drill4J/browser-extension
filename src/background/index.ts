@@ -358,7 +358,7 @@ function sgAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>)
         a[x.serviceGroup] = {
           adapterType: 'service-groups',
           id: x.serviceGroup,
-          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
+          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.serviceGroup]),
           // TODO think what to do with the SG status
           status: x.status,
           buildVersion: x.buildVersion,
