@@ -22,47 +22,7 @@ import { SessionActionError } from '../common/errors/session-action-error';
 
 init();
 async function init() {
-  const iterceptedDataStore: Record<string, any> = {};
-  const responseInterceptorsCleanup = setupResponseInterceptors(iterceptedDataStore);
-
-  let backend: any;
-  let unsubscribeFromAdmin: any;
-  let connectionEstablished = connect(
-    (x: any) => {
-      // FIXME this is awful
-      const prevSubs = backend?.getTest2CodeSubs();
-      backend = x;
-      if (prevSubs) {
-        backend.setTest2CodeSubs(prevSubs);
-      }
-
-      backendConnectionStatusData = BackendConnectionStatus.AVAILABLE;
-      console.log('Connection established!');
-
-      unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents', (data: any) => {
-        const newInfo = [
-          ...agentAdaptersReducer(data, iterceptedDataStore?.agents),
-          ...sgAdaptersReducer(data, iterceptedDataStore?.agents),
-        ];
-        agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
-        Object.keys(agentsData).forEach((host) => {
-          if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
-            notifySubscribers(agentSubs[host], agentsData[host]);
-          }
-        });
-        adapters = createAdaptersFromInfo(newInfo, backend);
-      });
-
-      notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
-    },
-    (reconnectPromise: any) => {
-      backendConnectionStatusData = BackendConnectionStatus.RECONNECTING;
-      unsubscribeFromAdmin();
-      notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
-      connectionEstablished = reconnectPromise;
-    },
-  );
-
+  // TODO refactor to store + actions + reducers
   let adapters: Record<string, AgentAdapter> = {};
 
   // session subscriptions
@@ -71,6 +31,8 @@ async function init() {
   let backendConnectionStatusData: BackendConnectionStatus = BackendConnectionStatus.UNAVAILABLE;
 
   // agent subscriptions
+  let rawAgentData: Record<string, any> = {};
+  let agentsDataById: Record<string, any> = {};
   const agentSubs: Record<string, Record<string, SubNotifyFunction>> = {};
   const agentSubsCleanup: Record<string, any> = {};
   let agentsData: Record<string, AdapterInfo> = {};
@@ -84,6 +46,79 @@ async function init() {
   const scopeSubs: Record<string, any> = {};
   const scopeSubsCleanup: Record<string, any> = {};
   const scopesData: Record<string, ScopeData> = {};
+
+  const interceptedDataStore: Record<string, any> = {};
+  // const responseInterceptorsCleanup = setupResponseInterceptors(interceptedDataStore);
+
+  // response interceptors
+  const responseInterceptor = setupResponseInterceptor();
+
+  responseInterceptor.add('drill-admin-url', async (backendAddress) => {
+    await localStorageUtil.save({ backendAddress });
+    responseInterceptor.remove('drill-admin-url');
+  });
+
+  // eslint-disable-next-line no-param-reassign
+  interceptedDataStore.agents = {};
+  const agentOrGroupHandler = async (id: string, host: string) => {
+    // eslint-disable-next-line no-param-reassign
+    interceptedDataStore.agents[id] = host;
+
+    if (agentsDataById[id] && !agentsDataById[id].host) {
+      updateAgents(rawAgentData);
+    }
+  };
+
+  responseInterceptor.add('drill-agent-id', agentOrGroupHandler);
+  responseInterceptor.add('drill-group-id', agentOrGroupHandler);
+
+  const requestInterceptorCleanup = setupRequestInterceptor(sessionsData);
+
+  let backend: any;
+  let unsubscribeFromAdmin: any;
+
+  let connectionEstablished = connect(
+    (x: any) => {
+      // FIXME this is awful
+      const prevSubs = backend?.getTest2CodeSubs();
+      backend = x;
+      if (prevSubs) {
+        backend.setTest2CodeSubs(prevSubs);
+      }
+
+      backendConnectionStatusData = BackendConnectionStatus.AVAILABLE;
+      console.log('Connection established!');
+
+      unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents', updateAgents);
+
+      notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
+    },
+    (reconnectPromise: any) => {
+      backendConnectionStatusData = BackendConnectionStatus.RECONNECTING;
+      unsubscribeFromAdmin();
+      notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
+      connectionEstablished = reconnectPromise;
+    },
+  );
+
+  function updateAgents(data: any) {
+    // TODO refactor to store + actions + reducers
+    rawAgentData = data;
+    const newInfo = [
+      ...agentAdaptersReducer(data, interceptedDataStore?.agents),
+      ...sgAdaptersReducer(data, interceptedDataStore?.agents),
+    ];
+    agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
+    agentsDataById = newInfo.reduce((a, z) => ({ ...a, [z.id]: z }), {});
+
+    adapters = createAdaptersFromInfo(newInfo, backend);
+
+    Object.keys(agentsData).forEach((host) => {
+      if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
+        notifySubscribers(agentSubs[host], agentsData[host]);
+      }
+    });
+  }
 
   const runtimeConnectHandler = (port: chrome.runtime.Port) => {
     const portId = port.sender?.tab ? port.sender?.tab.id : port.sender?.id;
@@ -186,8 +221,6 @@ async function init() {
     port.onMessage.addListener(portMessageHandler);
   };
   chrome.runtime.onConnect.addListener(runtimeConnectHandler);
-
-  const requestInterceptorCleanup = setupRequestInterceptor(sessionsData);
 
   const router = createMessageRouter();
 
