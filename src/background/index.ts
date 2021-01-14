@@ -121,7 +121,7 @@ async function init() {
   }
 
   const runtimeConnectHandler = (port: chrome.runtime.Port) => {
-    const portId = port.sender?.tab ? port.sender?.tab.id : port.sender?.id;
+    const portId = port.name || port.sender?.tab?.id;
     if (!portId) throw new Error(`Can't assign port id for ${port}`);
     const senderHost = transformHost(port.sender?.url);
     const portMessageHandler = (message: any) => {

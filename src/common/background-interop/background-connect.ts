@@ -1,3 +1,4 @@
+import chromeApi from '../chrome-api';
 import type { SubNotifyFunction } from '../../background/types';
 import { repeatAsync } from '../util/repeat-async';
 import type { BackgroundConnection, ConnectCallback, DisconnectCallback } from './types';
@@ -15,8 +16,16 @@ export async function connect(connectCb: ConnectCallback, disconnectCb: Disconne
 }
 
 async function asyncChromeRuntimeConnect(): Promise<chrome.runtime.Port> {
-  return new Promise((resolve, reject) => {
-    const port = chrome.runtime.connect();
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    const connectInfo: chrome.runtime.ConnectInfo = {};
+
+    const isRunningInPopup = window.location.protocol === 'chrome-extension:';
+    if (isRunningInPopup) {
+      const activeTab = await chromeApi.getActiveTab();
+      connectInfo.name = `${activeTab?.id}-popup`;
+    }
+    const port = chrome.runtime.connect(connectInfo);
     // chrome.runtime.connect has no callback
     // so chrome.runtime.lastError must be checked in port.onDisconnect
     // reference https://bugs.chromium.org/p/chromium/issues/detail?id=836370#c11
