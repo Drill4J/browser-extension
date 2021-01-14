@@ -375,6 +375,11 @@ function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, strin
     .map((x: any) => ({
       adapterType: 'agents',
       id: x.id,
+      // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
+      // - get BUSY status
+      // - receive no further updates (because host has changed)
+      // the same applies for service groups
+      // It's not that big of an issue (as-is) but is worth to keep in mind
       host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
       status: x.status,
       buildVersion: x.buildVersion,
