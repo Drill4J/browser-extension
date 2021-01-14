@@ -55,7 +55,6 @@ export const FinishRecording = finishRecording(({ className }: Props) => {
                   try {
                     await bgInterop.cleanupTestSession();
                   } catch (e) {
-                    debugger;
                     console.log('cancel recording session failed', e);
                   }
                   updateRequestStatus(false);

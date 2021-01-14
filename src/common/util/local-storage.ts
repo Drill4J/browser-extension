@@ -6,6 +6,5 @@ export async function get(keys?: string | string[] | undefined) {
 
 export async function save(data: any) {
   const storage = await browser.storage.local.get();
-  console.log('storage', storage, 'new data', data);
   await browser.storage.local.set({ ...storage, ...data });
 }

@@ -20,7 +20,6 @@ interface Props {
 const generalTab = BEM(styles);
 
 export const GeneralTab = generalTab(({ className }: Props) => {
-  console.log('GeneralTab');
   // const { domains = {} } = useLocalStorage<{ [host: string]: DomainConfig }>('domains') || {};
   // const data = Object.keys(domains).map(host => ({ host, ...domains[host] }));
   // const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);

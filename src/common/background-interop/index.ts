@@ -4,11 +4,11 @@ import type { BackgroundConnection } from './types';
 let connection: BackgroundConnection;
 let connectionEstablished = connect(
   (x: BackgroundConnection) => {
-    console.log('Connection established!', Date.now());
+    // console.log('Connection established!', Date.now());
     connection = x;
   },
   (reconnectPromise) => {
-    console.log('Reconnecting...', Date.now());
+    // console.log('Reconnecting...', Date.now());
     connectionEstablished = reconnectPromise;
   },
 );

@@ -23,7 +23,6 @@ export const InProgress = inProgress(({ className }: Props) => {
   // const [actionError, setActionError] = React.useState('');
   const session = React.useContext(SessionContext);
   const scope = React.useContext(ActiveScopeContext);
-  console.log('InProgress SessionContext', session);
   const [isRequestInProgress, updateRequestStatus] = React.useState(false);
 
   return (

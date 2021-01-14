@@ -11,7 +11,7 @@ export async function repeatAsync<T>(fn: (params?: any) => Promise<T> | T, mustR
         data = await fn();
         isSuccess = true;
       } catch (e) {
-        console.log('repeatAsync error', e);
+        console.log('ERROR: repeat async error', e);
       }
 
       if (!isSuccess || (mustReturnData && !data)) {

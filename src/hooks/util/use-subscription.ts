@@ -6,7 +6,6 @@ export function useSubscription<T>(subscribe: (...params: any[]) => () => void, 
 
   useEffect(() => {
     const unsubscribe = subscribe((newData: T) => {
-      console.log('useSubscription handler', 'options', options, 'newData', newData);
       setData(newData);
     }, options);
     return unsubscribe;

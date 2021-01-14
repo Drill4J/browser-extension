@@ -20,8 +20,6 @@ async function init() {
 
   // TODO remove listener on widget close
   browser.storage.onChanged.addListener(async (changes) => {
-    console.log('browser.storage.onChanged', changes);
-
     const shouldHideWidget = !(await isWidgetVisible(host));
     if (shouldHideWidget && widget) {
       removeIframe(widget);
