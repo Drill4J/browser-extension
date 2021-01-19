@@ -16,6 +16,7 @@ import { Sidebar } from './sidebar';
 import { ManualTestingPage, TestToCodePage } from './pages';
 import { withAgentContext, AgentContext } from './context/agent-context';
 
+import '../bootstrap-imports.scss';
 import styles from './app.module.scss';
 import { useBackendConnectionStatus } from '../hooks/use-backend-connection-status';
 import { BackendConnectionStatus, AgentStatus } from '../common/enums';

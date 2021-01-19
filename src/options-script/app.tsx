@@ -5,6 +5,7 @@ import { TabsPanel, Tab } from '@drill4j/ui-kit';
 import packageJson from '../../package.json';
 import { GeneralTab } from './general-tab';
 
+import '../bootstrap-imports.scss';
 import styles from './options-page.module.scss';
 
 interface Props {
