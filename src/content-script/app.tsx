@@ -26,7 +26,6 @@ const RelativeWrapper = style.relativeWrapper('div');
 
 export const App = withAgentContext((props: any) => {
   const { host } = props;
-  console.log('Content app.tsx', props);
 
   const {
     data: backendConnectionStatus,
@@ -37,10 +36,8 @@ export const App = withAgentContext((props: any) => {
   const agent = React.useContext(AgentContext);
 
   const [state, dispatch] = React.useReducer(reducer(async (newState: any) => {
-    console.log('newState', newState);
     await browser.storage.local.set({ [host]: newState });
   }), { expanded: false });
-  console.log('APP STATE:', state);
   useDispatcher(state, dispatch);
 
   React.useEffect(() => {

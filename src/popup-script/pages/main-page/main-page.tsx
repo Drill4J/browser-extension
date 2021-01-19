@@ -36,8 +36,6 @@ export const MainPage = mainPage(({ className }: Props) => {
   const localStorage = useHostLocalStorage(agent?.host) || {};
   const { [agent?.host]: hostStorage } = localStorage;
 
-  console.log('agent', agent, 'localStorage', localStorage);
-
   return (
     <div className={className}>
       <>

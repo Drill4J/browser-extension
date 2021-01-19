@@ -5,7 +5,6 @@ export function useHostLocalStorage(host: string) {
   const [data, setData] = useState<Record<string, any> | null>(null);
 
   useEffect(() => {
-    console.log('useHostLocalStorage', host);
     if (host) {
       run();
       if (browser.storage.onChanged.hasListener(handleHostStorageChange(host))) {
@@ -20,7 +19,6 @@ export function useHostLocalStorage(host: string) {
 
     function handleHostStorageChange(hostName: string) {
       return async (changes: { [s: string]: chrome.storage.StorageChange }) => {
-        console.log('handleHostStorageChange', hostName);
 
         if (changes[hostName] && changes[hostName].newValue) {
           await run();

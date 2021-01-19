@@ -14,7 +14,6 @@ import { SessionStatus } from '../../../common/enums';
 export const ManualTestingPage = withActiveScopeContext(withSessionContext(((props: any) => {
   const { push } = useHistory();
   const session = React.useContext(SessionContext);
-  console.log('ManualTestingPage SessionContext', session);
 
   React.useEffect(() => {
     switch (session?.status) {

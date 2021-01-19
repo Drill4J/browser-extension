@@ -6,7 +6,6 @@ export const SessionContext = React.createContext<any>(null);
 
 export const withSessionContext = (WrappedComponent: any) => (props: any) => {
   const { data } = useSession();
-  console.log('withSessionContext', data);
   return (
     <SessionContext.Provider value={data}>
       <WrappedComponent {...props} />

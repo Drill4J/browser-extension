@@ -65,13 +65,10 @@ export const StartRecording = startRecording(({ className }: Props) => {
                     setIsFormSubmitted(true);
                     try {
                       const data = await bgInterop.startTest(testName);
-                      console.log('start pressed', agent);
                       if (agent.mustRecordJsCoverage) {
                         (window as any).reloadRequired = true;
                       }
-                      console.log('START_TEST data', data);
                     } catch (e) {
-                      console.log(e);
                       const msg = `Failed to start test: ${e?.message || 'an unexpected error occurred'}`;
                       setSubmitError(msg);
                     }

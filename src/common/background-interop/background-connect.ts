@@ -1,3 +1,4 @@
+import chromeApi from '../chrome-api';
 import type { SubNotifyFunction } from '../../background/types';
 import { repeatAsync } from '../util/repeat-async';
 import type { BackgroundConnection, ConnectCallback, DisconnectCallback } from './types';
@@ -15,8 +16,16 @@ export async function connect(connectCb: ConnectCallback, disconnectCb: Disconne
 }
 
 async function asyncChromeRuntimeConnect(): Promise<chrome.runtime.Port> {
-  return new Promise((resolve, reject) => {
-    const port = chrome.runtime.connect();
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    const connectInfo: chrome.runtime.ConnectInfo = {};
+
+    const isRunningInPopup = window.location.protocol === 'chrome-extension:';
+    if (isRunningInPopup) {
+      const activeTab = await chromeApi.getActiveTab();
+      connectInfo.name = `${activeTab?.id}-popup`;
+    }
+    const port = chrome.runtime.connect(connectInfo);
     // chrome.runtime.connect has no callback
     // so chrome.runtime.lastError must be checked in port.onDisconnect
     // reference https://bugs.chromium.org/p/chromium/issues/detail?id=836370#c11
@@ -49,12 +58,12 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
       console.log('No handler for resource', message.resource);
       return;
     }
-    console.log('PORT RECEIVED MESSAGE', message, 'NOTIFY SUBS', handlers);
+    // console.log('PORT RECEIVED MESSAGE', message, 'NOTIFY SUBS', handlers);
     handlers.forEach(handler => handler(message.payload));
   };
 
   const disconnectHandler = () => {
-    console.log('DISCONNECT disconnectHandler');
+    // console.log('DISCONNECT disconnectHandler');
     if (port.onMessage.hasListener(messageHandler)) {
       port.onMessage.removeListener(messageHandler);
     }
@@ -67,7 +76,7 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
 
   return {
     subscribe: (resource: string, handler: (...params: any) => any, options?: any) => {
-      console.log('BG CONNECT SUBSCRIBE', resource, handler, options);
+      // console.log('BG CONNECT SUBSCRIBE', resource, handler, options);
       if (!Array.isArray(subs[resource])) {
         subs[resource] = [];
       }
@@ -79,7 +88,7 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
       }
 
       const unsubscribe = () => {
-        console.log('BG CONNECT UNSUB', resource, options);
+        // console.log('BG CONNECT UNSUB', resource, options);
 
         const index = subs[resource].findIndex(x => x === handler);
         subs[resource].splice(index, 1); // TODO Does it look kinda iffy?
