@@ -13,6 +13,7 @@
     "@redneckz/react-bem-helper": "^2.0.3",
     "@redneckz/react-dispatcher": "^0.0.6",
     "axios": "^0.19.2",
+    "bootstrap": "^4.5.3",
     "final-form": "^4.20.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
