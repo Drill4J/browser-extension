@@ -23,7 +23,6 @@ interface Props {
 const mainPage = BEM(styles);
 
 export const MainPage = mainPage(({ className }: Props) => {
-
   const activeTab = useActiveTab();
   const { data: agent, isLoading, isError }: any = useAgentOnActiveTab();
 

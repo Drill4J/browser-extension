@@ -1,0 +1,19 @@
+@import '../../../common/style-guide';
+
+.manual-test-in-progress {
+  font-size: 14px;
+  color: map-get($monochrome, black);
+  font-family: $regular-font;
+
+  &__test-name {
+    display: inline-block;
+    max-width: 200px;
+  }
+
+  &__active-session-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: map-get($red, default);
+  }
+}

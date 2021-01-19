@@ -268,6 +268,19 @@ async function init() {
     notifySubscribers(sessionSubs[host], sessionsData[host]); // FIXME
   });
 
+  router.add('REACTIVATE_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
+    const host = transformHost(sender.url);
+
+    sessionsData[host] = {
+      ...sessionsData[host],
+      status: SessionStatus.ACTIVE,
+      end: undefined,
+      error: undefined,
+    };
+
+    notifySubscribers(sessionSubs[host], sessionsData[host]);
+  });
+
   // FIXME rename that to getIsHostAssociatedWithAgent
   router.add('GET_HOST_INFO', async (sender: chrome.runtime.MessageSender) => {
     const hostConfig = agentsData[transformHost(sender.url)];

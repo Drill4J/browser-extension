@@ -1,0 +1,29 @@
+@import "../../../common/style-guide";
+
+.start-new-manual-test {
+  color: map-get($monochrome, black);
+  font-size: 14px;
+  font-family: $regular-font;
+
+  &__input {
+    width: 160px;
+    height: 24px;
+    box-sizing: border-box;
+    padding: 4px 8px;
+    border: 1px solid map-get($monochrome, dark-tint);
+    border-radius: 4px;
+    background-color: map-get($monochrome, white);
+    color: map-get($monochrome, black);
+    font-family: $regular-font;
+    font-size: 12px;
+    outline: none;
+
+    &:focus {
+      border: 1px solid map-get($monochrome, dark-tint);
+    }
+
+    &::placeholder {
+      color: map-get($monochrome, dark-tint);
+    }
+  }
+}

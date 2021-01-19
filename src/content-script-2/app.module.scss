@@ -1,0 +1,11 @@
+.app {
+  &__logo {
+    height: 24px;
+    margin: 6px 0;
+  }
+
+  &__border-top {
+    height: 6px;
+    background: linear-gradient(rgba(255,255,255,0), rgba(0,0,0,0.2));
+  }
+}

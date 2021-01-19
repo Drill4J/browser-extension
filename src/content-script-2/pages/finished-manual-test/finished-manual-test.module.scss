@@ -1,0 +1,23 @@
+@import '../../../common/style-guide';
+
+.finished-manual-test {
+  font-size: 14px;
+  color: map-get($monochrome, black);
+  font-family: $regular-font;
+  line-height: 20px;
+
+  &__success-message {
+    font-size: 12px;
+  }
+
+  &__vertical-line {
+    width: 1px;
+    height: 20px;
+    background-color: map-get($monochrome, dark-tint);
+  }
+
+  &__test-name {
+    display: inline-block;
+    max-width: 200px;
+  }
+}

@@ -3,7 +3,7 @@ import * as ReactDom from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { transformHost } from './common/util/transform-host';
 import * as bgInterop from './common/background-interop';
-import { App } from './content-script';
+import { App } from './content-script-2';
 import './content.scss';
 
 init();
@@ -59,9 +59,8 @@ function injectIframe(host: string): HTMLIFrameElement | never {
 // TODO implement storage access method to avoid passing host around
 async function positionIframe(host: string, iframe: HTMLIFrameElement) {
   const localStorage = await browser.storage.local.get();
-  const corner = localStorage[host].corner || 'top-left';
-  const expanded = localStorage[host].expanded || false;
-  const className = `drill-widget-iframe drill-widget-iframe-position__${corner} drill-widget-iframe-expanded__${expanded}`;
+  const corner = localStorage[host].corner || 'bottom';
+  const className = `drill-widget-iframe drill-widget-iframe-position__${corner} `;
   if (!iframe) return;
 
   // eslint-disable-next-line no-param-reassign

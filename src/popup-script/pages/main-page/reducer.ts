@@ -7,7 +7,6 @@ export type Action = ReturnType<typeof setAgent>;
 
 export const setAgent = (agent: Agent) => ({ type: SET_AGENT, payload: agent } as const);
 
-
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case SET_AGENT:

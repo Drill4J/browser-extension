@@ -1,0 +1,7 @@
+@import "../../../common/style-guide";
+
+.connection-lost {
+  color: map-get($monochrome, black);
+  font-size: 14px;
+  font-family: $regular-font;
+}
