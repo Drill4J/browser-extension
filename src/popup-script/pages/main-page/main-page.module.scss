@@ -1,63 +1,15 @@
 @import '../../../common/style-guide/index';
 
 .main-page {
-  display: flex;
-  flex-direction: column;
-  height: 320px;
-  width: 320px;
+  height: 272px;
   font-family: $regular-font;
+  font-size: 14px;
+  line-height: 20px;
+  color: map-get($monochrome, default);
 
   &__header {
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
     height: 48px;
-    padding: 0 16px;
-    border-bottom: 1px solid map-get($color-palette, light-blue);
-    color: map-get($color-palette, middle-blue);
-  }
-
-  &__logo {
-    display: flex;
-    align-items: center;
-  }
-
-  &__agent-name {
-    font-size: 14px;
-    font-family: $semibold-font;
-    line-height: 20px;
-    margin-left: 8px;
-  }
-
-  &__content {
-    box-sizing: border-box;
-    margin: 16px;
-    font-size: 14px;
-    line-height: 20px;
-    color: $slate-gray;
-  }
-
-  &__footer {
-    box-sizing: border-box;
-    height: 48px;
-    padding: 0 16px;
-    color: $slate-gray;
-    font-size: 10px;
-    letter-spacing: 0;
-    line-height: 12px;
-  }
-
-  &__actions-panel {
-    margin-top: 32px;
-
-    & > :not(:last-child) {
-      margin-right: 16px;
-    }
-  }
-
-  &__link {
-    color: map-get($color-palette, blue100);
-    cursor: pointer;
-    text-decoration: none;
+    border-bottom: 1px solid map-get($monochrome, medium-tint);
+    color: map-get($monochrome, default);
   }
 }

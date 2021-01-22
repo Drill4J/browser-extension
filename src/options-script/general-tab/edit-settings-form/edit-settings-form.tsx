@@ -26,7 +26,8 @@ export const EditSettingsForm = editSettingsForm(({ className }: Props) => {
       const data = await localStorageUtil.get('backendAddress');
       setInitial(data);
     })();
-  });
+  }, []);
+
   return (
     <div className={className}>
       <Form
