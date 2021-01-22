@@ -1,15 +1,19 @@
 import * as React from 'react';
-import { MemoryRouter, Switch, Route } from 'react-router-dom';
 
-import { MainPage, UnavailablePage } from './pages';
+import { BackendConnectionStatus } from 'common/enums';
+import { MainPage, ConnectionPage } from './pages';
+import { useBackendConnectionStatus } from '../hooks';
 
 import '../bootstrap-imports.scss';
 
-export const App = () => (
-  <MemoryRouter>
-    <Switch>
-      <Route path="/" exact component={MainPage} />
-      <Route path="/unavailable-page" component={UnavailablePage} />
-    </Switch>
-  </MemoryRouter>
-);
+export const App = () => {
+  const backendConnectionData = useBackendConnectionStatus<BackendConnectionStatus>();
+
+  return (
+    <div className="popup-container">
+      {backendConnectionData?.data === 'available'
+        ? <MainPage />
+        : <ConnectionPage />}
+    </div>
+  );
+};

@@ -34,11 +34,12 @@ export type ScopeData = Record<string, any>; // TODO type it properly!
 export type SubNotifyFunction = (data: unknown) => void;
 export type AdapterType = 'agents' | 'service-groups';
 
+export type Status = 'ONLINE' | 'OFFLINE' | 'BUSY' | 'NOT_REGISTERED';
 export interface AdapterInfo {
   adapterType: AdapterType;
   id: string;
   host: string;
-  status: 'ONLINE' | 'OFFLINE' | 'BUSY' | '';
+  status: Status;
   mustRecordJsCoverage: boolean;
   buildVersion?: string;
 }

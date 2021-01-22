@@ -1,0 +1,14 @@
+@import '../../../common/style-guide/index';
+
+.connection-page {
+  font-family: $regular-font;
+  font-size: 20px;
+  line-height: 32px;
+  color: map-get($monochrome, black);
+
+  &__info {
+    font-size: 14px;
+    line-height: 20px;
+    color: map-get($monochrome, default);
+  }
+}

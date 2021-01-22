@@ -3,26 +3,32 @@
 
 $spacer: 4px;
 $spacers: (
-        0: 0,
-        1: $spacer,
-        2: $spacer * 2,
-        3: $spacer * 3,
-        4: $spacer * 4,
-        5: $spacer * 5,
-        6: $spacer * 6,
-        7: $spacer * 7,
-        8: $spacer * 8,
-        9: $spacer * 9,
-        10: $spacer * 10,
+  0: 0,
+  1: $spacer,
+  2: $spacer * 2,
+  3: $spacer * 3,
+  4: $spacer * 4,
+  5: $spacer * 5,
+  6: $spacer * 6,
+  7: $spacer * 7,
+  8: $spacer * 8,
+  9: $spacer * 9,
+  10: $spacer * 10,
 );
 
 @import '../node_modules/bootstrap/scss/mixins/breakpoints';
+@import '../node_modules/bootstrap/scss/mixins/text-truncate';
+@import '../node_modules/bootstrap/scss/mixins/text-emphasis';
+@import '../node_modules/bootstrap/scss/mixins/hover';
+@import '../node_modules/bootstrap/scss/mixins/deprecate';
+@import '../node_modules/bootstrap/scss/mixins/text-hide';
 
 @import '../node_modules/bootstrap/scss/utilities/align';
 @import '../node_modules/bootstrap/scss/utilities/display';
 @import '../node_modules/bootstrap/scss/utilities/flex';
 @import '../node_modules/bootstrap/scss/utilities/sizing';
 @import '../node_modules/bootstrap/scss/utilities/spacing';
+@import '../node_modules/bootstrap/scss/utilities/text';
 
 @import '../node_modules/bootstrap/scss/bootstrap-grid';
 
@@ -30,6 +36,12 @@ $spacers: (
 
 .container-fluid {
   padding: 0;
+}
+
+@each $size, $height in $spacers {
+  .h-#{$size*4}px {
+    height: $height !important;
+  }
 }
 
 @each $size, $gap in $spacers {

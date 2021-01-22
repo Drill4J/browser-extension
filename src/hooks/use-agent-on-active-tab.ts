@@ -13,6 +13,6 @@ async function getActiveTabUrl() {
   return activeTab?.url;
 }
 
-export function useAgentOnActiveTab() {
-  return useSubscriptionWithAsyncOptions(backgroundInterop.subscribeToAgent, getOptions);
+export function useAgentOnActiveTab<T>() {
+  return useSubscriptionWithAsyncOptions<T>(backgroundInterop.subscribeToAgent, getOptions);
 }

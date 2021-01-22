@@ -1,4 +1,10 @@
 body,
 #root {
   margin: 0;
+  font-family: 'OpenSans', sans-serif;
+}
+
+.popup-container {
+  width: 320px;
+  height: 320px;
 }
