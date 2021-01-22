@@ -60,7 +60,9 @@ async function init() {
 
   // eslint-disable-next-line no-param-reassign
   interceptedDataStore.agents = {};
-  const agentOrGroupHandler = async (id: string, host: string) => {
+  const agentOrGroupHandler = async (id: string, url: string) => {
+    const host = transformHost(url);
+
     // eslint-disable-next-line no-param-reassign
     interceptedDataStore.agents[id] = host;
 

@@ -1,10 +1,10 @@
 import { browser, WebRequest } from 'webextension-polyfill-ts';
 
 export function setupResponseInterceptor() {
-  const interceptor = ({ responseHeaders = [], initiator = '' }: WebRequest.OnHeadersReceivedDetailsType & { initiator?: string }) => {
+  const interceptor = ({ responseHeaders = [], url }: WebRequest.OnHeadersReceivedDetailsType) => {
     headerHandlers.forEach(handler => {
       const matchedHeader = responseHeaders.find(x => x.name.toLowerCase() === handler.name.toLowerCase());
-      if (matchedHeader) handler.cb(matchedHeader.value, initiator);
+      if (matchedHeader) handler.cb(matchedHeader.value, url);
     });
   };
 
@@ -13,7 +13,10 @@ export function setupResponseInterceptor() {
   browser.webRequest.onHeadersReceived.addListener(
     interceptor,
     {
-      urls: ['*://*/*'], // TODO that could be narrowed with user-defined settings ?
+      // why not urls: ['*://*/*'],
+      // <all_urls> - matches all responses, including those that have "Initiator - Other" in DevTools/Network
+      // reference https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns#%3Call_urls%3E
+      urls: ['<all_urls>'],
     },
     ['responseHeaders'],
   );
@@ -40,4 +43,4 @@ type HeaderHandler = {
   cb: HeaderHandlerCb;
 }
 
-type HeaderHandlerCb = (value: any, initiator: string) => any;
+type HeaderHandlerCb = (value: any, url: string) => any;
