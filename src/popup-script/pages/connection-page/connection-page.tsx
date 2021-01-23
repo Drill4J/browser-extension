@@ -34,7 +34,17 @@ export const ConnectionPage = connectionPage(({ className }: Props) => {
             </Info>
           </div>
         </div>
-      ) : <ConnectionForm initial={initial} />}
+      )
+        : (
+          <div className="d-flex flex-column h-100 justify-content-center px-4 gy-8">
+            <Info>
+              No conection with backend. Try to refresh the page or connect using your admin
+              <br />
+              address.
+            </Info>
+            <ConnectionForm initial={initial} />
+          </div>
+        )}
     </div>
   );
 });

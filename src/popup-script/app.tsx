@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { BackendConnectionStatus } from 'common/enums';
+import { BackendConnectionStatus } from '../common/enums';
 import { MainPage, ConnectionPage } from './pages';
 import { useBackendConnectionStatus } from '../hooks';
 
@@ -11,7 +11,7 @@ export const App = () => {
 
   return (
     <div className="popup-container">
-      {backendConnectionData?.data === 'available'
+      {backendConnectionData?.data === BackendConnectionStatus.AVAILABLE
         ? <MainPage />
         : <ConnectionPage />}
     </div>

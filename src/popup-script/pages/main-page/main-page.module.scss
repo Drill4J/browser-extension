@@ -18,10 +18,4 @@
     font-family: $semibold-font;
     line-height: 20px;
   }
-
-  &__link {
-    color: map-get($primary-blue, default);
-    cursor: pointer;
-    text-decoration: none;
-  }
 }

@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { BEM, tag } from '@redneckz/react-bem-helper';
+import { BEM } from '@redneckz/react-bem-helper';
 import { Button, OverflowText } from '@drill4j/ui-kit';
 import { browser } from 'webextension-polyfill-ts';
 
-import { AdapterInfo } from 'background/types';
+import { AgentStatus as Status } from '../../../common/enums';
 import { AgentNotFound } from './agent-not-found';
 import {
   useHostLocalStorage, useAgentOnActiveTab, useActiveTab,
@@ -21,9 +21,9 @@ const mainPage = BEM(styles);
 
 export const MainPage = mainPage(({ className }: Props) => {
   const activeTab = useActiveTab();
-  const { data: agent, isLoading, isError } = useAgentOnActiveTab<AdapterInfo>();
+  const { data: agent, isLoading, isError } = useAgentOnActiveTab();
 
-  const { host = '', status = 'OFFLINE' } = agent || {};
+  const { host = '', status } = agent || {};
 
   const localStorage = useHostLocalStorage(host) || {};
   const { [host]: hostStorage } = localStorage;
@@ -41,20 +41,20 @@ export const MainPage = mainPage(({ className }: Props) => {
           </Header>
           <div className="d-flex flex-column justify-content-center align-items-center h-100 gy-6">
             <span className="text-center">
-              {status === 'ONLINE' && (
+              {status === Status.ONLINE && (
                 <span>
                   You’re all set now. Open the widget
                   <br />
                   to start manual testing.
                 </span>
               )}
-              {status === 'NOT_REGISTERED' && (
+              {status === Status.NOT_REGISTERED && (
                 <span>
                   Agent is not registered. Please complete registration in the&nbsp;
-                  <Link href="#admin-panel" target="_blank" rel="noopener noreferrer">Admin Panel</Link>
+                  <a href="#admin-panel" target="_blank" rel="noopener noreferrer">Admin Panel</a>
                 </span>
               )}
-              {(status === 'OFFLINE' || status === 'BUSY') && (
+              {(status === Status.OFFLINE || status === Status.BUSY) && (
                 <span>
                   Agent is currently&nbsp;
                   {status.toLowerCase()}
@@ -71,10 +71,10 @@ export const MainPage = mainPage(({ className }: Props) => {
                 className="mx-auto"
                 type="primary"
                 size="large"
-                disabled={status !== 'ONLINE'}
+                disabled={status !== Status.ONLINE}
                 onClick={
-                  () => {
-                    browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: true } });
+                  async () => {
+                    await browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: true } });
                     injectContentScript(activeTab);
                   }
                 }
@@ -100,9 +100,6 @@ export const MainPage = mainPage(({ className }: Props) => {
 
 const Header = mainPage.header('div');
 const AgentName = mainPage.agentName(OverflowText);
-const Link = mainPage.link(
-  tag('a')({ href: '', rel: '', target: '' } as { href: string; rel: string; target: string; children: React.ReactNode}),
-);
 
 function injectContentScript(activeTab: chrome.tabs.Tab | undefined) {
   if (!activeTab?.id) return;

@@ -2,13 +2,13 @@ import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
 import { Badge } from '@drill4j/ui-kit';
 
-import { Status } from 'background/types';
+import { AgentStatus as Status } from 'common/enums';
 
 import styles from './agent-status.module.scss';
 
 interface Props {
   className?: string;
-  status: Status;
+  status?: Status;
 }
 
 const agentStatus = BEM(styles);

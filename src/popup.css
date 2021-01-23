@@ -8,3 +8,8 @@ body,
   width: 320px;
   height: 320px;
 }
+
+a {
+  color: #007fff;
+  text-decoration: none;
+}

@@ -1,3 +1,4 @@
+import { AgentStatus } from 'common/enums';
 import { SessionActionError } from '../common/errors/session-action-error';
 
 type Handler = (sender: chrome.runtime.MessageSender, ...params: any[]) => unknown;
@@ -34,12 +35,11 @@ export type ScopeData = Record<string, any>; // TODO type it properly!
 export type SubNotifyFunction = (data: unknown) => void;
 export type AdapterType = 'agents' | 'service-groups';
 
-export type Status = 'ONLINE' | 'OFFLINE' | 'BUSY' | 'NOT_REGISTERED';
 export interface AdapterInfo {
   adapterType: AdapterType;
   id: string;
   host: string;
-  status: Status;
+  status: AgentStatus;
   mustRecordJsCoverage: boolean;
   buildVersion?: string;
 }
