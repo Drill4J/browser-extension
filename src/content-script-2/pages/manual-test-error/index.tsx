@@ -2,8 +2,6 @@ import * as React from 'react';
 import { BEM, div } from '@redneckz/react-bem-helper';
 import { Icons, useHover } from '@drill4j/ui-kit';
 
-import { copyToClipboard } from '../../../utils/copy-to-clipboard';
-
 import styles from './manual-test-error.module.scss';
 
 interface Props {
@@ -33,8 +31,8 @@ export const ManualTestError = manualTestError(({
           {!copiedToClipboard && isVisible && <IconTooltip className="position-absolute">Copy error message</IconTooltip>}
           {copiedToClipboard && <IconTooltip className="position-absolute">Copied to clipboard</IconTooltip>}
           <Icon
-            onClick={() => {
-              copyToClipboard(messageToCopy);
+            onClick={async () => {
+              await navigator.clipboard.writeText(messageToCopy);
               setCopiedToClipboard(true);
               setTimeout(() => setCopiedToClipboard(false), 5000);
             }}

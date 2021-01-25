@@ -59,10 +59,10 @@ export const App = withAgentContext((props: any) => {
         <div className="d-flex align-items-center gx-4">
           <ExtensionPosition
             onClick={() => dispatch(setCorner(state.corner))}
-            viewBox="0 0 16 17"
+            viewBox="0 0 16 15"
             rotate={!state.corner || state.corner === 'bottom' ? 0 : 180}
-            height={8}
-            width={16}
+            height={15}
+            width={24}
           />
           <Icons.Close
             onClick={() => dispatch(setIsWidgetVisible(false))}
