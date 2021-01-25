@@ -61,6 +61,9 @@ async function positionIframe(host: string, iframe: HTMLIFrameElement) {
   const localStorage = await browser.storage.local.get();
   const corner = localStorage[host].corner || 'bottom';
   const className = `drill-widget-iframe drill-widget-iframe-position__${corner} `;
+  if (!localStorage[host].corner) {
+    await browser.storage.local.set({ [host]: { ...localStorage[host], corner: 'bottom' } });
+  }
   if (!iframe) return;
 
   // eslint-disable-next-line no-param-reassign

@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { BEM, div } from '@redneckz/react-bem-helper';
+import { BEM } from '@redneckz/react-bem-helper';
 import { Icons, useHover } from '@drill4j/ui-kit';
 
 import styles from './manual-test-error.module.scss';
+import { copyToClipboard } from '../../../utils';
 
 interface Props {
-  className?: string;
   message?: string;
   messageToCopy?: string;
   children?: React.ReactNode | React.ReactNode[];
@@ -14,27 +14,31 @@ interface Props {
 const manualTestError = BEM(styles);
 
 export const ManualTestError = manualTestError(({
-  className, message, messageToCopy = '', children,
+  message, messageToCopy = '', children,
 }: Props) => {
   const [copiedToClipboard, setCopiedToClipboard] = React.useState(false);
   const { isVisible, ref } = useHover();
 
   return (
-    <div className={`${className} d-flex align-items-center gx-6`}>
+    <div className="d-flex align-items-center gx-6 red-default">
       <div className="d-flex align-items-center gx-2">
         <Icons.Warning />
         <div className="d-flex align-items-center gx-1">
           <div className="mr-1 bold">{message}</div>
-          <ErrorMessage visible={!isVisible && !copiedToClipboard} title={messageToCopy}>{ messageToCopy }</ErrorMessage>
+          <ErrorMessage className="position-relative" title={messageToCopy}>
+            { messageToCopy }
+            {!copiedToClipboard && isVisible && <IconTooltip className="position-absolute">Copy error message</IconTooltip>}
+            {copiedToClipboard && <IconTooltip className="position-absolute">Copied to clipboard</IconTooltip>}
+          </ErrorMessage>
         </div>
-        <div className="position-relative" ref={ref}>
-          {!copiedToClipboard && isVisible && <IconTooltip className="position-absolute">Copy error message</IconTooltip>}
-          {copiedToClipboard && <IconTooltip className="position-absolute">Copied to clipboard</IconTooltip>}
+        <div ref={ref}>
           <Icon
             onClick={async () => {
-              await navigator.clipboard.writeText(messageToCopy);
-              setCopiedToClipboard(true);
-              setTimeout(() => setCopiedToClipboard(false), 5000);
+              if (!copiedToClipboard) {
+                copyToClipboard(messageToCopy);
+                setCopiedToClipboard(true);
+                setTimeout(() => setCopiedToClipboard(false), 5000);
+              }
             }}
           >
             {copiedToClipboard ? <Icons.Check width={16} /> : <Icons.Copy width={16} height={16} />}
@@ -48,4 +52,4 @@ export const ManualTestError = manualTestError(({
 
 const Icon = manualTestError.icon('div');
 const IconTooltip = manualTestError.iconTooltip('div');
-const ErrorMessage = manualTestError.errorMessage(div({ visible: true, title: '' } as { visible?: boolean; title: string }));
+const ErrorMessage = manualTestError.errorMessage('div');

@@ -16,6 +16,8 @@ $spacers: (
         10: $spacer * 10,
 );
 
+$font-sizes: (12, 14, 16, 18, 20, 22, 24, 26, 28, 30);
+
 @import '../node_modules/bootstrap/scss/mixins/breakpoints';
 
 @import '../node_modules/bootstrap/scss/utilities/align';
@@ -35,6 +37,23 @@ $spacers: (
 
 .bold {
   font-family: $semibold-font !important;
+}
+.light {
+  font-family: $light-font !important;
+}
+.regular {
+  font-family: $regular-font !important;
+}
+
+@each $font in $font-sizes {
+  .fs-#{$font} {
+    font-size: #{$font}px;
+  }
+}
+@each $size in $font-sizes {
+  .lh-#{$size} {
+    line-height: #{$size}px;
+  }
 }
 
 @each $size, $gap in $spacers {

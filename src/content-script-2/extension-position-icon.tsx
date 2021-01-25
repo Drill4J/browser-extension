@@ -9,15 +9,10 @@ interface Props {
 
 }
 
-export const ExtensionPosition = ({
-  width, height, viewBox, onClick, rotate,
-}: Props) => (
+export const ExtensionPositionIcon = ({ rotate, ...restProps }: Props) => (
   <svg
-    viewBox={viewBox}
-    width={`${width}`}
-    height={`${height}`}
     transform={`rotate(${rotate})`}
-    onClick={onClick}
+    {...restProps}
   >
     <g xmlns="http://www.w3.org/2000/svg" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
       <path fill="#FFF" d="M-1422-175H110v903h-1532z" />

@@ -1,28 +1,19 @@
 import * as React from 'react';
 import { Button } from '@drill4j/ui-kit';
-import { BEM } from '@redneckz/react-bem-helper';
 
 import { AgentContext } from '../../context';
 import * as bgInterop from '../../../common/background-interop';
-import { Overlay, Spinner } from '../../components';
+import { Overlay, Spinner, TextInput } from '../../components';
 import { ManualTestError } from '../manual-test-error';
 
-import styles from './start-new-manual-test.module.scss';
-
-const startNewManualTest = BEM(styles);
-
-interface Props {
-  className?: string;
-}
-
-export const StartNewManualTest = startNewManualTest(({ className }: Props) => {
+export const StartNewManualTest = () => {
   const [submitError, setSubmitError] = React.useState('');
   const [testName, setTestName] = React.useState('');
   const [isFormSubmitting, setIsFormSubmitting] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
   return (
-    <div className={`${className} d-flex align-items-center gx-4 position-relative`}>
+    <div className="d-flex align-items-center gx-4 position-relative">
       {(window as any).reloadRequired
         ? (
           <>
@@ -39,10 +30,11 @@ export const StartNewManualTest = startNewManualTest(({ className }: Props) => {
         ) : (
           <>
             <span>Start new manual test</span>
-            <Input
-              placeholder={isFormSubmitting ? testName : 'Give this test a name'}
-              value={isFormSubmitting ? '' : testName}
+            <TextInput
+              placeholder="Give this test a name"
+              value={testName}
               onChange={({ currentTarget: { value } }: React.ChangeEvent<HTMLInputElement>) => setTestName(value)}
+              disabled={isFormSubmitting}
             />
             <div title={!testName ? 'Enter a test name to start testing' : undefined}>
               <Button
@@ -88,6 +80,4 @@ export const StartNewManualTest = startNewManualTest(({ className }: Props) => {
       )}
     </div>
   );
-});
-
-const Input = startNewManualTest.input('input');
+};

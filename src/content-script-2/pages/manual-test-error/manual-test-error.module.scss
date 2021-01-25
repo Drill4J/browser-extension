@@ -1,22 +1,20 @@
 @import "../../../common/style-guide";
 
 .manual-test-error {
-  font-size: 14px;
-  color: map-get($red, default);
-  font-family: $regular-font;
-
   &__icon {
     color: map-get($primary-blue, default);
     cursor: pointer;
   }
 
   &__icon-tooltip {
-    width: 120px;
+    width: 180px;
     top: 50%;
-    left: -120px;
+    right: 0;
     transform: translateY(-50%);
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 35%, rgba(255,255,255,1) 100%);
     color: map-get($monochrome, black);
     font-size: 12px;
+    text-align: right;
   }
 
   &__error-message {
@@ -25,10 +23,5 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    opacity: .1;
-
-    &--visible {
-      opacity: 1;
-    }
   }
 }

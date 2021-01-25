@@ -15,18 +15,14 @@ import styles from './manual-test-in-progress.module.scss';
 
 const manualTestInProgress = BEM(styles);
 
-interface Props {
-  className?: string;
-}
-
-export const ManualTestInProgress = manualTestInProgress(({ className }: Props) => {
+export const ManualTestInProgress = () => {
   const session = React.useContext(SessionContext);
   const scope = React.useContext(ActiveScopeContext);
   const [isRequestInProgress, updateRequestStatus] = React.useState(false);
   const [isConfirmingAbort, setIsConfirmingAbort] = React.useState(false);
 
   return (
-    <div className={`${className} d-flex align-items-center gx-6 position-relative`}>
+    <div className=" d-flex align-items-center gx-6 position-relative">
       {!isConfirmingAbort ? (
         <>
           <div className="d-flex align-items-center gx-2">
@@ -87,7 +83,7 @@ export const ManualTestInProgress = manualTestInProgress(({ className }: Props) 
       ) : <ConfirmAbortSession setIsConfirmingAbort={setIsConfirmingAbort} />}
     </div>
   );
-});
+};
 
 const TestName = manualTestInProgress.testName(EllipsisOverflowText);
 const ActiveSessionIndicator = manualTestInProgress.activeSessionIndicator('span');

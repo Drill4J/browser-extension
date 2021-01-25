@@ -11,7 +11,7 @@ import {
 } from './reducer';
 import { useDispatcher } from './hooks';
 import { AgentStatus, BackendConnectionStatus } from '../common/enums';
-import { ConnectionLost, AgentIsOffline, ExtensionPosition } from './components';
+import { ExtensionPositionIcon } from './extension-position-icon';
 import { Pages } from './pages';
 
 import '../bootstrap-imports.scss';
@@ -19,9 +19,11 @@ import styles from './app.module.scss';
 
 const app = BEM(styles);
 
-export const App = withAgentContext((props: any) => {
-  const { host } = props;
+interface Props {
+  host: string;
+}
 
+export const App = withAgentContext(app(({ host }: Props) => {
   const {
     data: backendConnectionStatus,
   } = useBackendConnectionStatus();
@@ -35,29 +37,38 @@ export const App = withAgentContext((props: any) => {
   useDispatcher(state, dispatch);
 
   React.useEffect(() => {
-    async function loadConfig() {
+    (async function loadConfig() {
       const { [host]: data } = await browser.storage.local.get(host);
       dispatch(setInitial(data));
-    }
-    loadConfig();
+    }());
   }, []);
 
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;
   const isAgentOffline = backendConnectionStatus === BackendConnectionStatus.AVAILABLE
     && agent && agent.status !== AgentStatus.ONLINE;
 
-  console.log('state.corner', state.corner);
-
   return (
     <MemoryRouter>
       <BorderTop />
-      <div className="d-flex justify-content-between w-100 px-4">
+      <div className="d-flex justify-content-between w-100 px-4 monochrome-black fs-14">
         <Logo>Logo</Logo>
-        { isConnectionLost && <ConnectionLost />}
-        { isAgentOffline && <AgentIsOffline />}
+        { isConnectionLost && (
+          <div className="d-flex align-items-center gx-1">
+            <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
+            <span className="bold">Connection lost.</span>
+            <span>Please wait. We’re trying to reconnect.</span>
+          </div>
+        )}
+        { isAgentOffline && (
+          <div className="d-flex align-items-center gx-1">
+            <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
+            <div className="bold">Agent appears to be offline or busy.</div>
+            <span>To start testing your agent has to be registered and online.</span>
+          </div>
+        )}
         {!isConnectionLost && !isAgentOffline && <Pages />}
-        <div className="d-flex align-items-center gx-4">
-          <ExtensionPosition
+        <Actions className="d-flex align-items-center gx-4">
+          <ExtensionPositionIcon
             onClick={() => dispatch(setCorner(state.corner))}
             viewBox="0 0 16 15"
             rotate={!state.corner || state.corner === 'bottom' ? 0 : 180}
@@ -69,11 +80,12 @@ export const App = withAgentContext((props: any) => {
             height={10}
             width={10}
           />
-        </div>
+        </Actions>
       </div>
     </MemoryRouter>
   );
-});
+}));
 
 const Logo = app.logo('div');
 const BorderTop = app.borderTop('div');
+const Actions = app.actions('div');
