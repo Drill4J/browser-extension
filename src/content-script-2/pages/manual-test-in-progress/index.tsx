@@ -22,7 +22,7 @@ export const ManualTestInProgress = () => {
   const [isConfirmingAbort, setIsConfirmingAbort] = React.useState(false);
 
   return (
-    <div className=" d-flex align-items-center gx-6 position-relative">
+    <div className="d-flex align-items-center gx-6 position-relative">
       {!isConfirmingAbort ? (
         <>
           <div className="d-flex align-items-center gx-2">

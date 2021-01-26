@@ -11,15 +11,4 @@ interface Props {
   placeholder?: string;
 }
 
-export const TextInput = BEM(styles)(({
-  className, disabled, onChange, value, placeholder,
-}: Props) => (
-  <input
-    className={className}
-    type="text"
-    placeholder={placeholder}
-    value={value}
-    onChange={onChange}
-    disabled={disabled}
-  />
-));
+export const TextInput = BEM(styles)((props: Props) => <input type="text" {...props} />);

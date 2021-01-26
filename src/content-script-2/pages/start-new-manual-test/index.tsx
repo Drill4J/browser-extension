@@ -33,10 +33,10 @@ export const StartNewManualTest = () => {
             <TextInput
               placeholder="Give this test a name"
               value={testName}
-              onChange={({ currentTarget: { value } }: React.ChangeEvent<HTMLInputElement>) => setTestName(value)}
+              onChange={({ currentTarget: { value } }) => setTestName(value)}
               disabled={isFormSubmitting}
             />
-            <div title={!testName ? 'Enter a test name to start testing' : undefined}>
+            <div title="Enter a test name to start testing">
               <Button
                 type="primary"
                 size="small"
