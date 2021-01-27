@@ -2,7 +2,6 @@
 
 .manual-test-in-progress {
   &__test-name {
-    display: inline-block;
     max-width: 200px;
   }
 
@@ -11,5 +10,15 @@
     height: 8px;
     border-radius: 4px;
     background-color: map-get($red, default);
+    animation: blinker 1.5s infinite cubic-bezier(1, 0, 0, 1);
+  }
+}
+
+@keyframes blinker {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }

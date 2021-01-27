@@ -27,10 +27,10 @@ export const ManualTestInProgress = () => {
         <>
           <div className="d-flex align-items-center gx-2">
             <ActiveSessionIndicator />
-            <span>
+            <div className="d-flex align-items-center">
               <span className="mr-1">Test:</span>
               <TestName className="bold" title={session?.testName}>{session?.testName}</TestName>
-            </span>
+            </div>
           </div>
           <div className="d-flex gx-1">
             <span>Duration:</span>

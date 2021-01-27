@@ -23,7 +23,7 @@ export const FinishedManualTest = () => {
         <div className="fs-12">Testing is finished Successfully</div>
       </div>
       <VerticalLine />
-      <div>
+      <div className="d-flex align-items-center">
         <span className="mr-2">Test:</span>
         <TestName className="bold" title={session?.testName}>{session?.testName}</TestName>
       </div>
