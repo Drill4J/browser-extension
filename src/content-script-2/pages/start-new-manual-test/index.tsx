@@ -50,7 +50,7 @@ export const StartNewManualTest = () => {
                       (window as any).reloadRequired = true;
                     }
                   } catch (e) {
-                    setSubmitError(e?.message);
+                    setSubmitError(e?.message || 'Something happened on the backend');
                   }
                   setIsFormSubmitting(false);
                 }}
@@ -73,7 +73,7 @@ export const StartNewManualTest = () => {
               size="small"
               onClick={() => setSubmitError('')}
             >
-              Ok, got it
+              Go Back
             </Button>
           </ManualTestError>
         </Overlay>

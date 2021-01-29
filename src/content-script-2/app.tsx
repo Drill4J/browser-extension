@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Icons } from '@drill4j/ui-kit';
+import { Icons, Tooltip } from '@drill4j/ui-kit';
 import { MemoryRouter } from 'react-router-dom';
 import { BEM } from '@redneckz/react-bem-helper';
 
@@ -12,6 +12,7 @@ import {
 import { useDispatcher } from './hooks';
 import { AgentStatus, BackendConnectionStatus } from '../common/enums';
 import { ExtensionPositionIcon } from './extension-position-icon';
+import { HideWidgetIcon } from './hide-widget-icon';
 import { Pages } from './pages';
 
 import '../bootstrap-imports.scss';
@@ -62,24 +63,35 @@ export const App = withAgentContext(app(({ host }: Props) => {
         { isAgentOffline && (
           <div className="d-flex align-items-center gx-1">
             <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
-            <div className="bold">Agent appears to be offline or busy.</div>
+            <div className="bold">
+              Agent is
+              {' '}
+              {agent.status === 'OFFLINE' ? 'offline' : 'not registered'}
+              .
+            </div>
             <span>To start testing your agent has to be registered and online.</span>
           </div>
         )}
         {!isConnectionLost && !isAgentOffline && <Pages />}
         <Actions className="d-flex align-items-center gx-4">
-          <ExtensionPositionIcon
-            onClick={() => dispatch(setCorner(state.corner))}
-            viewBox="0 0 16 15"
-            rotate={!state.corner || state.corner === 'bottom' ? 0 : 180}
-            height={15}
-            width={24}
-          />
-          <Icons.Close
-            onClick={() => dispatch(setIsWidgetVisible(false))}
-            height={10}
-            width={10}
-          />
+          <div title={`Fix to the ${state.corner === 'bottom' ? 'top' : 'bottom'}`}>
+            <ExtensionPositionIcon
+              onClick={() => dispatch(setCorner(state.corner))}
+              viewBox="0 0 16 15"
+              rotate={state.corner === 'bottom' ? 0 : 180}
+              height={15}
+              width={24}
+            />
+          </div>
+
+          <div title="Hide">
+            <HideWidgetIcon
+              onClick={() => dispatch(setIsWidgetVisible(false))}
+              viewBox="0 0 16 15"
+              height={15}
+              width={24}
+            />
+          </div>
         </Actions>
       </div>
     </MemoryRouter>

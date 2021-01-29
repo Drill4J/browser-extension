@@ -39,20 +39,23 @@ export const Pages = withActiveScopeContext(withSessionContext(() => {
         exact
         path="/manual-testing-error"
         render={() => (
-          <ManualTestError message="Failed action with active session" messageToCopy={session?.error?.message}>
+          <ManualTestError
+            message="Failed action with active session"
+            messageToCopy={session?.error?.message || 'Something happened on the backend'}
+          >
             <Button
               type="primary"
               size="small"
               onClick={() => bgInterop.reactivateTestSession()}
             >
-              Ok, got it
+              Go Back
             </Button>
             <Button
-              type="primary"
+              type="secondary"
               size="small"
               onClick={() => bgInterop.cleanupTestSession()}
             >
-              Discard session
+              Discard Test
             </Button>
           </ManualTestError>
         )}
