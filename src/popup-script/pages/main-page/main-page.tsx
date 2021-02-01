@@ -29,23 +29,26 @@ export const MainPage = mainPage(({ className }: Props) => {
   const { [host]: hostStorage } = localStorage;
 
   const hasAssociatedAgent = !isLoading && !isError && Boolean(agent);
+  const isWidgetVisible = hostStorage?.isWidgetVisible;
 
   return (
     <div className={className}>
       { hasAssociatedAgent ? (
         <div className="h-100">
-          <Header className="d-flex align-items-center px-6 gx-2">
+          <Header className="d-flex align-items-center px-4 gx-2">
             <Logo viewBox="0 0 16 16" width={24} height={16} />
-            <AgentName>{agent?.id}</AgentName>
-            <AgentStatus status={status} />
+            <div title={agent?.id} className="text-ellipsis fs-14 lh-20 bold">{agent?.id}</div>
+            <AgentStatus className="ml-auto" status={status} />
           </Header>
           <div className="d-flex flex-column justify-content-center align-items-center h-100 gy-6">
             <span className="text-center">
               {status === Status.ONLINE && (
                 <span>
-                  You’re all set now. Open the widget
+                  You’re all set now.
+                  {isWidgetVisible ? ' You can use the widget' : ' Click "Open the widget"'}
                   <br />
-                  to start manual testing.
+                  {isWidgetVisible ? 'for ' : 'to start '}
+                  manual testing.
                 </span>
               )}
               {status === Status.NOT_REGISTERED && (
@@ -66,7 +69,7 @@ export const MainPage = mainPage(({ className }: Props) => {
                 </span>
               )}
             </span>
-            { !hostStorage?.isWidgetVisible ? (
+            { !isWidgetVisible ? (
               <Button
                 className="mx-auto"
                 type="primary"
@@ -99,7 +102,6 @@ export const MainPage = mainPage(({ className }: Props) => {
 });
 
 const Header = mainPage.header('div');
-const AgentName = mainPage.agentName(OverflowText);
 
 function injectContentScript(activeTab: chrome.tabs.Tab | undefined) {
   if (!activeTab?.id) return;

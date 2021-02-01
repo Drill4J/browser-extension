@@ -12,10 +12,4 @@
     border-bottom: 1px solid map-get($monochrome, medium-tint);
     color: map-get($monochrome, default);
   }
-
-  &__agent-name {
-    font-size: 14px;
-    font-family: $semibold-font;
-    line-height: 20px;
-  }
 }
