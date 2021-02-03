@@ -63,7 +63,7 @@ export const App = optionsPage(({ className }: Props) => {
           render={({
             handleSubmit, submitting, pristine, invalid,
           }) => (
-            <div className="d-flex flex-column gy-10">
+            <div className="d-flex flex-column gy-4">
               <FormGroup label="Admin API URL">
                 <Field
                   name="backendAddress"
