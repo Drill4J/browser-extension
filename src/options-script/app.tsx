@@ -23,12 +23,14 @@ interface Domain {
 
 const optionsPage = BEM(styles);
 
-export const App = optionsPage(({ className }: Props) => (
-  <div className={className}>
-    <Content>
-      <Header>Drill4J Extension Settings</Header>
-      <Info>
-        <Version>
+const validateDomain = composeValidators(
+  required('backendAddress', 'Admin URL'),
+  correctPattern(
+    'backendAddress',
+    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)*:\d{4}/gm,
+    'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port”',
+  ),
+);
 
 export const App = optionsPage(({ className }: Props) => {
   const [domain, setDomain] = React.useState<Domain | null>(null);
