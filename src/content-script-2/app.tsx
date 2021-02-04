@@ -46,7 +46,9 @@ export const App = withAgentContext(app(({ host }: Props) => {
 
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;
   const isAgentOffline = backendConnectionStatus === BackendConnectionStatus.AVAILABLE
-    && agent && agent.status !== AgentStatus.ONLINE;
+    && agent && agent.status === AgentStatus.OFFLINE;
+  const isAgentNotRegistered = backendConnectionStatus === BackendConnectionStatus.AVAILABLE
+    && agent && agent.status === AgentStatus.NOT_REGISTERED;
 
   return (
     <MemoryRouter>
@@ -60,19 +62,21 @@ export const App = withAgentContext(app(({ host }: Props) => {
             <span>Please wait. We’re trying to reconnect.</span>
           </div>
         )}
-        { isAgentOffline && (
+        {isAgentOffline && (
           <div className="d-flex align-items-center gx-1">
             <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
-            <div className="bold">
-              Agent is
-              {' '}
-              {agent.status === 'OFFLINE' ? 'offline' : 'not registered'}
-              .
-            </div>
-            <span>To start testing your agent has to be registered and online.</span>
+            <span className="bold">Agent is offline.</span>
+            <span>To start testing agent has to be online.</span>
           </div>
         )}
-        {!isConnectionLost && !isAgentOffline && <Pages />}
+        {isAgentNotRegistered && (
+          <div className="d-flex align-items-center gx-1">
+            <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
+            <span className="bold">Agent is not registered.</span>
+            <span>Please complete registration in the Admin Panel</span>
+          </div>
+        )}
+        {!isConnectionLost && !isAgentOffline && !isAgentNotRegistered && <Pages />}
         <Actions className="d-flex align-items-center gx-4">
           <div title={`Fix to the ${state.corner === 'bottom' ? 'top' : 'bottom'}`}>
             <ExtensionPositionIcon
@@ -83,7 +87,6 @@ export const App = withAgentContext(app(({ host }: Props) => {
               width={24}
             />
           </div>
-
           <div title="Hide">
             <HideWidgetIcon
               onClick={() => dispatch(setIsWidgetVisible(false))}
