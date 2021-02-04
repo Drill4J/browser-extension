@@ -19,6 +19,12 @@ export const ManualTestError = manualTestError(({
   const [copiedToClipboard, setCopiedToClipboard] = React.useState(false);
   const { isVisible, ref } = useHover();
 
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setCopiedToClipboard(false), 5000);
+    copiedToClipboard && timeout;
+    return () => clearTimeout(timeout);
+  }, [copiedToClipboard]);
+
   return (
     <div className="d-flex align-items-center gx-6 red-default">
       <div className="d-flex align-items-center gx-2">
@@ -34,11 +40,8 @@ export const ManualTestError = manualTestError(({
         <div ref={ref}>
           <Icon
             onClick={async () => {
-              if (!copiedToClipboard) {
-                copyToClipboard(messageToCopy);
-                setCopiedToClipboard(true);
-                setTimeout(() => setCopiedToClipboard(false), 5000);
-              }
+              copyToClipboard(messageToCopy);
+              setCopiedToClipboard(true);
             }}
           >
             {copiedToClipboard ? <Icons.Check width={16} /> : <Icons.Copy width={16} height={16} />}
