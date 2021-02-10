@@ -35,6 +35,11 @@ async function start(sender: chrome.runtime.MessageSender) {
     detailed: true,
   });
 
+  // FIXME tabId undefined checks
+  scriptSources[sender?.tab?.id as any] = {
+    hashToUrl: {},
+    urlToHash: {},
+  };
   chrome.debugger.onEvent.addListener(async (source, method, params) => {
     if (method !== 'Debugger.scriptParsed') {
       return;
@@ -51,12 +56,9 @@ async function start(sender: chrome.runtime.MessageSender) {
     // TODO check source hashes agains expected build hashes
     //      what about filenames?
 
-    // FIXME tabId undefined checks
-    if (!scriptSources[sender?.tab?.id as any]) {
-      scriptSources[sender?.tab?.id as any] = {};
-    }
     // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
-    scriptSources[sender?.tab?.id as any][hash] = url;
+    scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
+    scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
   });
 
   await devToolsApi.sendCommand(target, 'Debugger.enable', {});
