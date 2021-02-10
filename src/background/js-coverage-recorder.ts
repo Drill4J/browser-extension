@@ -35,6 +35,11 @@ async function start(sender: chrome.runtime.MessageSender) {
     detailed: true,
   });
 
+  // FIXME tabId undefined checks
+  scriptSources[sender?.tab?.id as any] = {
+    hashToUrl: {},
+    urlToHash: {},
+  };
   chrome.debugger.onEvent.addListener(async (source, method, params) => {
     if (method !== 'Debugger.scriptParsed') {
       return;
@@ -46,17 +51,23 @@ async function start(sender: chrome.runtime.MessageSender) {
       return;
     }
 
-    const rawScriptSource: any = await devToolsApi.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
+    let rawScriptSource: any;
+    try {
+      rawScriptSource = await devToolsApi.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
+    } catch (e) {
+      console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
+        'background-color: yellow;',
+        'background-color: unset;');
+      return;
+    }
+
     const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
     // TODO check source hashes agains expected build hashes
     //      what about filenames?
 
-    // FIXME tabId undefined checks
-    if (!scriptSources[sender?.tab?.id as any]) {
-      scriptSources[sender?.tab?.id as any] = {};
-    }
     // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
-    scriptSources[sender?.tab?.id as any][hash] = url;
+    scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
+    scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
   });
 
   await devToolsApi.sendCommand(target, 'Debugger.enable', {});

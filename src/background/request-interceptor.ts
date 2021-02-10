@@ -4,8 +4,8 @@ import { SessionStatus } from '../common/enums';
 import { SessionData } from './types';
 
 export function setupRequestInterceptor(sessionsStorage: Record<string, SessionData>) {
-  const interceptor = ({ requestHeaders = [], initiator = '' }: WebRequest.OnBeforeSendHeadersDetailsType & { initiator?: string}) => {
-    const host = transformHost(initiator);
+  const interceptor = ({ requestHeaders = [], url }: WebRequest.OnBeforeSendHeadersDetailsType) => {
+    const host = transformHost(url);
     if (!host) return { requestHeaders };
 
     const session = sessionsStorage[host];
@@ -18,7 +18,7 @@ export function setupRequestInterceptor(sessionsStorage: Record<string, SessionD
   browser.webRequest.onBeforeSendHeaders.addListener(
     interceptor,
     {
-      urls: ['*://*/*'],
+      urls: ['<all_urls>'],
     },
     ['blocking', 'requestHeaders'],
   );

@@ -16,7 +16,7 @@ export interface Routes {
 
 export interface AgentAdapter {
   startTest: (testName: string, sender?: chrome.runtime.MessageSender) => Promise<string>;
-  stopTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
+  stopTest: (sessionId: string, testName?: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
   cancelTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
 }
 
@@ -32,7 +32,7 @@ export type SessionData = {
 export type ScopeData = Record<string, any>; // TODO type it properly!
 
 export type SubNotifyFunction = (data: unknown) => void;
-export type AdapterType = 'agents' | 'service-groups';
+export type AdapterType = 'agents' | 'groups';
 
 export interface AdapterInfo {
   adapterType: AdapterType;

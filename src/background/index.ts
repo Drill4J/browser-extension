@@ -60,7 +60,9 @@ async function init() {
 
   // eslint-disable-next-line no-param-reassign
   interceptedDataStore.agents = {};
-  const agentOrGroupHandler = async (id: string, host: string) => {
+  const agentOrGroupHandler = async (id: string, url: string) => {
+    const host = transformHost(url);
+
     // eslint-disable-next-line no-param-reassign
     interceptedDataStore.agents[id] = host;
 
@@ -244,7 +246,7 @@ async function init() {
     if (!adapter) throw new Error('Backend connection unavailable');
     // TODO !sessionsData[host] check?
     try {
-      await adapter.stopTest(sessionsData[host].sessionId, sender);
+      await adapter.stopTest(sessionsData[host].sessionId, sessionsData[host].testName, sender);
       sessionsData[host] = {
         ...sessionsData[host],
         status: SessionStatus.STOPPED,
@@ -371,7 +373,7 @@ function setupResponseInterceptors(interceptedDataStore: Record<string, any>) {
 
 function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>): AdapterInfo[] {
   return agentsList
-    .filter((x: any) => !x.serviceGroup)
+    .filter((x: any) => !x.group)
     .map((x: any) => ({
       adapterType: 'agents',
       id: x.id,
@@ -389,14 +391,14 @@ function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, strin
 
 function sgAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>): AdapterInfo[] {
   const sgAdaptersInfoMap: Record<string, AdapterInfo> = agentsList
-    .filter((x: any) => x.serviceGroup)
+    .filter((x: any) => x.group)
     .reduce((a: any, x: any) => {
-      if (!a[x.serviceGroup]) {
+      if (!a[x.group]) {
         // eslint-disable-next-line no-param-reassign
-        a[x.serviceGroup] = {
-          adapterType: 'service-groups',
-          id: x.serviceGroup,
-          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.serviceGroup]),
+        a[x.group] = {
+          adapterType: 'groups',
+          id: x.group,
+          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.group]),
           // TODO think what to do with the SG status
           status: x.status,
           buildVersion: x.buildVersion,
@@ -406,11 +408,11 @@ function sgAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>)
 
       if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT) {
         // eslint-disable-next-line no-param-reassign
-        a[x.serviceGroup].mustRecordJsCoverage = true;
+        a[x.group].mustRecordJsCoverage = true;
       }
-      if (!a[x.serviceGroup].host) {
+      if (!a[x.group].host) {
         // eslint-disable-next-line no-param-reassign
-        a[x.serviceGroup].host = transformHost(x.systemSettings?.targetHost);
+        a[x.group].host = transformHost(x.systemSettings?.targetHost);
       }
       return a;
     }, {});
@@ -457,10 +459,10 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       const sessionId = await backendApi.startTest(testName);
       return sessionId;
     },
-    stopTest: async (sessionId, sender) => {
+    stopTest: async (sessionId, testName, sender) => {
       if (!sender) throw new Error('STOP_TEST_NO_SENDER');
       const data = await jsCoverageRecorder.stop(sender);
-      await backendApi.addSessionData(sessionId, data);
+      await backendApi.addSessionData(sessionId, { ...data, testName });
       await backendApi.stopTest(sessionId);
     },
     cancelTest: async (sessionId, sender) => {
