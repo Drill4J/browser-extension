@@ -51,7 +51,16 @@ async function start(sender: chrome.runtime.MessageSender) {
       return;
     }
 
-    const rawScriptSource: any = await devToolsApi.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
+    let rawScriptSource: any;
+    try {
+      rawScriptSource = await devToolsApi.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
+    } catch (e) {
+      console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
+        'background-color: yellow;',
+        'background-color: unset;');
+      return;
+    }
+
     const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
     // TODO check source hashes agains expected build hashes
     //      what about filenames?
