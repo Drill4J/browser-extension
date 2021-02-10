@@ -16,7 +16,7 @@ export interface Routes {
 
 export interface AgentAdapter {
   startTest: (testName: string, sender?: chrome.runtime.MessageSender) => Promise<string>;
-  stopTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
+  stopTest: (sessionId: string, testName?: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
   cancelTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
 }
 

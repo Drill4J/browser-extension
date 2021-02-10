@@ -246,7 +246,7 @@ async function init() {
     if (!adapter) throw new Error('Backend connection unavailable');
     // TODO !sessionsData[host] check?
     try {
-      await adapter.stopTest(sessionsData[host].sessionId, sender);
+      await adapter.stopTest(sessionsData[host].sessionId, sessionsData[host].testName, sender);
       sessionsData[host] = {
         ...sessionsData[host],
         status: SessionStatus.STOPPED,
@@ -459,10 +459,10 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       const sessionId = await backendApi.startTest(testName);
       return sessionId;
     },
-    stopTest: async (sessionId, sender) => {
+    stopTest: async (sessionId, testName, sender) => {
       if (!sender) throw new Error('STOP_TEST_NO_SENDER');
       const data = await jsCoverageRecorder.stop(sender);
-      await backendApi.addSessionData(sessionId, data);
+      await backendApi.addSessionData(sessionId, { ...data, testName });
       await backendApi.stopTest(sessionId);
     },
     cancelTest: async (sessionId, sender) => {
