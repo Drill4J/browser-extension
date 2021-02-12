@@ -44,11 +44,10 @@ export const MainPage = mainPage(({ className }: Props) => {
             <span className="text-center">
               {status === Status.ONLINE && (
                 <span>
-                  You’re all set now.
-                  {isWidgetVisible ? ' You can use the widget' : ' Click "Open the widget"'}
-                  <br />
-                  {isWidgetVisible ? 'for ' : 'to start '}
-                  manual testing.
+                  You&#39;re all set now.
+                  { isWidgetVisible
+                    ? 'You can use the widget \n for manual testing'
+                    : 'Click "Open the widget" \n to start manual testing' }
                 </span>
               )}
               {status === Status.NOT_REGISTERED && (
