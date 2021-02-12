@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { Icons, Tooltip } from '@drill4j/ui-kit';
+import { Icons } from '@drill4j/ui-kit';
 import { MemoryRouter } from 'react-router-dom';
 import { BEM } from '@redneckz/react-bem-helper';
 
 import { browser } from 'webextension-polyfill-ts';
+import { Logo } from './logo';
 import { AgentContext, withAgentContext } from './context';
-import { useBackendConnectionStatus } from '../hooks/use-backend-connection-status';
+import { useBackendConnectionStatus } from '../hooks';
 import {
   reducer, setIsWidgetVisible, setCorner, setInitial,
 } from './reducer';
@@ -52,8 +53,8 @@ export const App = withAgentContext(app(({ host }: Props) => {
 
   return (
     <MemoryRouter>
-      <div className="d-flex justify-content-between w-100 px-4 monochrome-black fs-14">
-        <Logo>Logo</Logo>
+      <div className="d-flex justify-content-between align-items-center w-100 px-4 monochrome-black fs-14">
+        <Logo viewBox="0 0 24 24" width={24} height={24} />
         { isConnectionLost && (
           <div className="d-flex align-items-center gx-1">
             <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
@@ -100,5 +101,4 @@ export const App = withAgentContext(app(({ host }: Props) => {
   );
 }));
 
-const Logo = app.logo('div');
 const Actions = app.actions('div');
