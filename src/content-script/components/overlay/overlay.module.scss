@@ -1,0 +1,14 @@
+@import '../../../common/style-guide';
+
+.overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: map-get($monochrome, light-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}

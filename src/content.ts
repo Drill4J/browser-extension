@@ -3,7 +3,7 @@ import * as ReactDom from 'react-dom';
 import { browser } from 'webextension-polyfill-ts';
 import { transformHost } from './common/util/transform-host';
 import * as bgInterop from './common/background-interop';
-import { App } from './content-script-2';
+import { App } from './content-script';
 import './content.scss';
 
 init();
