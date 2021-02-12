@@ -106,7 +106,7 @@ const Header = mainPage.header('div');
 function injectContentScript(activeTab: chrome.tabs.Tab | undefined) {
   if (!activeTab?.id) return;
   const activeTabId = activeTab?.id;
-  chrome.tabs.insertCSS(activeTabId, { file: 'content.css' }, () => {
+  chrome.tabs.insertCSS(activeTabId, { file: 'iframe.css' }, () => {
     chrome.tabs.executeScript(activeTabId, { file: 'content.bundle.js' }, () => {
     });
   });

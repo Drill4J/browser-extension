@@ -1,36 +1,8 @@
-@import "common/style-guide/colors";
-
 #drill-widget-root {
   font-family: 'OpenSans', sans-serif;
   position: absolute;
   left: 0;
   top: 0;
   right: 0;
-  height: 42px;
-}
-
-.drill-widget-iframe {
-  z-index: 2147483647;
-  left: 0;
-  top: 0;
-  position: fixed;
-  border-style: none;
-  width: 100%;
-  height: 42px;
-  background-color: map-get($monochrome, light-tint);
-
-  &-position {
-    &__top {
-      top: 0;
-      right: unset;
-      bottom: unset;
-      left: 0;
-    }
-    &__bottom {
-      top: unset;
-      right: unset;
-      bottom: 0;
-      left: 0;
-    }
-  }
+  height: 36px;
 }
