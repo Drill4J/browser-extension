@@ -52,7 +52,6 @@ export const App = withAgentContext(app(({ host }: Props) => {
 
   return (
     <MemoryRouter>
-      <BorderTop />
       <div className="d-flex justify-content-between w-100 px-4 monochrome-black fs-14">
         <Logo>Logo</Logo>
         { isConnectionLost && (
@@ -102,5 +101,4 @@ export const App = withAgentContext(app(({ host }: Props) => {
 }));
 
 const Logo = app.logo('div');
-const BorderTop = app.borderTop('div');
 const Actions = app.actions('div');
