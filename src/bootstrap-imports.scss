@@ -1,5 +1,6 @@
 @import '../node_modules/bootstrap/scss/functions';
 @import '../node_modules/bootstrap/scss/variables';
+@import './common/style-guide';
 
 $spacer: 4px;
 $spacers: (
@@ -14,9 +15,16 @@ $spacers: (
   8: $spacer * 8,
   9: $spacer * 9,
   10: $spacer * 10,
+  11: $spacer * 11,
+  12: $spacer * 12,
+  13: $spacer * 13,
+  14: $spacer * 14,
+  15: $spacer * 15,
+  16: $spacer * 16,
 );
 
 $font-sizes: (12, 14, 16, 18, 20, 22, 24, 26, 28, 30);
+$border-color: map-get($monochrome, medium-tint);
 
 $fonts: (
   light: $light-font,
@@ -37,11 +45,10 @@ $fonts: (
 @import '../node_modules/bootstrap/scss/utilities/sizing';
 @import '../node_modules/bootstrap/scss/utilities/spacing';
 @import '../node_modules/bootstrap/scss/utilities/text';
+@import '../node_modules/bootstrap/scss/utilities/borders';
 @import '../node_modules/bootstrap/scss/utilities/position';
 
 @import '../node_modules/bootstrap/scss/bootstrap-grid';
-
-@import './common/style-guide';
 
 .container-fluid {
   padding: 0;
