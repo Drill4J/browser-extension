@@ -15,7 +15,7 @@ async function init() {
   const host = transformHost(window.location.href);
 
   if (hostInfo && await isWidgetVisible(host)) {
-    widget = injectIframe(host);
+    widget = await injectIframe(host);
   }
 
   // TODO remove listener on widget close
@@ -37,10 +37,17 @@ async function isWidgetVisible(host: string) {
   return localStorage && localStorage[host] && localStorage[host].isWidgetVisible;
 }
 
-function injectIframe(host: string): HTMLIFrameElement | never {
+async function injectIframe(host: string): Promise<HTMLIFrameElement | never> {
   const iframe = document.createElement('iframe');
+  iframe.classList.add('drill-widget-iframe');
+  await positionIframe(host, iframe);
+
+  // HACK to prevent widget layout "flickering"
+  // it avoids displaying widget before it's fully is rendered
+  iframe.classList.add('drill-widget-iframe--hidden');
+  setTimeout(() => iframe.classList.remove('drill-widget-iframe--hidden'), 200);
+
   document.body.appendChild(iframe);
-  positionIframe(host, iframe);
   if (!iframe.contentDocument) throw new Error('failed to create iframe or it got deleted');
 
   const root = iframe.contentDocument.createElement('div');
@@ -50,6 +57,7 @@ function injectIframe(host: string): HTMLIFrameElement | never {
   injectCss(iframe.contentDocument, 'content.css');
   injectCss(iframe.contentDocument, 'uikit.css');
   injectFonts(iframe.contentDocument);
+
   ReactDom.render(React.createElement(App, { host }), root);
   return iframe;
 }
@@ -58,14 +66,13 @@ function injectIframe(host: string): HTMLIFrameElement | never {
 async function positionIframe(host: string, iframe: HTMLIFrameElement) {
   const localStorage = await browser.storage.local.get();
   const corner = localStorage[host].corner || 'bottom';
-  const className = `drill-widget-iframe drill-widget-iframe-position__${corner} `;
+  iframe.classList.remove('drill-widget-iframe-position__bottom');
+  iframe.classList.remove('drill-widget-iframe-position__top');
+
+  iframe.classList.add(`drill-widget-iframe-position__${corner}`);
   if (!localStorage[host].corner) {
     await browser.storage.local.set({ [host]: { ...localStorage[host], corner: 'bottom' } });
   }
-  if (!iframe) return;
-
-  // eslint-disable-next-line no-param-reassign
-  iframe.className = className;
 }
 
 function removeIframe(iframe: HTMLIFrameElement) {
