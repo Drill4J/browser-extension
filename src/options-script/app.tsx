@@ -28,20 +28,27 @@ const validateDomain = composeValidators(
   correctPattern(
     'backendAddress',
     // eslint-disable-next-line max-len
-    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)*:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9][0-9]|6[0-4][0-9][0-9][0-9][0-9]|[1-5](\d){4}|[1-9](\d){0,3})$/,
-    'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port"',
+    /^(http:\/\/)[\w.-]+(?:\.[\w.-]+)*:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9][0-9]|6[0-4][0-9][0-9][0-9][0-9]|[1-5](\d){4}|[1-9](\d){0,3})$/,
+    'Admin API URL is not correct. Please enter a valid URL matching the "http://host:port"',
   ),
 );
 
 export const App = optionsPage(({ className }: Props) => {
   const [domain, setDomain] = React.useState<Domain | null>(null);
+  const [needRestart, setNeedRestart] = React.useState(true);
   const [isSaved, setIsSaved] = React.useState(false);
+
   React.useEffect(() => {
     (async () => {
-      const data = await localStorageUtil.get('backendAddress') as Domain;
-      setDomain(new URL(data?.backendAddress).protocol === 'http:'
-        ? data
-        : { backendAddress: `http://${data?.backendAddress}` });
+      try {
+        const data = await localStorageUtil.get('backendAddress') as Domain;
+        const url = new URL(data?.backendAddress);
+        setDomain(url.protocol === 'http:'
+          ? data
+          : { backendAddress: `http://${data?.backendAddress}` });
+      } catch {
+        setNeedRestart(false);
+      }
     })();
   }, []);
 
@@ -62,34 +69,40 @@ export const App = optionsPage(({ className }: Props) => {
           }}
           validate={validateDomain as any}
           render={({
-            handleSubmit, submitting, pristine, invalid,
-          }) => (
-            <div className="d-flex flex-column gy-4">
-              <FormGroup label="Admin API URL">
-                <Field
-                  name="backendAddress"
-                  component={Fields.Input}
-                  placeholder="protocol://hostname:port"
-                />
-              </FormGroup>
-              <div className="d-flex gx-4">
-                <SaveButton
-                  className="d-flex justify-content-center"
-                  type="primary"
-                  onClick={handleSubmit}
-                  disabled={submitting || pristine || invalid}
-                >
-                  {isSaved ? <Icons.Check height={10} width={14} viewBox="0 0 14 10" /> : 'Save'}
-                </SaveButton>
-                {isSaved && (
-                  <div className="lh-16">
-                    <div className="monochrome-default">Saved.</div>
-                    <div className="orange-default">Restart browser to apply changes!</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+            handleSubmit, submitting, pristine, invalid, values: { backendAddress = '' } = {},
+          }) => {
+            React.useEffect(() => {
+              !pristine && setIsSaved(false);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            }, [backendAddress]);
+            return (
+              <form className="d-flex flex-column gy-4">
+                <FormGroup label="Admin API URL">
+                  <Field
+                    name="backendAddress"
+                    component={Fields.Input}
+                    placeholder="protocol://hostname:port"
+                  />
+                </FormGroup>
+                <div className="d-flex align-items-center gx-4">
+                  <SaveButton
+                    className="d-flex justify-content-center"
+                    type="primary"
+                    onClick={handleSubmit}
+                    disabled={submitting || pristine || invalid}
+                  >
+                    {isSaved ? <Icons.Check height={10} width={14} viewBox="0 0 14 10" /> : 'Save'}
+                  </SaveButton>
+                  {isSaved && (
+                    <div className="lh-16">
+                      <div className="monochrome-default">Saved.</div>
+                      {needRestart && <div className="orange-default">Restart browser to apply changes!</div>}
+                    </div>
+                  )}
+                </div>
+              </form>
+            );
+          }}
         />
       </Content>
     </div>
