@@ -40,21 +40,18 @@ export const MainPage = mainPage(({ className }: Props) => {
             <div title={agent?.id} className="text-ellipsis fs-14 lh-20 bold">{agent?.id}</div>
             <AgentStatus className="ml-auto" status={status} />
           </Header>
-          <div className="d-flex flex-column justify-content-center align-items-center h-100 gy-6">
+          <div className="d-flex flex-column justify-content-center align-items-center h-100 px-4 gy-6">
             <span className="text-center">
               {status === Status.ONLINE && (
                 <span>
                   You&#39;re all set now.
                   { isWidgetVisible
                     ? 'You can use the widget \n for manual testing'
-                    : 'Click "Open the widget" \n to start manual testing' }
+                    : 'Click "Open Widget" \n to start manual testing' }
                 </span>
               )}
               {status === Status.NOT_REGISTERED && (
-                <span>
-                  Agent is not registered. Please complete registration in the&nbsp;
-                  <a href="#admin-panel" target="_blank" rel="noopener noreferrer">Admin Panel</a>
-                </span>
+                <span>Agent is not registered. Please complete registration in the Admin Panel</span>
               )}
               {(status === Status.OFFLINE || status === Status.BUSY) && (
                 <span>
