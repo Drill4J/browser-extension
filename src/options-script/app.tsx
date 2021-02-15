@@ -28,7 +28,7 @@ const validateDomain = composeValidators(
   correctPattern(
     'backendAddress',
     // eslint-disable-next-line max-len
-    /^(http:\/\/)[\w.-]+(?:\.[\w.-]+)*:(6553[0-5]|655[0-2][0-9]|65[0-4][0-9][0-9]|6[0-4][0-9][0-9][0-9][0-9]|[1-5](\d){4}|[1-9](\d){0,3})$/,
+    /^(?:https?:\/\/)?(?:[\w-]\.?)+(?::6553[0-5]|:655[0-2]\d|:65[0-4]\d{2}|:6[0-4]\d{3}|:[1-5](\d){4}|:\d{1,4})?$/,
     'Admin API URL is not correct. Please enter a valid URL matching the "http://host:port"',
   ),
 );
