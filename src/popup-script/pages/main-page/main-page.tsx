@@ -44,10 +44,10 @@ export const MainPage = mainPage(({ className }: Props) => {
             <span className="text-center">
               {status === Status.ONLINE && (
                 <span>
-                  You&#39;re all set now.
+                  You&#39;re all set now.&nbsp;
                   { isWidgetVisible
-                    ? 'You can use the widget \n for manual testing'
-                    : 'Click "Open Widget" \n to start manual testing' }
+                    ? 'You can use the widget \n for manual testing.'
+                    : 'Click "Open Widget" \n to start manual testing.' }
                 </span>
               )}
               {status === Status.NOT_REGISTERED && (
@@ -57,11 +57,11 @@ export const MainPage = mainPage(({ className }: Props) => {
                 <span>
                   Agent is currently&nbsp;
                   {status.toLowerCase()}
-                  . To open
+                  .
                   <br />
-                  the widget and start manual testing, agent
+                  In order to perform testing the agent has
                   <br />
-                  has to be online.
+                  to be online.
                 </span>
               )}
             </span>
@@ -87,7 +87,7 @@ export const MainPage = mainPage(({ className }: Props) => {
                 size="large"
                 onClick={() => browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: false } })}
               >
-                Close widget
+                Hide widget
               </Button>
             )}
           </div>

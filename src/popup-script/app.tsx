@@ -17,7 +17,7 @@ export const App = () => {
         : (
           <div className="d-flex flex-column h-100 justify-content-center px-4 gy-8">
             <div className="regular monochrome-default fs-14 lh-20">
-              No conection with backend. Try to refresh the page or connect using your admin
+              No connection with backend. Try to refresh the page or connect using your admin
               <br />
               address.
             </div>

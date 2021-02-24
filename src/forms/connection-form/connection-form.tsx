@@ -45,7 +45,7 @@ export const ConnectionForm = () => {
               validate={(value = '') => (value
                 // eslint-disable-next-line no-useless-escape
                 .replace(/^(ht|f)tp(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$/, '')
-                ? 'Must be a URL'
+                ? 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port"'
                 : undefined)}
             />
           </FormGroup>
@@ -66,8 +66,7 @@ export const ConnectionForm = () => {
               <>
                 <Spinner />
                 <span>
-                  {BackendConnectionStatus.RECONNECTING}
-                  ...
+                  Reconnecting...
                 </span>
               </>
             )}
