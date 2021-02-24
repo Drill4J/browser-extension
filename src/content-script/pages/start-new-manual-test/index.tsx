@@ -13,7 +13,7 @@ export const StartNewManualTest = () => {
   const agent = React.useContext(AgentContext);
 
   return (
-    <div className="d-flex align-items-center gx-4 position-relative">
+    <div className="d-flex align-items-center gx-4">
       {(window as any).reloadRequired
         ? (
           <>
