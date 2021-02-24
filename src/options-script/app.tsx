@@ -29,7 +29,7 @@ const validateDomain = composeValidators(
     'backendAddress',
     // eslint-disable-next-line max-len
     /^(?:https?:\/\/)?(?:[\w-]\.?)+(?::6553[0-5]|:655[0-2]\d|:65[0-4]\d{2}|:6[0-4]\d{3}|:[1-5](\d){4}|:\d{1,4})?$/,
-    'Admin API URL is not correct. Please enter a valid URL matching the "http://host:port"',
+    'Admin API URL is not correct. Please enter a valid URL matching the "http://host(s):port"',
   ),
 );
 
@@ -81,7 +81,7 @@ export const App = optionsPage(({ className }: Props) => {
                   <Field
                     name="backendAddress"
                     component={Fields.Input}
-                    placeholder="protocol://hostname:port"
+                    placeholder="http(s)://hostname:port"
                   />
                 </FormGroup>
                 <div className="d-flex align-items-center gx-4">
