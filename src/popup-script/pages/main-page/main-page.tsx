@@ -57,11 +57,7 @@ export const MainPage = mainPage(({ className }: Props) => {
                 <span>
                   Agent is currently&nbsp;
                   {status.toLowerCase()}
-                  .
-                  <br />
-                  In order to perform testing the agent has
-                  <br />
-                  to be online.
+                  . In order to perform testing the agent has to be online.
                 </span>
               )}
             </span>
