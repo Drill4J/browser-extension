@@ -68,11 +68,39 @@ export function toError(fieldName: string, error: string) {
   ), {});
 }
 
-export function correctPattern(fieldName: string, pattern: RegExp, errorMessage: string): FormValidator {
+function isValidURL(value: string) {
+  try {
+    const url = new URL(value);
+    if (!url.port && value !== url.origin) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isValidIPAdress(value: string): boolean {
+  // eslint-disable-next-line max-len
+  if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?(?::6553[0-5]|:655[0-2]\d|:65[0-4]\d{2}|:6[0-4]\d{3}|:[1-5](\d){4}|:\d{1,4})?)$/i.test(value)) {
+    return true;
+  }
+  return false;
+}
+
+export function validateBackedAdress(fieldName: string): FormValidator {
   return (valitationItem) => {
     const value = get<string>(valitationItem, fieldName) || '';
-    return value.replace(pattern, '')
-      ? toError(fieldName, errorMessage)
-      : undefined;
+
+    if (['localhost'].includes(value)) return undefined;
+
+    if (/^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/.test(value)) return undefined;
+
+    if (/(http(s?)):\/\//i.test(value)) {
+      return isValidURL(value)
+        ? undefined
+        : toError(fieldName, 'Enter a valid URL address');
+    }
+    return isValidIPAdress(value) ? undefined : toError(fieldName, 'Enter a valid IP address');
   };
 }

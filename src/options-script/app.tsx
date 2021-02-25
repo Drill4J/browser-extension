@@ -5,7 +5,7 @@ import { Form, Field } from 'react-final-form';
 
 import packageJson from '../../package.json';
 import {
-  Fields, composeValidators, required, correctPattern,
+  Fields, composeValidators, required, validateBackedAdress,
 } from '../forms';
 import * as localStorageUtil from '../common/util/local-storage';
 
@@ -25,12 +25,7 @@ const optionsPage = BEM(styles);
 
 const validateDomain = composeValidators(
   required('backendAddress', 'Admin URL'),
-  correctPattern(
-    'backendAddress',
-    // eslint-disable-next-line max-len
-    /^(?:https?:\/\/)?(?:[\w-]\.?)+(?::6553[0-5]|:655[0-2]\d|:65[0-4]\d{2}|:6[0-4]\d{3}|:[1-5](\d){4}|:\d{1,4})?$/,
-    'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format',
-  ),
+  validateBackedAdress('backendAddress'),
 );
 
 export const App = optionsPage(({ className }: Props) => {
