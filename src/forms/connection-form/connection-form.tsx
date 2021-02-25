@@ -40,12 +40,12 @@ export const ConnectionForm = () => {
             <Field
               name="backendAddress"
               component={Fields.Input}
-              placeholder="protocol://hostname:port"
+              placeholder="http(s)://host(:port)"
               disabled={submitting || isLoading || isReconnecting}
               validate={(value = '') => (value
                 // eslint-disable-next-line no-useless-escape
                 .replace(/^(ht|f)tp(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$/, '')
-                ? 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port"'
+                ? 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format'
                 : undefined)}
             />
           </FormGroup>
