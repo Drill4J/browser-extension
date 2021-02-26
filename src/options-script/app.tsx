@@ -5,7 +5,7 @@ import { Form, Field } from 'react-final-form';
 
 import packageJson from '../../package.json';
 import {
-  Fields, composeValidators, required, validateBackedAdress,
+  Fields, composeValidators, required, validateBackendAdress,
 } from '../forms';
 import * as localStorageUtil from '../common/util/local-storage';
 
@@ -25,7 +25,7 @@ const optionsPage = BEM(styles);
 
 const validateDomain = composeValidators(
   required('backendAddress', 'Admin URL'),
-  validateBackedAdress('backendAddress'),
+  validateBackendAdress('backendAddress'),
 );
 
 export const App = optionsPage(({ className }: Props) => {

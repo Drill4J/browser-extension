@@ -77,7 +77,7 @@ function isValidURL(value: string) {
   }
 }
 
-export function validateBackedAdress(fieldName: string): FormValidator {
+export function validateBackendAdress(fieldName: string): FormValidator {
   return (valitationItem) => {
     const value = get<string>(valitationItem, fieldName) || '';
 
