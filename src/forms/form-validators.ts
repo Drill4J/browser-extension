@@ -71,6 +71,10 @@ export function toError(fieldName: string, error: string) {
 function isValidURL(value: string) {
   try {
     const url = new URL(value);
+    if (url.hostname !== 'localhost' && value === url.origin && !url.port) {
+      const dotSeparatedArray = value.split('.');
+      return dotSeparatedArray.length > 1 && dotSeparatedArray.every((str) => Boolean(str));
+    }
     return value === url.origin;
   } catch {
     return false;
@@ -80,7 +84,7 @@ function isValidURL(value: string) {
 export function validateBackendAdress(fieldName: string): FormValidator {
   return (valitationItem) => {
     const value = get<string>(valitationItem, fieldName) || '';
-
+    if (value === 'localhost' || value.slice(-3) === ':80' || value.slice(-8) === ':0008080') return undefined;
     if (isValidURL(value)) return undefined;
     return toError(fieldName, 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port"');
   };
