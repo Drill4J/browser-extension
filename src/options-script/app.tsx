@@ -74,7 +74,16 @@ export const App = optionsPage(({ className }: Props) => {
                     name="backendAddress"
                     component={Fields.Input}
                     placeholder="http(s)://host(:port)"
-                    format={(value) => (/(http(s?)):\/\//i.test(value) || pristine ? value : `http://${value}`)}
+                    format={(value: string) => {
+                      const hostWithHttpProtocol = () => {
+                        try {
+                          return `http://${new URL(value).host}`;
+                        } catch {
+                          return value;
+                        }
+                      };
+                      return (/(http(s?)):\/\//i.test(value) ? value : hostWithHttpProtocol());
+                    }}
                   />
                 </FormGroup>
                 <div className="d-flex align-items-center gx-4">
