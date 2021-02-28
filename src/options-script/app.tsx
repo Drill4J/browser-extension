@@ -62,6 +62,12 @@ export const App = optionsPage(({ className }: Props) => {
               !pristine && setIsSaved(false);
             // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [backendAddress]);
+
+            const prevValueRef = React.useRef('');
+            React.useEffect(() => {
+              prevValueRef.current = backendAddress;
+            });
+            const prevValue = prevValueRef.current;
             return (
               <form className="d-flex flex-column gy-4">
                 <FormGroup label="Admin API URL">
@@ -69,15 +75,19 @@ export const App = optionsPage(({ className }: Props) => {
                     name="backendAddress"
                     component={Fields.Input}
                     placeholder="http(s)://host(:port)"
-                    format={(value: string) => {
+                    parse={(value: string) => {
                       const hostWithHttpProtocol = () => {
                         try {
-                          return `http://${new URL(value).host}`;
+                          return `http://${new URL(value).host || value}`;
                         } catch {
-                          return value;
+                          if (prevValue?.length - value?.length === 2) return value;
+                          if (!prevValue && value && value?.length > 0) {
+                            return `http://${value}`;
+                          }
+                          return `http://${value}`;
                         }
                       };
-                      return (/(http(s?)):\/\//i.test(value) ? value : hostWithHttpProtocol());
+                      return /(http(s?)):\/\//i.test(value) ? value : hostWithHttpProtocol();
                     }}
                   />
                 </FormGroup>
