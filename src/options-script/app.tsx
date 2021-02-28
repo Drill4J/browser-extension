@@ -30,19 +30,14 @@ const validateDomain = composeValidators(
 
 export const App = optionsPage(({ className }: Props) => {
   const [domain, setDomain] = React.useState<Domain | null>(null);
-  const [needRestart, setNeedRestart] = React.useState(true);
   const [isSaved, setIsSaved] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
-      try {
-        const data = await localStorageUtil.get('backendAddress') as Domain;
-        setDomain(data);
-      } catch {
-        setNeedRestart(false);
-      }
+      const data = await localStorageUtil.get('backendAddress') as Domain;
+      setDomain(data);
     })();
-  }, []);
+  }, [isSaved]);
 
   return (
     <div className={`${className} d-flex justify-content-center`}>
@@ -95,12 +90,7 @@ export const App = optionsPage(({ className }: Props) => {
                   >
                     {isSaved ? <Icons.Check height={10} width={14} viewBox="0 0 14 10" /> : 'Save'}
                   </SaveButton>
-                  {isSaved && (
-                    <div className="lh-16">
-                      <div className="monochrome-default">Saved.</div>
-                      {needRestart && <div className="orange-default">Restart browser to apply changes!</div>}
-                    </div>
-                  )}
+                  {isSaved && <div className="lh-16 monochrome-default">Saved.</div>}
                 </div>
               </form>
             );
