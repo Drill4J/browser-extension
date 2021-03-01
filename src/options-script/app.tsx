@@ -100,7 +100,12 @@ export const App = optionsPage(({ className }: Props) => {
                   >
                     {isSaved ? <Icons.Check height={10} width={14} viewBox="0 0 14 10" /> : 'Save'}
                   </SaveButton>
-                  {isSaved && <div className="lh-16 monochrome-default">Saved.</div>}
+                  {isSaved && (
+                    <div className="lh-16">
+                      <div className="monochrome-default">Saved.</div>
+                      {prevValue && <div className="orange-default">Restart browser to apply changes!</div>}
+                    </div>
+                  )}
                 </div>
               </form>
             );
