@@ -4,6 +4,7 @@ import { FormGroup, Button, Icons } from '@drill4j/ui-kit';
 import { Form, Field } from 'react-final-form';
 
 import packageJson from '../../package.json';
+import { parseURL } from '../utils';
 import {
   Fields, composeValidators, required, validateBackendAdress,
 } from '../forms';
@@ -75,20 +76,7 @@ export const App = optionsPage(({ className }: Props) => {
                     name="backendAddress"
                     component={Fields.Input}
                     placeholder="http(s)://host(:port)"
-                    parse={(value: string) => {
-                      const hostWithHttpProtocol = () => {
-                        try {
-                          return `http://${new URL(value).host || value}`;
-                        } catch {
-                          if (prevValue?.length - value?.length === 2) return value;
-                          if (!prevValue && value && value?.length > 0) {
-                            return `http://${value}`;
-                          }
-                          return `http://${value}`;
-                        }
-                      };
-                      return /(http(s?)):\/\//i.test(value) ? value : hostWithHttpProtocol();
-                    }}
+                    parse={(value = '') => parseURL(value, prevValue)}
                   />
                 </FormGroup>
                 <div className="d-flex align-items-center gx-4">
