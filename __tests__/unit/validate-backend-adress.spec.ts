@@ -20,10 +20,9 @@ describe('validateBackendAdress', () => {
     expect(validator({ backendAddress: 'http://...' })).toEqual(error);
     expect(validator({ backendAddress: 'http://..' })).toEqual(error);
     expect(validator({ backendAddress: 'http://.' })).toEqual(error);
-    expect(validator({ backendAddress: 'http://.' })).toEqual(error);
   });
 
-  it('should return undefined if backendAddress is valid', () => {
+  it('should return no error if backendAddress is valid', () => {
     expect(validator({ backendAddress: 'http://foo.ru' })).toBeUndefined();
     expect(validator({ backendAddress: 'http://localhost' })).toBeUndefined();
     expect(validator({ backendAddress: 'http://www.localhost.ru' })).toBeUndefined();
