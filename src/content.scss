@@ -3,47 +3,8 @@
   position: absolute;
   left: 0;
   top: 0;
-}
-
-.drill-widget-iframe {
-  z-index: 2147483647;
-  left: 0;
-  top: 0;
-  position: fixed;
-  border-style: none;
-  height: 310px;
-  &-position {
-    &__top-left {
-      top: 0;
-      right: unset;
-      bottom: unset;
-      left: 0;
-    }
-    &__top-right {
-      top: 0;
-      right: 0;
-      bottom: unset;
-      left: unset;
-    }
-    &__bottom-left {
-      top: unset;
-      right: unset;
-      bottom: 0;
-      left: 0;
-    }
-    &__bottom-right {
-      top: unset;
-      right: 0;
-      bottom: 0;
-      left: unset;
-    }
-  }
-  &-expanded {
-    &__true {
-      width: 370px;
-    }
-    &__false {
-      width: 55px;
-    }
-  }
+  right: 0;
+  height: 36px;
+  display: flex;
+  align-items: center;
 }

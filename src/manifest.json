@@ -1,6 +1,6 @@
 {
   "name": "Drill4J Browser Extension",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "background": {
     "page": "background.html",
     "persistent": true
@@ -25,7 +25,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "css": ["content.css"],
+      "css": ["iframe.css"],
       "js": ["content.bundle.js"]
     }
   ],
@@ -34,6 +34,7 @@
   "web_accessible_resources": [
     "*.ttf",
     "content.css",
+    "iframe.css",
     "uikit.css"
   ]
 }

@@ -1,13 +1,27 @@
 import * as React from 'react';
-import { MemoryRouter, Switch, Route } from 'react-router-dom';
 
-import { MainPage, UnavailablePage } from './pages';
+import { ConnectionForm } from '../forms';
+import { BackendConnectionStatus } from '../common/enums';
+import { MainPage } from './pages';
+import { useBackendConnectionStatus } from '../hooks';
 
-export const App = () => (
-  <MemoryRouter>
-    <Switch>
-      <Route path="/" exact component={MainPage} />
-      <Route path="/unavailable-page" component={UnavailablePage} />
-    </Switch>
-  </MemoryRouter>
-);
+import '../bootstrap-imports.scss';
+
+export const App = () => {
+  const backendConnectionData = useBackendConnectionStatus();
+
+  return (
+    <div className="popup-container">
+      {backendConnectionData?.data === BackendConnectionStatus.AVAILABLE
+        ? <MainPage />
+        : (
+          <div className="d-flex flex-column h-100 pt-12 pb-4 px-4 gy-8">
+            <div className="regular monochrome-default fs-14 lh-20">
+              No connection with backend. Try to refresh the page or connect using your admin address.
+            </div>
+            <ConnectionForm />
+          </div>
+        )}
+    </div>
+  );
+};

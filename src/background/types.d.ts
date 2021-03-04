@@ -1,3 +1,4 @@
+import { AgentStatus } from 'common/enums';
 import { SessionActionError } from '../common/errors/session-action-error';
 
 type Handler = (sender: chrome.runtime.MessageSender, ...params: any[]) => unknown;
@@ -38,7 +39,7 @@ export interface AdapterInfo {
   adapterType: AdapterType;
   id: string;
   host: string;
-  status: 'ONLINE' | 'OFFLINE' | 'BUSY' | '';
+  status: AgentStatus;
   mustRecordJsCoverage: boolean;
   buildVersion?: string;
 }
