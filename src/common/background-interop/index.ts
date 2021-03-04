@@ -82,3 +82,15 @@ export async function reactivateTestSession() {
 export async function getHostInfo() {
   return sendMessage<Record<string, any>>({ type: 'GET_HOST_INFO' });
 }
+
+export async function verifyBundle() {
+  return sendMessage<boolean>({ type: 'VERIFY_BUNDLE' });
+}
+
+export async function devtoolsAttach() {
+  return sendMessage<Record<string, any>>({ type: 'DEVTOOLS_ATTACH' });
+}
+
+export async function detachDevtools() {
+  return sendMessage<Record<string, any>>({ type: 'DETACH_DEVTOOLS' });
+}

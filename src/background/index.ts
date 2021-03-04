@@ -1,3 +1,5 @@
+import xxHashJs from 'xxhashjs';
+import chromeApi from '../common/chrome-api';
 import createMessageRouter from './message-router';
 import setupRuntimeMessageListener from './runtime-message-listener';
 import initBackendApi from './backend-api';
@@ -10,6 +12,7 @@ import type {
   BackendApi,
   BackendCreator,
   ScopeData,
+  ScriptSources,
   SessionData,
   SubNotifyFunction,
 } from './types';
@@ -19,6 +22,7 @@ import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
+import devToolsApi from './dev-tools-api';
 
 init();
 async function init() {
@@ -26,6 +30,7 @@ async function init() {
   let adapters: Record<string, AgentAdapter> = {};
 
   // session subscriptions
+  const scriptSources: ScriptSources = {};
   const backendConnectionStatusSubs: Record<string, any> = {};
   const backendConnectionStatusSubsCleanup: Record<string, any> = {};
   let backendConnectionStatusData: BackendConnectionStatus = BackendConnectionStatus.UNAVAILABLE;
@@ -112,7 +117,6 @@ async function init() {
     ];
     agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
     agentsDataById = newInfo.reduce((a, z) => ({ ...a, [z.id]: z }), {});
-
     adapters = createAdaptersFromInfo(newInfo, backend);
 
     Object.keys(agentsData).forEach((host) => {
@@ -226,11 +230,93 @@ async function init() {
 
   const router = createMessageRouter();
 
+  router.add('DEVTOOLS_ATTACH', async (sender) => {
+    const activeTab = await chromeApi.getActiveTab();
+    try {
+      await devToolsApi.attach({ tabId: activeTab?.id });
+      console.log('attach');
+    } catch (e) {
+      console.log('Failed to attach', activeTab?.id, e);
+      throw new Error(`Failed to attach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
+    }
+  });
+
+  router.add('DETACH_DEVTOOLS', async (sender) => {
+    const activeTab = await chromeApi.getActiveTab();
+    try {
+      await devToolsApi.detach({ tabId: activeTab?.id });
+      console.log('detach');
+    } catch (e) {
+      console.log('Failed to detach', activeTab?.id, e);
+      throw new Error(`Failed to detach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
+    }
+  });
+
+  router.add('VERIFY_BUNDLE', async (sender) => {
+    const currentHashes = new Set();
+    const expectedHashes: string[] = JSON.parse(rawAgentData[0]?.agentVersion).map((el: any) => el?.hash);
+    scriptSources[sender?.tab?.id as any] = {
+      hashToUrl: {},
+      urlToHash: {},
+    };
+
+    const setHashes = async (scriptId: string, tabId: number | undefined, url: string) => {
+      try {
+        const rawScriptSource: any = await devToolsApi.sendCommand({ tabId }, 'Debugger.getScriptSource', { scriptId });
+        const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
+        scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
+        scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
+        currentHashes.add(hash);
+      } catch (e) {
+        console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
+          'background-color: yellow;',
+          'background-color: unset;');
+      }
+    };
+
+    const sendMessageToContentScript = (tabId?: number, changeInfo?: chrome.tabs.TabChangeInfo) => {
+      if (!tabId) return;
+      console.log(changeInfo, expectedHashes.some((expectedHash) => currentHashes.has(expectedHash)));
+      chrome.tabs.sendMessage(tabId, {
+        type: 'VERIFY_BUNDLE',
+        hasSomeExpectedHashes: expectedHashes.some((expectedHash) => currentHashes.has(expectedHash)),
+      });
+    };
+
+    const host = transformHost(sender.url);
+    const agentInfo = agentsData[host];
+    if (!agentInfo || Object.keys(agentInfo).length === 0) return;
+
+    chrome.debugger.onEvent.addListener(async (_, method, params) => {
+      console.count();
+      if (method !== 'Debugger.scriptParsed') return;
+
+      const { url, scriptId } = params as { url: string; scriptId: string };
+
+      if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) return;
+
+      await setHashes(scriptId, sender?.tab?.id, url);
+      sendMessageToContentScript(sender?.tab?.id);
+
+      chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
+        if (changeInfo.url) {
+          await setHashes(scriptId, tabId, url);
+          sendMessageToContentScript(tabId, changeInfo);
+        }
+      });
+    });
+    await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Debugger.enable', {});
+    await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Debugger.setSkipAllPauses', { skip: true });
+  });
+
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
+    console.log(host, adapter);
+
     if (!adapter) throw new Error('Backend connection unavailable');
-    const sessionId = await adapter.startTest(testName, sender);
+    const sessionId = await adapter.startTest(testName, scriptSources, sender);
+
     sessionsData[host] = {
       testName,
       sessionId,
@@ -466,9 +552,9 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
     };
   }
   return {
-    startTest: async (testName, sender) => {
+    startTest: async (testName, scriptSources, sender) => {
       if (!sender) throw new Error('START_TEST_NO_SENDER');
-      await jsCoverageRecorder.start(sender);
+      await jsCoverageRecorder.start(sender, scriptSources);
       const sessionId = await backendApi.startTest(testName);
       return sessionId;
     },
@@ -490,4 +576,19 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       await backendApi.cancelTest(sessionId);
     },
   };
+}
+
+function getHash(data: any) {
+  const seed = 0xABCD;
+  const hashFn = xxHashJs.h32(seed);
+  return hashFn.update(data).digest().toString(16);
+}
+
+function unifyLineEndings(str: string): string {
+  // reference https://www.ecma-international.org/ecma-262/10.0/#sec-line-terminators
+  const LF = '\u000A';
+  const CRLF = '\u000D\u000A';
+  const LS = '\u2028';
+  const PS = '\u2029';
+  return str.replace(RegExp(`(${CRLF}|${LS}|${PS})`, 'g'), LF);
 }

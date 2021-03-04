@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { Button, OverflowText } from '@drill4j/ui-kit';
+import { Button } from '@drill4j/ui-kit';
 import { browser } from 'webextension-polyfill-ts';
 
 import { AgentStatus as Status } from '../../../common/enums';
@@ -10,6 +10,7 @@ import {
 } from '../../../hooks';
 import { AgentStatus } from './agent-status';
 import { Logo } from '../logo';
+import * as bgInterop from '../../../common/background-interop';
 
 import styles from './main-page.module.scss';
 
@@ -69,6 +70,11 @@ export const MainPage = mainPage(({ className }: Props) => {
                 disabled={status !== Status.ONLINE}
                 onClick={
                   async () => {
+                    try {
+                      await bgInterop.devtoolsAttach();
+                    } catch (e) {
+                      console.log(e?.message || 'Something happened on the backend');
+                    }
                     await browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: true } });
                     injectContentScript(activeTab);
                   }
@@ -81,7 +87,14 @@ export const MainPage = mainPage(({ className }: Props) => {
                 className="mx-auto"
                 type="secondary"
                 size="large"
-                onClick={() => browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: false } })}
+                onClick={async () => {
+                  try {
+                    await bgInterop.detachDevtools();
+                  } catch (e) {
+                    console.log(e?.message || 'Something happened on the backend');
+                  }
+                  await browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: false } });
+                }}
               >
                 Hide Widget
               </Button>

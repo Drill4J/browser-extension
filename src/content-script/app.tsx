@@ -15,6 +15,7 @@ import { AgentStatus, BackendConnectionStatus } from '../common/enums';
 import { ExtensionPositionIcon } from './extension-position-icon';
 import { HideWidgetIcon } from './hide-widget-icon';
 import { Pages } from './pages';
+import * as bgInterop from '../common/background-interop';
 
 import '../bootstrap-imports.scss';
 import styles from './app.module.scss';
@@ -45,6 +46,25 @@ export const App = withAgentContext(app(({ host }: Props) => {
     }());
   }, []);
 
+  const [isVerifiedBuild, setIsVerifiedBuild] = React.useState(false);
+  React.useEffect(() => {
+    (async function verifyBundle() {
+      try {
+        await bgInterop.verifyBundle();
+      } catch (e) {
+        console.log(e?.message || 'Something happened on the backend');
+      }
+    }());
+  }, []);
+
+  React.useEffect(() => {
+    chrome.runtime.onMessage.addListener((request) => {
+      if (request.type === 'VERIFY_BUNDLE') {
+        setIsVerifiedBuild(request?.hasSomeExpectedHashes);
+      }
+    });
+  }, []);
+
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;
   const isAgentOffline = backendConnectionStatus === BackendConnectionStatus.AVAILABLE
     && agent && agent.status === AgentStatus.OFFLINE;
@@ -55,55 +75,57 @@ export const App = withAgentContext(app(({ host }: Props) => {
 
   return (
     <MemoryRouter>
-      <div className="d-flex justify-content-between align-items-center w-100 px-4 monochrome-black fs-14">
-        <Logo viewBox="0 0 24 24" width={24} height={24} />
-        { isConnectionLost && (
-          <div className="d-flex align-items-center gx-1">
-            <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
-            <span className="bold">Connection lost.</span>
-            <span>Please wait. We’re trying to reconnect.</span>
-          </div>
-        )}
-        {(isAgentOffline || isAgentBusy) && (
-          <div className="d-flex align-items-center gx-1">
-            <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
-            <span className="bold">
-              Agent is
-              {' '}
-              {agent.status === AgentStatus.OFFLINE ? 'offline' : 'busy'}
-              .
-            </span>
-            <span>In order to perform testing agent has to be online.</span>
-          </div>
-        )}
-        {isAgentNotRegistered && (
-          <div className="d-flex align-items-center gx-1">
-            <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
-            <span className="bold">Agent is not registered.</span>
-            <span>Please complete registration in the Admin Panel</span>
-          </div>
-        )}
-        {!isConnectionLost && !isAgentOffline && !isAgentBusy && !isAgentNotRegistered && <Pages />}
-        <Actions className="d-flex align-items-center gx-4">
-          <div title={`Fix to the ${state.corner === 'bottom' ? 'top' : 'bottom'}`}>
-            <ExtensionPositionIcon
-              onClick={() => dispatch(setCorner(state.corner))}
-              viewBox="0 0 16 15"
-              rotate={state.corner === 'bottom' ? 0 : 180}
-              height={15}
-              width={24}
-            />
-          </div>
-          <div title="Hide to the Extensions panel">
-            <HideWidgetIcon
-              onClick={() => dispatch(setIsWidgetVisible(false))}
-              viewBox="0 0 16 15"
-              height={15}
-              width={24}
-            />
-          </div>
-        </Actions>
-      </div>
+      {isVerifiedBuild ? (
+        <div className="d-flex justify-content-between align-items-center w-100 px-4 monochrome-black fs-14">
+          <Logo viewBox="0 0 24 24" width={24} height={24} />
+          { isConnectionLost && (
+            <div className="d-flex align-items-center gx-1">
+              <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
+              <span className="bold">Connection lost.</span>
+              <span>Please wait. We’re trying to reconnect.</span>
+            </div>
+          )}
+          {(isAgentOffline || isAgentBusy) && (
+            <div className="d-flex align-items-center gx-1">
+              <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
+              <span className="bold">
+                Agent is
+                {' '}
+                {agent.status === AgentStatus.OFFLINE ? 'offline' : 'busy'}
+                .
+              </span>
+              <span>In order to perform testing agent has to be online.</span>
+            </div>
+          )}
+          {isAgentNotRegistered && (
+            <div className="d-flex align-items-center gx-1">
+              <div className="mr-1 monochrome-default"><Icons.Cancel /></div>
+              <span className="bold">Agent is not registered.</span>
+              <span>Please complete registration in the Admin Panel</span>
+            </div>
+          )}
+          {!isConnectionLost && !isAgentOffline && !isAgentBusy && !isAgentNotRegistered && <Pages />}
+          <Actions className="d-flex align-items-center gx-4">
+            <div title={`Fix to the ${state.corner === 'bottom' ? 'top' : 'bottom'}`}>
+              <ExtensionPositionIcon
+                onClick={() => dispatch(setCorner(state.corner))}
+                viewBox="0 0 16 15"
+                rotate={state.corner === 'bottom' ? 0 : 180}
+                height={15}
+                width={24}
+              />
+            </div>
+            <div title="Hide to the Extensions panel">
+              <HideWidgetIcon
+                onClick={() => dispatch(setIsWidgetVisible(false))}
+                viewBox="0 0 16 15"
+                height={15}
+                width={24}
+              />
+            </div>
+          </Actions>
+        </div>
+      ) : <div d-flex align-items-center>This build did not pass verification</div>}
     </MemoryRouter>
   );
 }));

@@ -5,7 +5,7 @@ type Handler = (sender: chrome.runtime.MessageSender, ...params: any[]) => unkno
 type Message = { type: string; payload: unknown };
 export type MessageReceiver = (sender: chrome.runtime.MessageSender, messsage: Message) => Promise<unknown>;
 export type MessageSource = (receiver: MessageReceiver, connectionHandler?: any) => void;
-
+export type ScriptSources = Record<string, { hashToUrl: Record<string, string>; urlToHash: Record<string, string> }>
 export interface MessageRouter {
   add: (route: string, handler: Handler) => void;
   init: (source: MessageSource) => void;
@@ -16,7 +16,7 @@ export interface Routes {
 }
 
 export interface AgentAdapter {
-  startTest: (testName: string, sender?: chrome.runtime.MessageSender) => Promise<string>;
+  startTest: (testName: string, scriptSources: ScriptSources, sender?: chrome.runtime.MessageSender) => Promise<string>;
   stopTest: (sessionId: string, testName?: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
   cancelTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
 }
