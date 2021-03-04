@@ -15,7 +15,7 @@ export const App = () => {
       {backendConnectionData?.data === BackendConnectionStatus.AVAILABLE
         ? <MainPage />
         : (
-          <div className="d-flex flex-column h-100 justify-content-center px-4 gy-8">
+          <div className="d-flex flex-column h-100 pt-12 pb-4 px-4 gy-8">
             <div className="regular monochrome-default fs-14 lh-20">
               No connection with backend. Try to refresh the page or connect using your admin address.
             </div>

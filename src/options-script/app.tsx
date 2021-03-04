@@ -4,8 +4,9 @@ import { FormGroup, Button, Icons } from '@drill4j/ui-kit';
 import { Form, Field } from 'react-final-form';
 
 import packageJson from '../../package.json';
+import { parseURL } from '../utils';
 import {
-  Fields, composeValidators, required, correctPattern,
+  Fields, composeValidators, required, validateBackendAdress,
 } from '../forms';
 import * as localStorageUtil from '../common/util/local-storage';
 
@@ -25,32 +26,19 @@ const optionsPage = BEM(styles);
 
 const validateDomain = composeValidators(
   required('backendAddress', 'Admin URL'),
-  correctPattern(
-    'backendAddress',
-    // eslint-disable-next-line max-len
-    /^(?:https?:\/\/)?(?:[\w-]\.?)+(?::6553[0-5]|:655[0-2]\d|:65[0-4]\d{2}|:6[0-4]\d{3}|:[1-5](\d){4}|:\d{1,4})?$/,
-    'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format',
-  ),
+  validateBackendAdress('backendAddress'),
 );
 
 export const App = optionsPage(({ className }: Props) => {
   const [domain, setDomain] = React.useState<Domain | null>(null);
-  const [needRestart, setNeedRestart] = React.useState(true);
   const [isSaved, setIsSaved] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
-      try {
-        const data = await localStorageUtil.get('backendAddress') as Domain;
-        const url = new URL(data?.backendAddress);
-        setDomain(url.protocol === 'http:'
-          ? data
-          : { backendAddress: `http://${data?.backendAddress}` });
-      } catch {
-        setNeedRestart(false);
-      }
+      const data = await localStorageUtil.get('backendAddress') as Domain;
+      setDomain(data);
     })();
-  }, []);
+  }, [isSaved]);
 
   return (
     <div className={`${className} d-flex justify-content-center`}>
@@ -75,6 +63,12 @@ export const App = optionsPage(({ className }: Props) => {
               !pristine && setIsSaved(false);
             // eslint-disable-next-line react-hooks/exhaustive-deps
             }, [backendAddress]);
+
+            const prevValueRef = React.useRef('');
+            React.useEffect(() => {
+              prevValueRef.current = backendAddress;
+            });
+            const prevValue = prevValueRef.current;
             return (
               <form className="d-flex flex-column gy-4">
                 <FormGroup label="Admin API URL">
@@ -82,6 +76,7 @@ export const App = optionsPage(({ className }: Props) => {
                     name="backendAddress"
                     component={Fields.Input}
                     placeholder="http(s)://host(:port)"
+                    parse={(value = '') => parseURL(value, prevValue)}
                   />
                 </FormGroup>
                 <div className="d-flex align-items-center gx-4">
@@ -96,7 +91,7 @@ export const App = optionsPage(({ className }: Props) => {
                   {isSaved && (
                     <div className="lh-16">
                       <div className="monochrome-default">Saved.</div>
-                      {needRestart && <div className="orange-default">Restart browser to apply changes!</div>}
+                      {prevValue && <div className="orange-default">Restart browser to apply changes!</div>}
                     </div>
                   )}
                 </div>
