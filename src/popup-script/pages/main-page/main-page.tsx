@@ -83,7 +83,7 @@ export const MainPage = mainPage(({ className }: Props) => {
                 size="large"
                 onClick={() => browser.storage.local.set({ [host]: { ...hostStorage, isWidgetVisible: false } })}
               >
-                Hide widget
+                Hide Widget
               </Button>
             )}
           </div>
