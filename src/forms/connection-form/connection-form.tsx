@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import * as React from 'react';
 import { Button, FormGroup, Spinner } from '@drill4j/ui-kit';
 import { Form, Field } from 'react-final-form';
@@ -5,11 +6,13 @@ import { Form, Field } from 'react-final-form';
 import { BackendConnectionStatus } from '../../common/enums';
 import { useBackendConnectionStatus } from '../../hooks';
 import { Fields } from '../fields';
-import { composeValidators, required } from '../form-validators';
+import { composeValidators, required, validateBackendAdress } from '../form-validators';
+import { parseURL } from '../../utils';
 import * as localStorageUtil from '../../common/util/local-storage';
 
 const validateDomain = composeValidators(
   required('backendAddress', 'Admin URL'),
+  validateBackendAdress('backendAddress'),
 );
 
 export const ConnectionForm = () => {
@@ -33,47 +36,51 @@ export const ConnectionForm = () => {
       }}
       validate={validateDomain}
       render={({
-        handleSubmit, submitting, pristine, invalid,
-      }) => (
-        <div className="d-flex flex-column gy-6">
-          <FormGroup label="Admin API URL">
-            <Field
-              name="backendAddress"
-              component={Fields.Input}
-              placeholder="http(s)://host(:port)"
-              disabled={submitting || isLoading || isReconnecting}
-              validate={(value = '') => (value
-                // eslint-disable-next-line no-useless-escape
-                .replace(/^(ht|f)tp(s?)\:\/\/[0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*(:(0-9)*)*(\/?)([a-zA-Z0-9\-\.\?\,\'\/\\\+&amp;%\$#_]*)?$/, '')
-                ? 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format'
-                : undefined)}
-            />
-          </FormGroup>
-          <Button
-            className="mr-auto"
-            type="primary"
-            size="large"
-            disabled={submitting || pristine || invalid || isLoading || isReconnecting}
-            onClick={handleSubmit}
-          >
-            {(submitting || isLoading) && (
-              <>
-                <Spinner />
-                <span>Connecting...</span>
-              </>
-            )}
-            {isReconnecting && (
-              <>
-                <Spinner />
-                <span>
-                  Reconnecting...
-                </span>
-              </>
-            )}
-            {!submitting && !isLoading && !isReconnecting && 'Connect'}
-          </Button>
-        </div>
-      )}
+        handleSubmit, submitting, pristine, invalid, values: { backendAddress = '' } = {},
+      }) => {
+        const prevValueRef = React.useRef('');
+
+        React.useEffect(() => {
+          prevValueRef.current = backendAddress;
+        });
+        const prevValue = prevValueRef.current;
+        return (
+          <div className="d-flex flex-column gy-6">
+            <FormGroup label="Admin API URL">
+              <Field
+                name="backendAddress"
+                component={Fields.Input}
+                placeholder="http(s)://host(:port)"
+                disabled={submitting || isLoading || isReconnecting}
+                parse={(value = '') => parseURL(value, prevValue)}
+              />
+            </FormGroup>
+            <Button
+              className="mr-auto"
+              type="primary"
+              size="large"
+              disabled={submitting || pristine || invalid || isLoading || isReconnecting}
+              onClick={handleSubmit}
+            >
+              {(submitting || isLoading) && (
+                <>
+                  <Spinner />
+                  <span>Connecting...</span>
+                </>
+              )}
+              {isReconnecting && (
+                <>
+                  <Spinner />
+                  <span>
+                    Reconnecting...
+                  </span>
+                </>
+              )}
+              {!submitting && !isLoading && !isReconnecting && 'Connect'}
+            </Button>
+          </div>
+        );
+      }}
     />
   );
 };
