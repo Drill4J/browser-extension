@@ -86,6 +86,6 @@ export function validateBackendAdress(fieldName: string): FormValidator {
     const value = get<string>(valitationItem, fieldName) || '';
     if (value === 'localhost' || value.slice(-3) === ':80' || value.slice(-8) === ':0008080') return undefined;
     if (isValidURL(value)) return undefined;
-    return toError(fieldName, 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port" format.');
+    return toError(fieldName, 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format.');
   };
 }

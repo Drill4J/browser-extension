@@ -2,7 +2,7 @@ import { validateBackendAdress } from '../../src/forms/form-validators';
 
 describe('validateBackendAdress', () => {
   const validator = validateBackendAdress('backendAddress');
-  const error = { backendAddress: 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host:port"' };
+  const error = { backendAddress: 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format.' };
   it('should return error if backendAddress is invalid', () => {
     expect(validator({ backendAddress: 'http://foo' })).toEqual(error);
     expect(validator({ backendAddress: 'http://localhost:65536' })).toEqual(error);
