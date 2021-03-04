@@ -13,7 +13,7 @@ export const StartNewManualTest = () => {
   const agent = React.useContext(AgentContext);
 
   return (
-    <div className="d-flex align-items-center gx-4 position-relative">
+    <div className="d-flex align-items-center gx-4">
       {(window as any).reloadRequired
         ? (
           <>
@@ -36,7 +36,7 @@ export const StartNewManualTest = () => {
               onChange={({ currentTarget: { value } }) => setTestName(value)}
               disabled={isFormSubmitting}
             />
-            <div title="Enter a test name to start testing">
+            <div title={!testName ? 'Enter a test name to start testing' : undefined}>
               <Button
                 type="primary"
                 size="small"

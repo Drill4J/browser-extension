@@ -20,7 +20,7 @@ export const FinishedManualTest = () => {
     <div className="d-flex align-items-center gx-6">
       <div className="d-flex align-items-center gx-2 green-default">
         <Icons.Success />
-        <div className="fs-12">Testing is finished Successfully</div>
+        <div className="fs-12 bold text-uppercase">Testing is finished successfully</div>
       </div>
       <VerticalLine />
       <div className="d-flex align-items-center">

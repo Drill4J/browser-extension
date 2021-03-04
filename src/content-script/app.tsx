@@ -73,7 +73,7 @@ export const App = withAgentContext(app(({ host }: Props) => {
               {agent.status === AgentStatus.OFFLINE ? 'offline' : 'busy'}
               .
             </span>
-            <span>To start testing agent has to be online.</span>
+            <span>In order to perform testing agent has to be online.</span>
           </div>
         )}
         {isAgentNotRegistered && (
@@ -94,7 +94,7 @@ export const App = withAgentContext(app(({ host }: Props) => {
               width={24}
             />
           </div>
-          <div title="Hide">
+          <div title="Hide to the Extensions panel">
             <HideWidgetIcon
               onClick={() => dispatch(setIsWidgetVisible(false))}
               viewBox="0 0 16 15"
