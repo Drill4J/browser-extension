@@ -48,21 +48,17 @@ export const App = withAgentContext(app(({ host }: Props) => {
 
   const [isVerifiedBuild, setIsVerifiedBuild] = React.useState(false);
   React.useEffect(() => {
-    (async function verifyBundle() {
-      try {
-        await bgInterop.verifyBundle();
-      } catch (e) {
-        console.log(e?.message || 'Something happened on the backend');
-      }
-    }());
-  }, []);
-
-  React.useEffect(() => {
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.type === 'VERIFY_BUNDLE') {
-        setIsVerifiedBuild(request?.hasSomeExpectedHashes);
-      }
-    });
+    try {
+      bgInterop.verifyBundle();
+      chrome.runtime.onMessage.addListener((request) => {
+        console.log(request);
+        if (request.type === 'VERIFY_BUNDLE') {
+          setIsVerifiedBuild(request.payload);
+        }
+      });
+    } catch (e) {
+      console.log(e?.message || 'Something happened on the backend');
+    }
   }, []);
 
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;

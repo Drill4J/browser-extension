@@ -23,6 +23,7 @@ import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
 import devToolsApi from './dev-tools-api';
+import * as bgInterop from '../common/background-interop';
 
 init();
 async function init() {
@@ -253,8 +254,11 @@ async function init() {
   });
 
   router.add('VERIFY_BUNDLE', async (sender) => {
+    const host = transformHost(sender.url);
+    const agentInfo = agentsData[host];
     const currentHashes = new Set();
-    const expectedHashes: string[] = JSON.parse(rawAgentData[0]?.agentVersion).map((el: any) => el?.hash);
+    const expectedHashes: string[] = JSON.parse(agentInfo.agentVersion).map((info: { file: string; hash: string }) => info.hash);
+    const hasSomeExpectedHashes = () => expectedHashes.some((expectedHash) => currentHashes.has(expectedHash));
     scriptSources[sender?.tab?.id as any] = {
       hashToUrl: {},
       urlToHash: {},
@@ -274,34 +278,22 @@ async function init() {
       }
     };
 
-    const sendMessageToContentScript = (tabId?: number, changeInfo?: chrome.tabs.TabChangeInfo) => {
-      if (!tabId) return;
-      console.log(changeInfo, expectedHashes.some((expectedHash) => currentHashes.has(expectedHash)));
-      chrome.tabs.sendMessage(tabId, {
-        type: 'VERIFY_BUNDLE',
-        hasSomeExpectedHashes: expectedHashes.some((expectedHash) => currentHashes.has(expectedHash)),
-      });
-    };
-
-    const host = transformHost(sender.url);
-    const agentInfo = agentsData[host];
     if (!agentInfo || Object.keys(agentInfo).length === 0) return;
 
     chrome.debugger.onEvent.addListener(async (_, method, params) => {
-      console.count();
       if (method !== 'Debugger.scriptParsed') return;
 
       const { url, scriptId } = params as { url: string; scriptId: string };
 
       if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) return;
-
       await setHashes(scriptId, sender?.tab?.id, url);
-      sendMessageToContentScript(sender?.tab?.id);
+
+      await bgInterop.sendVerifyInfo(sender?.tab?.id || 0, hasSomeExpectedHashes());
 
       chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
         if (changeInfo.url) {
           await setHashes(scriptId, tabId, url);
-          sendMessageToContentScript(tabId, changeInfo);
+          await bgInterop.sendVerifyInfo(sender?.tab?.id || 0, hasSomeExpectedHashes());
         }
       });
     });
@@ -476,6 +468,7 @@ function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, strin
     .map((x: any) => ({
       adapterType: 'agents',
       id: x.id,
+      agentVersion: x.agentVersion,
       // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
       // - get BUSY status
       // - receive no further updates (because host has changed)

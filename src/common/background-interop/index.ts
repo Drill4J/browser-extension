@@ -59,6 +59,22 @@ async function sendMessage<T>(message: unknown): Promise<T> {
   });
 }
 
+async function tabSendMessage<T>(tabId: number, message: unknown): Promise<T> {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.sendMessage(tabId, message, (response) => {
+      if (response?.error) {
+        reject(response.error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+}
+
+export async function sendVerifyInfo(tabId: number, hasSomeExpectedHashes: boolean) {
+  return tabSendMessage<void>(tabId, { type: 'VERIFY_BUNDLE', payload: hasSomeExpectedHashes });
+}
+
 export async function startTest(testName: string) {
   return sendMessage<string>({ type: 'START_TEST', payload: testName });
 }

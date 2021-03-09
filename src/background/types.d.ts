@@ -38,6 +38,7 @@ export type AdapterType = 'agents' | 'groups';
 export interface AdapterInfo {
   adapterType: AdapterType;
   id: string;
+  agentVersion: string;
   host: string;
   status: AgentStatus;
   mustRecordJsCoverage: boolean;
