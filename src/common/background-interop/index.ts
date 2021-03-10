@@ -39,6 +39,12 @@ export async function subscribeToBackendConnectionStatus(handler: (...params: un
   return unsubscribe;
 }
 
+export async function subscribeToBuildVerification(handler: (...params: unknown[]) => void) {
+  await connectionEstablished;
+  const unsubscribe = connection.subscribe('build-verification', handler);
+  return unsubscribe;
+}
+
 export async function unsubscribeAll() {
   connection.unsubscribeAll();
 }
@@ -57,22 +63,6 @@ async function sendMessage<T>(message: unknown): Promise<T> {
       }
     });
   });
-}
-
-async function tabSendMessage<T>(tabId: number, message: unknown): Promise<T> {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.sendMessage(tabId, message, (response) => {
-      if (response?.error) {
-        reject(response.error);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-}
-
-export async function sendVerifyInfo(tabId: number, hasSomeExpectedHashes: boolean) {
-  return tabSendMessage<void>(tabId, { type: 'VERIFY_BUNDLE', payload: hasSomeExpectedHashes });
 }
 
 export async function startTest(testName: string) {
@@ -99,8 +89,8 @@ export async function getHostInfo() {
   return sendMessage<Record<string, any>>({ type: 'GET_HOST_INFO' });
 }
 
-export async function verifyBundle() {
-  return sendMessage<boolean>({ type: 'VERIFY_BUNDLE' });
+export async function verifyBuild() {
+  return sendMessage<boolean>({ type: 'VERIFY_BUILD' });
 }
 
 export async function devtoolsAttach() {

@@ -5,3 +5,4 @@ export { useWsConnection } from './use-ws-connection';
 export { useAgentOnActiveTab } from './use-agent-on-active-tab';
 export { useBackendConnectionStatus } from './use-backend-connection-status';
 export { useHostLocalStorage } from './use-host-local-storage';
+export { useBuildVerification } from './use-build-verification';

@@ -6,7 +6,7 @@ import { BEM } from '@redneckz/react-bem-helper';
 import { browser } from 'webextension-polyfill-ts';
 import { Logo } from './logo';
 import { AgentContext, withAgentContext } from './context';
-import { useBackendConnectionStatus } from '../hooks';
+import { useBackendConnectionStatus, useBuildVerification } from '../hooks';
 import {
   reducer, setIsWidgetVisible, setCorner, setInitial,
 } from './reducer';
@@ -15,7 +15,6 @@ import { AgentStatus, BackendConnectionStatus } from '../common/enums';
 import { ExtensionPositionIcon } from './extension-position-icon';
 import { HideWidgetIcon } from './hide-widget-icon';
 import { Pages } from './pages';
-import * as bgInterop from '../common/background-interop';
 
 import '../bootstrap-imports.scss';
 import styles from './app.module.scss';
@@ -46,20 +45,7 @@ export const App = withAgentContext(app(({ host }: Props) => {
     }());
   }, []);
 
-  const [isVerifiedBuild, setIsVerifiedBuild] = React.useState(false);
-  React.useEffect(() => {
-    try {
-      bgInterop.verifyBundle();
-      chrome.runtime.onMessage.addListener((request) => {
-        console.log(request);
-        if (request.type === 'VERIFY_BUNDLE') {
-          setIsVerifiedBuild(request.payload);
-        }
-      });
-    } catch (e) {
-      console.log(e?.message || 'Something happened on the backend');
-    }
-  }, []);
+  const { data: isVerifiedBuild, isLoading } = useBuildVerification();
 
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;
   const isAgentOffline = backendConnectionStatus === BackendConnectionStatus.AVAILABLE
@@ -71,7 +57,8 @@ export const App = withAgentContext(app(({ host }: Props) => {
 
   return (
     <MemoryRouter>
-      {isVerifiedBuild ? (
+      {isLoading && <div d-flex align-items-center>verification...</div>}
+      {isVerifiedBuild && !isLoading && (
         <div className="d-flex justify-content-between align-items-center w-100 px-4 monochrome-black fs-14">
           <Logo viewBox="0 0 24 24" width={24} height={24} />
           { isConnectionLost && (
@@ -121,7 +108,8 @@ export const App = withAgentContext(app(({ host }: Props) => {
             </div>
           </Actions>
         </div>
-      ) : <div d-flex align-items-center>This build did not pass verification</div>}
+      )}
+      {!isVerifiedBuild && !isLoading && <div d-flex align-items-center>This build did not pass verification</div>}
     </MemoryRouter>
   );
 }));

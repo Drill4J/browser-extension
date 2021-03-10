@@ -23,7 +23,6 @@ import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
 import devToolsApi from './dev-tools-api';
-import * as bgInterop from '../common/background-interop';
 
 init();
 async function init() {
@@ -52,6 +51,11 @@ async function init() {
   const scopeSubs: Record<string, any> = {};
   const scopeSubsCleanup: Record<string, any> = {};
   const scopesData: Record<string, ScopeData> = {};
+
+  // buildVerification subscriptions
+  const buildVerificationSubs: any = {};
+  const buildVerificationSubsCleanup: any = {};
+  const buildVerificationData: any = {};
 
   const interceptedDataStore: Record<string, any> = {};
   // const responseInterceptorsCleanup = setupResponseInterceptors(interceptedDataStore);
@@ -184,6 +188,16 @@ async function init() {
             delete scopeSubs[host][portId];
           };
         }
+
+        if (resource === 'build-verification') {
+          if (!buildVerificationSubs[host]) {
+            buildVerificationSubs[host] = {};
+          }
+          if (buildVerificationSubs[host][portId]) throw new Error(`Duplicate subscription: resource ${resource}, host ${host}, portId ${portId}`);
+          buildVerificationSubs[host][portId] = createPortUpdater(port, 'build-verification');
+          buildVerificationSubs[host][portId](buildVerificationData[host]);
+          buildVerificationSubsCleanup[portId] = () => delete buildVerificationSubs[host][portId];
+        }
       }
       if (type === 'UNSUBSCRIBE') {
         if (resource === 'agent') {
@@ -197,6 +211,9 @@ async function init() {
         }
         if (resource === 'backend-connection-status') {
           backendConnectionStatusSubsCleanup[portId]();
+        }
+        if (resource === 'build-verification') {
+          buildVerificationSubsCleanup[portId]();
         }
       }
     };
@@ -222,6 +239,10 @@ async function init() {
 
       if (backendConnectionStatusSubsCleanup[portId]) {
         backendConnectionStatusSubsCleanup[portId]();
+      }
+
+      if (buildVerificationSubsCleanup[portId]) {
+        buildVerificationSubsCleanup[portId]();
       }
     });
 
@@ -253,7 +274,7 @@ async function init() {
     }
   });
 
-  router.add('VERIFY_BUNDLE', async (sender) => {
+  router.add('VERIFY_BUILD', async (sender) => {
     const host = transformHost(sender.url);
     const agentInfo = agentsData[host];
     const currentHashes = new Set();
@@ -270,7 +291,9 @@ async function init() {
         const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
         scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
         scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
+        if (hasSomeExpectedHashes()) return;
         currentHashes.add(hash);
+        console.log(currentHashes, expectedHashes);
       } catch (e) {
         console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
           'background-color: yellow;',
@@ -280,25 +303,37 @@ async function init() {
 
     if (!agentInfo || Object.keys(agentInfo).length === 0) return;
 
-    chrome.debugger.onEvent.addListener(async (_, method, params) => {
+    const listener = async (_: any, method: string, params: Record<string, any> | undefined) => {
       if (method !== 'Debugger.scriptParsed') return;
-
+      if (hasSomeExpectedHashes()) {
+        console.log('remove');
+        chrome.debugger.onEvent.removeListener(listener);
+      }
+      console.count();
       const { url, scriptId } = params as { url: string; scriptId: string };
 
       if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) return;
       await setHashes(scriptId, sender?.tab?.id, url);
 
-      await bgInterop.sendVerifyInfo(sender?.tab?.id || 0, hasSomeExpectedHashes());
-
+      // chrome.webNavigation.onBeforeNavigate.addListener(() => { console.log('bar'); });
       chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
         if (changeInfo.url) {
+          console.log('changed url');
+          const agentOnNewUrl = agentsData[transformHost(changeInfo.url)];
+          if (!agentOnNewUrl || Object.keys(agentOnNewUrl).length === 0) return;
           await setHashes(scriptId, tabId, url);
-          await bgInterop.sendVerifyInfo(sender?.tab?.id || 0, hasSomeExpectedHashes());
+          buildVerificationData[host] = hasSomeExpectedHashes();
+          notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);
         }
       });
-    });
+    };
+
+    chrome.debugger.onEvent.addListener(listener);
     await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Debugger.enable', {});
     await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Debugger.setSkipAllPauses', { skip: true });
+
+    buildVerificationData[host] = hasSomeExpectedHashes();
+    notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);
   });
 
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
