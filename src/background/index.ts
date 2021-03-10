@@ -260,6 +260,7 @@ async function init() {
           status: SessionStatus.ERROR,
           end: Date.now(),
           error: e,
+          errorType: 'finish',
         };
       } else {
         throw e;
@@ -289,6 +290,7 @@ async function init() {
           status: SessionStatus.ERROR,
           end: Date.now(),
           error: e,
+          errorType: 'abort',
         };
       } else {
         throw e;

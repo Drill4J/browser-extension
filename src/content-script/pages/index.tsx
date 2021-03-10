@@ -40,7 +40,7 @@ export const Pages = withActiveScopeContext(withSessionContext(() => {
         path="/manual-testing-error"
         render={() => (
           <ManualTestError
-            message="Failed action with active session"
+            message={`Failed to ${session?.errorType} test.`}
             messageToCopy={session?.error?.message || 'Something happened on the backend'}
           >
             <Button
