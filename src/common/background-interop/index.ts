@@ -89,14 +89,14 @@ export async function getHostInfo() {
   return sendMessage<Record<string, any>>({ type: 'GET_HOST_INFO' });
 }
 
-export async function verifyBuild() {
-  return sendMessage<boolean>({ type: 'VERIFY_BUILD' });
+export async function verifyBuild(activeTab?: chrome.tabs.Tab) {
+  return sendMessage<boolean>({ type: 'VERIFY_BUILD', payload: activeTab });
 }
 
-export async function devtoolsAttach() {
-  return sendMessage<Record<string, any>>({ type: 'DEVTOOLS_ATTACH' });
+export async function openWidget(activeTab?: chrome.tabs.Tab) {
+  return sendMessage<Record<string, any>>({ type: 'OPEN_WIDGET', payload: activeTab });
 }
 
-export async function detachDevtools() {
-  return sendMessage<Record<string, any>>({ type: 'DETACH_DEVTOOLS' });
+export async function hideWidget(activeTab?: chrome.tabs.Tab) {
+  return sendMessage<Record<string, any>>({ type: 'HIDE_WIDGET', payload: activeTab });
 }

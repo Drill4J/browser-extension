@@ -252,8 +252,8 @@ async function init() {
 
   const router = createMessageRouter();
 
-  router.add('DEVTOOLS_ATTACH', async (sender) => {
-    const activeTab = await chromeApi.getActiveTab();
+  router.add('OPEN_WIDGET', async (sender, activeTab) => {
+    console.log(activeTab);
     try {
       await devToolsApi.attach({ tabId: activeTab?.id });
       console.log('attach');
@@ -263,8 +263,7 @@ async function init() {
     }
   });
 
-  router.add('DETACH_DEVTOOLS', async (sender) => {
-    const activeTab = await chromeApi.getActiveTab();
+  router.add('HIDE_WIDGET', async (sender, activeTab) => {
     try {
       await devToolsApi.detach({ tabId: activeTab?.id });
       console.log('detach');
@@ -274,13 +273,13 @@ async function init() {
     }
   });
 
-  router.add('VERIFY_BUILD', async (sender) => {
-    const host = transformHost(sender.url);
+  router.add('VERIFY_BUILD', async (sender, activeTab) => {
+    const host = transformHost(activeTab.url);
     const agentInfo = agentsData[host];
     const currentHashes = new Set();
     const expectedHashes: string[] = JSON.parse(agentInfo.agentVersion).map((info: { file: string; hash: string }) => info.hash);
     const hasSomeExpectedHashes = () => expectedHashes.some((expectedHash) => currentHashes.has(expectedHash));
-    scriptSources[sender?.tab?.id as any] = {
+    scriptSources[activeTab.id] = {
       hashToUrl: {},
       urlToHash: {},
     };
@@ -289,11 +288,10 @@ async function init() {
       try {
         const rawScriptSource: any = await devToolsApi.sendCommand({ tabId }, 'Debugger.getScriptSource', { scriptId });
         const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
-        scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
-        scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
+        scriptSources[activeTab.id].hashToUrl[hash] = url;
+        scriptSources[activeTab.id].urlToHash[url] = hash;
         if (hasSomeExpectedHashes()) return;
         currentHashes.add(hash);
-        console.log(currentHashes, expectedHashes);
       } catch (e) {
         console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
           'background-color: yellow;',
@@ -306,19 +304,19 @@ async function init() {
     const listener = async (_: any, method: string, params: Record<string, any> | undefined) => {
       if (method !== 'Debugger.scriptParsed') return;
       if (hasSomeExpectedHashes()) {
-        console.log('remove');
         chrome.debugger.onEvent.removeListener(listener);
       }
+
       console.count();
       const { url, scriptId } = params as { url: string; scriptId: string };
 
       if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) return;
-      await setHashes(scriptId, sender?.tab?.id, url);
+      await setHashes(scriptId, activeTab.id, url);
 
       // chrome.webNavigation.onBeforeNavigate.addListener(() => { console.log('bar'); });
       chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
         if (changeInfo.url) {
-          console.log('changed url');
+          console.count('changed url');
           const agentOnNewUrl = agentsData[transformHost(changeInfo.url)];
           if (!agentOnNewUrl || Object.keys(agentOnNewUrl).length === 0) return;
           await setHashes(scriptId, tabId, url);
@@ -329,8 +327,8 @@ async function init() {
     };
 
     chrome.debugger.onEvent.addListener(listener);
-    await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Debugger.enable', {});
-    await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Debugger.setSkipAllPauses', { skip: true });
+    await devToolsApi.sendCommand({ tabId: activeTab.id }, 'Debugger.enable', {});
+    await devToolsApi.sendCommand({ tabId: activeTab.id }, 'Debugger.setSkipAllPauses', { skip: true });
 
     buildVerificationData[host] = hasSomeExpectedHashes();
     notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);

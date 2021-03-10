@@ -46,6 +46,7 @@ export const App = withAgentContext(app(({ host }: Props) => {
   }, []);
 
   const { data: isVerifiedBuild, isLoading } = useBuildVerification();
+  console.log(isVerifiedBuild, isLoading);
 
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;
   const isAgentOffline = backendConnectionStatus === BackendConnectionStatus.AVAILABLE
