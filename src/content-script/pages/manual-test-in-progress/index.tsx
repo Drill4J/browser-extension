@@ -4,7 +4,7 @@ import {
 } from '@drill4j/ui-kit';
 import { BEM } from '@redneckz/react-bem-helper';
 
-import { SessionContext, ActiveScopeContext } from '../../context';
+import { SessionContext, ActiveScopeContext, AgentContext } from '../../context';
 import { percentFormatter } from '../../../utils';
 import * as bgInterop from '../../../common/background-interop';
 import { Timer } from './timer';
@@ -20,6 +20,7 @@ export const ManualTestInProgress = () => {
   const scope = React.useContext(ActiveScopeContext);
   const [isRequestInProgress, updateRequestStatus] = React.useState(false);
   const [isConfirmingAbort, setIsConfirmingAbort] = React.useState(false);
+  const agent = React.useContext(AgentContext);
 
   return (
     <div className="d-flex align-items-center gx-6 position-relative">
@@ -38,14 +39,13 @@ export const ManualTestInProgress = () => {
           </div>
           <div className="d-flex gx-1">
             <span>Scope Coverage:</span>
-            {(window as any).reloadRequired ? (
-              <span
-                className="bold"
-                title="For JS agent coverage may be shown only after the test is finished"
-              >
-                n/a in real-time
-              </span>
-            ) : (
+            {agent.mustRecordJsCoverage && (
+              <span className="bold" title="For JS agent coverage may be shown only after the test is finished">n/a</span>
+            )}
+            {agent.adapterType === 'groups' && (
+              <span className="bold" title="For Service Group scope coverage can’t be displayed">n/a</span>
+            )}
+            {!agent.mustRecordJsCoverage && agent.adapterType === 'agents' && (
               <span className="bold">
                 {percentFormatter(scope?.coverage?.percentage || 0)}
                 %
