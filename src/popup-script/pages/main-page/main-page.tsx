@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BEM } from '@redneckz/react-bem-helper';
-import { Button, OverflowText } from '@drill4j/ui-kit';
+import { Button } from '@drill4j/ui-kit';
 import { browser } from 'webextension-polyfill-ts';
 
 import { AgentStatus as Status } from '../../../common/enums';
@@ -36,7 +36,7 @@ export const MainPage = mainPage(({ className }: Props) => {
       { hasAssociatedAgent ? (
         <div className="h-100">
           <Header className="d-flex align-items-center px-4 gx-2">
-            <Logo viewBox="0 0 16 16" width={24} height={16} />
+            <Logo viewBox="0 0 16 16" width={24} height={16} className="min-w-24px" />
             <div title={agent?.id} className="text-ellipsis fs-14 lh-20 bold">{agent?.id}</div>
             <AgentStatus className="ml-auto" status={status} />
           </Header>

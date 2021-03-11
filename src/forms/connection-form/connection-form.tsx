@@ -64,13 +64,13 @@ export const ConnectionForm = () => {
             >
               {(submitting || isLoading) && (
                 <>
-                  <Spinner />
+                  <Spinner className="mr-2" />
                   <span>Connecting...</span>
                 </>
               )}
               {isReconnecting && (
                 <>
-                  <Spinner />
+                  <Spinner className="mr-2" />
                   <span>
                     Reconnecting...
                   </span>
