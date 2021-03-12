@@ -4,9 +4,9 @@ import { ConnectionForm } from '../forms';
 import { BackendConnectionStatus } from '../common/enums';
 import { MainPage } from './pages';
 import { useAgentOnActiveTab, useBackendConnectionStatus } from '../hooks';
+import { AgentNotFound } from './pages/main-page/agent-not-found';
 
 import '../bootstrap-imports.scss';
-import { AgentNotFound } from './pages/main-page/agent-not-found';
 
 export const App = () => {
   const backendConnectionData = useBackendConnectionStatus();

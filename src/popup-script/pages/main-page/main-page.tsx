@@ -9,9 +9,9 @@ import {
 } from '../../../hooks';
 import { AgentStatus } from './agent-status';
 import { Logo } from '../logo';
+import { AdapterInfo } from '../../../background/types';
 
 import styles from './main-page.module.scss';
-import { AdapterInfo } from '../../../background/types';
 
 interface Props {
   className?: string;
