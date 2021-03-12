@@ -12,7 +12,7 @@ interface Props {
 const agentNotFound = BEM(styles);
 
 export const AgentNotFound = agentNotFound(({ className }: Props) => (
-  <div className={`${className} d-flex flex-column h-320px justify-content-center align-items-center px-4 gy-6`}>
+  <div className={`${className} d-flex flex-column h-100 justify-content-center align-items-center px-4 gy-6`}>
     <Logo viewBox="0 0 64 64" width={80} height={80} />
     <div className="d-flex flex-column gy-2 text-center">
       <span>Agent not found</span>

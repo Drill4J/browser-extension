@@ -21,7 +21,6 @@ $spacers: (
   14: $spacer * 14,
   15: $spacer * 15,
   16: $spacer * 16,
-  80: $spacer * 80,
 );
 
 $font-sizes: (12, 14, 16, 18, 20, 22, 24, 26, 28, 30);
@@ -91,12 +90,6 @@ $fonts: (
 @each $size, $height in $spacers {
   .h-#{$size*4}px {
     height: $height !important;
-  }
-}
-
-@each $size, $width in $spacers {
-  .min-w-#{$size*4}px {
-    min-width: $width !important;
   }
 }
 
