@@ -43,8 +43,8 @@ export const ManualTestInProgress = () => {
               <span
                 className="bold"
                 title={agent.adapterType === 'groups'
-                  ? 'scope coverage for individual agents is available in the Admin Panel'
-                  : 'scope coverage for JS agent is displayed after the test is finished'}
+                  ? 'Scope coverage for each Agent from Service Group is available in the Admin Panel'
+                  : 'Scope coverage for JS agent is displayed after the test is finished'}
               >
                 n/a
               </span>

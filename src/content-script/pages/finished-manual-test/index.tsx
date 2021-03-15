@@ -3,7 +3,7 @@ import { Button, Icons, EllipsisOverflowText } from '@drill4j/ui-kit';
 import { BEM } from '@redneckz/react-bem-helper';
 
 import { getDuration, percentFormatter } from '../../../utils';
-import { ActiveScopeContext, SessionContext } from '../../context';
+import { ActiveScopeContext, SessionContext, AgentContext } from '../../context';
 import * as bgInterop from '../../../common/background-interop';
 
 import styles from './finished-manual-test.module.scss';
@@ -13,6 +13,7 @@ const finishedManualTest = BEM(styles);
 export const FinishedManualTest = () => {
   const scope = React.useContext(ActiveScopeContext);
   const session = React.useContext(SessionContext);
+  const agent = React.useContext(AgentContext);
 
   const { hours, minutes, seconds } = getDuration(Number(session?.end) - Number(session?.start));
 
@@ -33,10 +34,21 @@ export const FinishedManualTest = () => {
       </div>
       <div>
         <span className="mr-1">Scope Coverage:</span>
-        <span className="bold">
-          {percentFormatter(scope?.coverage?.percentage || 0)}
-          %
-        </span>
+
+        {agent.adapterType === 'groups' && (
+          <span
+            className="bold"
+            title="Scope coverage for each Agent from Service Group is available in the Admin Panel"
+          >
+            n/a
+          </span>
+        )}
+        {agent.adapterType !== 'groups' && (
+          <span className="bold">
+            {percentFormatter(scope?.coverage?.percentage || 0)}
+            %
+          </span>
+        )}
       </div>
       <Button
         size="small"
