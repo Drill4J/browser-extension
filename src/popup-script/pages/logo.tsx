@@ -2,13 +2,16 @@
 import * as React from 'react';
 
 interface Props {
+  style?: Record<symbol, string>;
   width: number;
   height: number;
   viewBox: string;
 }
 
-export const Logo = ({ width, height, viewBox }: Props) => (
-  <svg viewBox={viewBox} width={`${width}`} height={`${height}`}>
+export const Logo = ({
+  width, height, viewBox, style,
+}: Props) => (
+  <svg viewBox={viewBox} width={`${width}`} height={`${height}`} style={style}>
     {height > 16 ? (
       <g clipPath="url(#_clipPath_MXCI7ZQWY2m6z5AxbxtPlSmpJRlHoXHx)" fillOpacity="0.2">
         <path d=" M 55.863 22.98 L 55.908 23.025 L 63.375 30.491 C 64.193 31.309 64.208 32.626 63.42 33.462 L 63.375 33.508 L 55.908 40.975 L 55.863 41.02 C 55.026 41.808 53.709 41.793 52.892 40.975 C 52.074 40.157 52.059 38.84 52.847 38.004 L 52.892 37.958 L 58.849 32 L 52.892 26.042 C 52.058 25.209 52.058 23.858 52.892 23.025 C 53.709 22.207 55.026 22.192 55.863 22.98 Z  M 8.137 22.98 C 8.974 22.192 10.291 22.207 11.108 23.025 C 11.926 23.843 11.941 25.16 11.153 25.996 L 11.108 26.042 L 5.151 32 L 11.108 37.958 C 11.942 38.791 11.942 40.142 11.108 40.975 C 10.291 41.793 8.974 41.808 8.137 41.02 L 8.092 40.975 L 0.625 33.508 C -0.208 32.675 -0.208 31.324 0.625 30.491 L 8.092 23.025 L 8.137 22.98 Z " fillRule="evenodd" fill="rgb(0,112,255)" />
