@@ -12,6 +12,12 @@ export const StartNewManualTest = () => {
   const [isFormSubmitting, setIsFormSubmitting] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
+  const isMounted = React.useRef(true);
+
+  React.useEffect(() => () => {
+    isMounted.current = false;
+  }, []);
+
   return (
     <div className="d-flex align-items-center gx-4">
       {(window as any).reloadRequired
@@ -52,7 +58,7 @@ export const StartNewManualTest = () => {
                   } catch (e) {
                     setSubmitError(e?.message || 'Something happened on the backend');
                   }
-                  setIsFormSubmitting(false);
+                  if (isMounted.current) setIsFormSubmitting(false);
                 }}
               >
                 {isFormSubmitting ? (

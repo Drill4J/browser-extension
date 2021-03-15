@@ -22,6 +22,12 @@ export const ManualTestInProgress = () => {
   const [isConfirmingAbort, setIsConfirmingAbort] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
+  const isMounted = React.useRef(true);
+
+  React.useEffect(() => () => {
+    isMounted.current = false;
+  }, []);
+
   return (
     <div className="d-flex align-items-center gx-6 position-relative">
       {!isConfirmingAbort ? (
@@ -64,7 +70,7 @@ export const ManualTestInProgress = () => {
               onClick={async () => {
                 updateRequestStatus(true);
                 await bgInterop.stopTest();
-                updateRequestStatus(false);
+                if (isMounted.current) updateRequestStatus(false);
               }}
             >
               {isRequestInProgress ? (
