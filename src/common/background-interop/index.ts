@@ -39,9 +39,9 @@ export async function subscribeToBackendConnectionStatus(handler: (...params: un
   return unsubscribe;
 }
 
-export async function subscribeToBuildVerification(handler: (...params: unknown[]) => void) {
+export async function subscribeToBuildVerification(handler: (...params: unknown[]) => void, options?: unknown) {
   await connectionEstablished;
-  const unsubscribe = connection.subscribe('build-verification', handler);
+  const unsubscribe = connection.subscribe('build-verification', handler, options);
   return unsubscribe;
 }
 

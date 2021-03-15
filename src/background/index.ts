@@ -6,6 +6,9 @@ import initBackendApi from './backend-api';
 import jsCoverageRecorder from './js-coverage-recorder';
 import { transformHost } from '../common/util/transform-host';
 import * as localStorageUtil from '../common/util/local-storage';
+import * as scriptParsedNotifier from './script-parsed-notifier';
+import * as navigationNotifier from './navigation-notifier';
+import * as updateNotifier from './updated-notifier';
 import type {
   AdapterInfo,
   AgentAdapter,
@@ -28,6 +31,7 @@ init();
 async function init() {
   // TODO refactor to store + actions + reducers
   let adapters: Record<string, AgentAdapter> = {};
+  const actualHashes: Record<string, any> = {};
 
   // session subscriptions
   const scriptSources: ScriptSources = {};
@@ -127,6 +131,7 @@ async function init() {
     Object.keys(agentsData).forEach((host) => {
       if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
         notifySubscribers(agentSubs[host], agentsData[host]);
+        // updateBundleValidity(host, actualHashes[`${tab.id}${tab.url}`]);
       }
     });
   }
@@ -193,6 +198,7 @@ async function init() {
           if (!buildVerificationSubs[host]) {
             buildVerificationSubs[host] = {};
           }
+          console.log(options);
           if (buildVerificationSubs[host][portId]) throw new Error(`Duplicate subscription: resource ${resource}, host ${host}, portId ${portId}`);
           buildVerificationSubs[host][portId] = createPortUpdater(port, 'build-verification');
           buildVerificationSubs[host][portId](buildVerificationData[host]);
@@ -250,98 +256,69 @@ async function init() {
   };
   chrome.runtime.onConnect.addListener(runtimeConnectHandler);
 
+  function updateBundleValidity(host: any, tabActualHashes: string[]) {
+    buildVerificationData[host] = tabActualHashes
+      .some((tabActualHash) => Boolean(JSON
+        .parse(agentsData[host].agentVersion)
+        .map((info: any) => info.hash)
+        .find((hash: string) => hash === tabActualHash)));
+    notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);
+  }
+
   const router = createMessageRouter();
 
   router.add('OPEN_WIDGET', async (sender, activeTab) => {
-    console.log(activeTab);
+    const { url, id: tabId } = activeTab;
+    const host = transformHost(url);
+    const agentInfo = agentsData[host];
+
     try {
-      await devToolsApi.attach({ tabId: activeTab?.id });
-      console.log('attach');
+      if (!agentInfo || Object.keys(agentInfo).length === 0 || !agentInfo.mustRecordJsCoverage) return;
+      await devToolsApi.attach({ tabId });
     } catch (e) {
-      console.log('Failed to attach', activeTab?.id, e);
+      console.log('Failed to attach', tabId, e);
       throw new Error(`Failed to attach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
     }
+
+    scriptParsedNotifier.subscribe(url, tabId, ({ script, tab }: any) => {
+      const hash = getHash(unifyLineEndings(script.scriptSource));
+      if (!actualHashes[`${tab.id}${tab.url}`]) {
+        actualHashes[`${tab.id}${tab.url}`] = [];
+      }
+      actualHashes[`${tab.id}${tab.url}`].push(hash);
+      addScriptSources(tab, hash, script);
+      updateBundleValidity(host, actualHashes[`${tab.id}${tab.url}`]);
+    });
+
+    // navigationNotifier.subscribe(url, tabId, () => {
+    //   console.log('object');
+    //   unsubscribe();
+    // });
+
+    // updateNotifier.subscribe(url, tabId, () => {
+    //   console.log('object');
+    // });
+
+    await devToolsApi.sendCommand({ tabId }, 'Debugger.enable', {});
+    await devToolsApi.sendCommand({ tabId }, 'Debugger.setSkipAllPauses', { skip: true });
   });
 
   router.add('HIDE_WIDGET', async (sender, activeTab) => {
     try {
       await devToolsApi.detach({ tabId: activeTab?.id });
-      console.log('detach');
     } catch (e) {
       console.log('Failed to detach', activeTab?.id, e);
       throw new Error(`Failed to detach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
     }
   });
 
-  router.add('VERIFY_BUILD', async (sender, activeTab) => {
-    const host = transformHost(activeTab.url);
-    const agentInfo = agentsData[host];
-    const currentHashes = new Set();
-    const expectedHashes: string[] = JSON.parse(agentInfo.agentVersion).map((info: { file: string; hash: string }) => info.hash);
-    const hasSomeExpectedHashes = () => expectedHashes.some((expectedHash) => currentHashes.has(expectedHash));
-    scriptSources[activeTab.id] = {
-      hashToUrl: {},
-      urlToHash: {},
-    };
-
-    const setHashes = async (scriptId: string, tabId: number | undefined, url: string) => {
-      try {
-        const rawScriptSource: any = await devToolsApi.sendCommand({ tabId }, 'Debugger.getScriptSource', { scriptId });
-        const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
-        scriptSources[activeTab.id].hashToUrl[hash] = url;
-        scriptSources[activeTab.id].urlToHash[url] = hash;
-        if (hasSomeExpectedHashes()) return;
-        currentHashes.add(hash);
-      } catch (e) {
-        console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
-          'background-color: yellow;',
-          'background-color: unset;');
-      }
-    };
-
-    if (!agentInfo || Object.keys(agentInfo).length === 0) return;
-
-    const listener = async (_: any, method: string, params: Record<string, any> | undefined) => {
-      if (method !== 'Debugger.scriptParsed') return;
-      if (hasSomeExpectedHashes()) {
-        chrome.debugger.onEvent.removeListener(listener);
-      }
-
-      console.count();
-      const { url, scriptId } = params as { url: string; scriptId: string };
-
-      if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) return;
-      await setHashes(scriptId, activeTab.id, url);
-
-      // chrome.webNavigation.onBeforeNavigate.addListener(() => { console.log('bar'); });
-      chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
-        if (changeInfo.url) {
-          console.count('changed url');
-          const agentOnNewUrl = agentsData[transformHost(changeInfo.url)];
-          if (!agentOnNewUrl || Object.keys(agentOnNewUrl).length === 0) return;
-          await setHashes(scriptId, tabId, url);
-          buildVerificationData[host] = hasSomeExpectedHashes();
-          notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);
-        }
-      });
-    };
-
-    chrome.debugger.onEvent.addListener(listener);
-    await devToolsApi.sendCommand({ tabId: activeTab.id }, 'Debugger.enable', {});
-    await devToolsApi.sendCommand({ tabId: activeTab.id }, 'Debugger.setSkipAllPauses', { skip: true });
-
-    buildVerificationData[host] = hasSomeExpectedHashes();
-    notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);
-  });
-
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
-    console.log(host, adapter);
 
     if (!adapter) throw new Error('Backend connection unavailable');
-    const sessionId = await adapter.startTest(testName, scriptSources, sender);
 
+    const sessionId = await adapter.startTest(testName, scriptSources, sender);
     sessionsData[host] = {
       testName,
       sessionId,
@@ -355,7 +332,6 @@ async function init() {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
-    // TODO !sessionsData[host] check?
     try {
       await adapter.stopTest(sessionsData[host].sessionId, sessionsData[host].testName, sender);
       sessionsData[host] = {
@@ -435,6 +411,17 @@ async function init() {
   });
 
   router.init(setupRuntimeMessageListener);
+
+  function addScriptSources(tab: any, hash: string, script: any) {
+    if (!scriptSources[tab.id]) {
+      scriptSources[tab.id] = {
+        hashToUrl: {},
+        urlToHash: {},
+      };
+    }
+    scriptSources[tab.id].hashToUrl[hash] = script.scriptUrl;
+    scriptSources[tab.id].urlToHash[script.scriptUrl] = hash;
+  }
 }
 
 async function connect(connectCb: any, disconnectCb: any) {

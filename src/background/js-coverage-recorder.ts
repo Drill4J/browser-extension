@@ -10,12 +10,13 @@ export default {
 let scriptSources: ScriptSources = {};
 
 async function start(sender: chrome.runtime.MessageSender, sources: ScriptSources) {
-  scriptSources = sources;
   await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Profiler.enable', {});
   await devToolsApi.sendCommand({ tabId: sender?.tab?.id }, 'Profiler.startPreciseCoverage', {
     callCount: false,
     detailed: true,
   });
+  scriptSources = sources;
+  console.log('>>>', scriptSources);
 }
 
 async function cancel(sender: chrome.runtime.MessageSender) {
@@ -26,8 +27,6 @@ async function cancel(sender: chrome.runtime.MessageSender) {
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
   await devToolsApi.detach(target);
-
-  delete scriptSources[sender?.tab?.id as any];
 }
 
 async function stop(sender: chrome.runtime.MessageSender) {
@@ -43,6 +42,5 @@ async function stop(sender: chrome.runtime.MessageSender) {
 
   // FIXME see FIXME #1, also scriptsources probably won't change every test. Or will they? (e.g. bundle splitting, modular design etc)
   const sources = scriptSources[sender?.tab?.id as any];
-  delete scriptSources[sender?.tab?.id as any];
   return { coverage: data.result, scriptSources: sources };
 }

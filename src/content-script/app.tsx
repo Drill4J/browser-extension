@@ -4,9 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { BEM } from '@redneckz/react-bem-helper';
 
 import { browser } from 'webextension-polyfill-ts';
+import chromeApi from '../common/chrome-api';
 import { Logo } from './logo';
 import { AgentContext, withAgentContext } from './context';
-import { useBackendConnectionStatus, useBuildVerification } from '../hooks';
+import { useActiveTab, useBackendConnectionStatus, useBuildVerification } from '../hooks';
 import {
   reducer, setIsWidgetVisible, setCorner, setInitial,
 } from './reducer';
@@ -45,7 +46,7 @@ export const App = withAgentContext(app(({ host }: Props) => {
     }());
   }, []);
 
-  const { data: isVerifiedBuild, isLoading } = useBuildVerification();
+  const { data: isVerifiedBuild, isLoading } = useBuildVerification({});
   console.log(isVerifiedBuild, isLoading);
 
   const isConnectionLost = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;

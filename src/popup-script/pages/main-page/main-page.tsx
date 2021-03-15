@@ -72,7 +72,6 @@ export const MainPage = mainPage(({ className }: Props) => {
                   async () => {
                     try {
                       await bgInterop.openWidget(activeTab);
-                      bgInterop.verifyBuild(activeTab);
                     } catch (e) {
                       console.log(e?.message || 'Something happened on the backend');
                     }
@@ -90,7 +89,7 @@ export const MainPage = mainPage(({ className }: Props) => {
                 size="large"
                 onClick={async () => {
                   try {
-                    await bgInterop.hideWidget();
+                    await bgInterop.hideWidget(activeTab);
                   } catch (e) {
                     console.log(e?.message || 'Something happened on the backend');
                   }
