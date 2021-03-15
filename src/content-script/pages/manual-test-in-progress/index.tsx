@@ -39,11 +39,15 @@ export const ManualTestInProgress = () => {
           </div>
           <div className="d-flex gx-1">
             <span>Scope Coverage:</span>
-            {agent.mustRecordJsCoverage && (
-              <span className="bold" title="For JS agent coverage may be shown only after the test is finished">n/a</span>
-            )}
-            {agent.adapterType === 'groups' && (
-              <span className="bold" title="For Service Group scope coverage can’t be displayed">n/a</span>
+            {(agent.mustRecordJsCoverage || agent.adapterType === 'groups') && (
+              <span
+                className="bold"
+                title={agent.adapterType === 'groups'
+                  ? 'scope coverage for individual agents is available in the Admin Panel'
+                  : 'scope coverage for JS agent is displayed after the test is finished'}
+              >
+                n/a
+              </span>
             )}
             {!agent.mustRecordJsCoverage && agent.adapterType === 'agents' && (
               <span className="bold">
