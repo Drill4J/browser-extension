@@ -9,6 +9,7 @@ import { ManualTestInProgress } from './manual-test-in-progress';
 import { FinishedManualTest } from './finished-manual-test';
 import { ManualTestError } from './manual-test-error';
 import * as bgInterop from '../../common/background-interop';
+import { SessionErrorType } from '../../background/types';
 
 export const Pages = withActiveScopeContext(withSessionContext(() => {
   const { push } = useHistory();
@@ -40,7 +41,7 @@ export const Pages = withActiveScopeContext(withSessionContext(() => {
         path="/manual-testing-error"
         render={() => (
           <ManualTestError
-            message="Failed action with active session"
+            message={getSessionErrorMessage(session?.errorType)}
             messageToCopy={session?.error?.message || 'Something happened on the backend'}
           >
             <Button
@@ -64,3 +65,14 @@ export const Pages = withActiveScopeContext(withSessionContext(() => {
     </Switch>
   );
 }));
+
+function getSessionErrorMessage(errorType: SessionErrorType) {
+  switch (errorType) {
+    case 'abort':
+      return 'Failed to abort test.';
+    case 'finish':
+      return 'Failed to finish test.';
+    default:
+      return 'Action failed.';
+  }
+}
