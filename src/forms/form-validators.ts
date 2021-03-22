@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { camelToSpaces, get } from '../utils';
+import { camelToSpaces, getNestedProperty } from '../utils';
+import addressValidator from './validators/address';
 
 type FormValidationResult = Record<string, string> | undefined;
 export type FormValidator = <T extends Record<string, unknown>>(formValues: T) => FormValidationResult;
@@ -24,18 +25,9 @@ export function composeValidators(...validators: FormValidator[]): FormValidator
 
 export function required(fieldName: string, fieldAlias?: string): FormValidator {
   return (valitationItem) => {
-    const value = get<string>(valitationItem, fieldName);
+    const value = getNestedProperty<string>(valitationItem, fieldName);
     return (!value || (typeof value === 'string' && !value.trim())
       ? toError(fieldName, `${fieldAlias || camelToSpaces(fieldName)} is required.`)
-      : undefined);
-  };
-}
-
-export function requiredArray(fieldName: string, fieldAlias?: string) {
-  return (valitationItem: Record<string, unknown>) => {
-    const value = get<string[]>(valitationItem, fieldName);
-    return (!value || (typeof value === 'object' && value?.filter(Boolean).length === 0)
-      ? toError(fieldName, fieldAlias || `${camelToSpaces(fieldName)} is required.`)
       : undefined);
   };
 }
@@ -52,7 +44,7 @@ export function sizeLimit({
   max?: number;
 }): FormValidator {
   return (valitationItem) => {
-    const value = get<string>(valitationItem, name);
+    const value = getNestedProperty<string>(valitationItem, name);
     return ((value && typeof value === 'string' && value.trim().length < min)
     || (value && typeof value === 'string' && value.trim().length > max)
       ? toError(name, `${alias
@@ -61,31 +53,23 @@ export function sizeLimit({
   };
 }
 
-export function toError(fieldName: string, error: string) {
+function toError(fieldName: string, error: string) {
   const field = fieldName.split('.');
   return field.reduceRight((acc, key, index) => (
     { [key]: index === field.length - 1 ? error : acc }
   ), {});
 }
 
-function isValidURL(value: string) {
-  try {
-    const url = new URL(value);
-    if (url.hostname !== 'localhost' && value === url.origin && !url.port) {
-      const dotSeparatedArray = value.split('.');
-      return dotSeparatedArray.length > 1 && dotSeparatedArray.every((str) => Boolean(str));
+function createValidator(validator: (value: any) => void) {
+  return (field: string, errorMessage: string): FormValidator => (data) => {
+    const value = getNestedProperty<string>(data, field);
+    try {
+      validator(value);
+      return undefined;
+    } catch (e) {
+      return toError(field, errorMessage || e.message);
     }
-    return value === url.origin;
-  } catch {
-    return false;
-  }
-}
-
-export function validateBackendAdress(fieldName: string): FormValidator {
-  return (valitationItem) => {
-    const value = get<string>(valitationItem, fieldName) || '';
-    if (value === 'localhost' || value.slice(-3) === ':80' || value.slice(-8) === ':0008080') return undefined;
-    if (isValidURL(value)) return undefined;
-    return toError(fieldName, 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format.');
   };
 }
+
+export const validateAddress = createValidator(addressValidator);

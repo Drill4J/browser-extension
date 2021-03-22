@@ -6,7 +6,10 @@ import { Form, Field } from 'react-final-form';
 import packageJson from '../../package.json';
 import { parseURL } from '../utils';
 import {
-  Fields, composeValidators, required, validateBackendAdress,
+  Fields,
+  composeValidators,
+  required,
+  validateAddress,
 } from '../forms';
 import * as localStorageUtil from '../common/util/local-storage';
 
@@ -24,9 +27,9 @@ interface Domain {
 
 const optionsPage = BEM(styles);
 
-const validateDomain = composeValidators(
+const validators = composeValidators(
   required('backendAddress', 'Admin URL'),
-  validateBackendAdress('backendAddress'),
+  validateAddress('backendAddress', 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format.'),
 );
 
 export const App = optionsPage(({ className }: Props) => {
@@ -55,7 +58,7 @@ export const App = optionsPage(({ className }: Props) => {
             await localStorageUtil.save(data);
             setIsSaved(true);
           }}
-          validate={validateDomain as any}
+          validate={validators as any}
           render={({
             handleSubmit, submitting, pristine, invalid, values: { backendAddress = '' } = {},
           }) => {
@@ -76,7 +79,6 @@ export const App = optionsPage(({ className }: Props) => {
                     name="backendAddress"
                     component={Fields.Input}
                     placeholder="http(s)://host(:port)"
-                    parse={(value = '') => parseURL(value, prevValue)}
                   />
                 </FormGroup>
                 <div className="d-flex align-items-center gx-4">

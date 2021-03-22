@@ -6,13 +6,13 @@ import { Form, Field } from 'react-final-form';
 import { BackendConnectionStatus } from '../../common/enums';
 import { useBackendConnectionStatus } from '../../hooks';
 import { Fields } from '../fields';
-import { composeValidators, required, validateBackendAdress } from '../form-validators';
+import { composeValidators, required, validateAddress } from '../form-validators';
 import { parseURL } from '../../utils';
 import * as localStorageUtil from '../../common/util/local-storage';
 
-const validateDomain = composeValidators(
+const validators = composeValidators(
   required('backendAddress', 'Admin URL'),
-  validateBackendAdress('backendAddress'),
+  validateAddress('backendAddress', 'Admin API URL is not correct. Please enter a valid URL matching the "http(s)://host(:port)" format.'),
 );
 
 export const ConnectionForm = () => {
@@ -34,7 +34,7 @@ export const ConnectionForm = () => {
         setIsLoading(true);
         await localStorageUtil.save(data);
       }}
-      validate={validateDomain}
+      validate={validators}
       render={({
         handleSubmit, submitting, pristine, invalid, values: { backendAddress = '' } = {},
       }) => {
@@ -52,7 +52,6 @@ export const ConnectionForm = () => {
                 component={Fields.Input}
                 placeholder="http(s)://host(:port)"
                 disabled={submitting || isLoading || isReconnecting}
-                parse={(value = '') => parseURL(value, prevValue)}
               />
             </FormGroup>
             <Button
