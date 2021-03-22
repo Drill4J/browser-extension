@@ -19,6 +19,7 @@ import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
+import chromeApi from '../common/chrome-api';
 
 init();
 async function init() {
@@ -226,6 +227,42 @@ async function init() {
 
   const router = createMessageRouter();
 
+  const updateExtensionStatusIcon = (host: string) => {
+    const session = sessionsData[host];
+
+    if (!session
+      || session?.status === SessionStatus.STOPPED
+      || session?.status === SessionStatus.CANCELED
+      || session?.status === SessionStatus.ERROR) {
+      chrome.browserAction.setBadgeText({
+        text: '',
+      });
+    }
+    if (session?.status === SessionStatus.ACTIVE) {
+      chrome.browserAction.setBadgeText({
+        text: 'rec',
+      });
+      chrome.browserAction.setBadgeBackgroundColor({
+        color: '#EE0000',
+      });
+    }
+  };
+
+  chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    const tab = await chromeApi.getTabById(activeInfo.tabId);
+    updateExtensionStatusIcon(transformHost(tab?.url));
+  });
+
+  chrome.tabs.onUpdated.addListener(async (tabId) => {
+    const tab = await chromeApi.getTabById(tabId);
+    updateExtensionStatusIcon(transformHost(tab?.url));
+  });
+
+  chrome.windows.onFocusChanged.addListener(async () => {
+    const tab = await chromeApi.getActiveTab();
+    updateExtensionStatusIcon(transformHost(tab?.url));
+  });
+
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
@@ -238,6 +275,7 @@ async function init() {
       status: SessionStatus.ACTIVE,
     };
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    updateExtensionStatusIcon(host);
   });
 
   router.add('STOP_TEST', async (sender: chrome.runtime.MessageSender) => {
@@ -268,6 +306,7 @@ async function init() {
     }
 
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    updateExtensionStatusIcon(host);
   });
 
   router.add('CANCEL_TEST', async (sender: chrome.runtime.MessageSender) => {
@@ -297,12 +336,14 @@ async function init() {
       }
     }
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    updateExtensionStatusIcon(host);
   });
 
   router.add('CLEANUP_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     delete sessionsData[host];
     notifySubscribers(sessionSubs[host], sessionsData[host]); // FIXME
+    updateExtensionStatusIcon(host);
   });
 
   router.add('REACTIVATE_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
@@ -316,6 +357,7 @@ async function init() {
     };
 
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    updateExtensionStatusIcon(host);
   });
 
   // FIXME rename that to getIsHostAssociatedWithAgent

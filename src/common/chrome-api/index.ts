@@ -8,4 +8,8 @@ export default {
     }
     return tabs[0];
   },
+  async getTabById(tabId: number): Promise<chrome.tabs.Tab | undefined> {
+    const tab = await promisifyBrowserApiCall<chrome.tabs.Tab>(chrome.tabs.get, tabId);
+    return tab;
+  },
 };
