@@ -1,0 +1,11 @@
+@import '../../../../common/style-guide';
+
+.confirm-abort-test {
+  font-size: 14px;
+  color: map-get($monochrome, black);
+  font-family: $regular-font;
+
+  &__bold-text {
+    font-family: $semibold-font;
+  }
+}

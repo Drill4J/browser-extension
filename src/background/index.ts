@@ -19,6 +19,8 @@ import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
+import chromeApi from '../common/chrome-api';
+import { promisifyBrowserApiCall } from '../common/util/promisify-browser-api-call';
 
 init();
 async function init() {
@@ -226,6 +228,21 @@ async function init() {
 
   const router = createMessageRouter();
 
+  chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    const tab = await chromeApi.getTabById(activeInfo.tabId);
+    await updateExtensionStatusIcon(sessionsData[transformHost(tab?.url)]);
+  });
+
+  chrome.tabs.onUpdated.addListener(async (tabId) => {
+    const tab = await chromeApi.getTabById(tabId);
+    await updateExtensionStatusIcon(sessionsData[transformHost(tab?.url)]);
+  });
+
+  chrome.windows.onFocusChanged.addListener(async () => {
+    const tab = await chromeApi.getActiveTab();
+    await updateExtensionStatusIcon(sessionsData[transformHost(tab?.url)]);
+  });
+
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
@@ -238,6 +255,7 @@ async function init() {
       status: SessionStatus.ACTIVE,
     };
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    await updateExtensionStatusIcon(sessionsData[host]);
   });
 
   router.add('STOP_TEST', async (sender: chrome.runtime.MessageSender) => {
@@ -260,6 +278,7 @@ async function init() {
           status: SessionStatus.ERROR,
           end: Date.now(),
           error: e,
+          errorType: 'finish',
         };
       } else {
         throw e;
@@ -267,6 +286,7 @@ async function init() {
     }
 
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    await updateExtensionStatusIcon(sessionsData[host]);
   });
 
   router.add('CANCEL_TEST', async (sender: chrome.runtime.MessageSender) => {
@@ -289,18 +309,35 @@ async function init() {
           status: SessionStatus.ERROR,
           end: Date.now(),
           error: e,
+          errorType: 'abort',
         };
       } else {
         throw e;
       }
     }
     notifySubscribers(sessionSubs[host], sessionsData[host]);
+    await updateExtensionStatusIcon(sessionsData[host]);
   });
 
   router.add('CLEANUP_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
     const host = transformHost(sender.url);
     delete sessionsData[host];
     notifySubscribers(sessionSubs[host], sessionsData[host]); // FIXME
+    await updateExtensionStatusIcon(sessionsData[host]);
+  });
+
+  router.add('REACTIVATE_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
+    const host = transformHost(sender.url);
+
+    sessionsData[host] = {
+      ...sessionsData[host],
+      status: SessionStatus.ACTIVE,
+      end: undefined,
+      error: undefined,
+    };
+
+    notifySubscribers(sessionSubs[host], sessionsData[host]);
+    await updateExtensionStatusIcon(sessionsData[host]);
   });
 
   // FIXME rename that to getIsHostAssociatedWithAgent
@@ -477,4 +514,27 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       await backendApi.cancelTest(sessionId);
     },
   };
+}
+
+async function updateExtensionStatusIcon(sessionData: SessionData) {
+  try {
+    if (!sessionData
+      || sessionData?.status === SessionStatus.STOPPED
+      || sessionData?.status === SessionStatus.CANCELED
+      || sessionData?.status === SessionStatus.ERROR) {
+      await promisifyBrowserApiCall(chrome.browserAction.setBadgeText, {
+        text: '',
+      });
+    }
+    if (sessionData?.status === SessionStatus.ACTIVE) {
+      await promisifyBrowserApiCall(chrome.browserAction.setBadgeText, {
+        text: 'rec',
+      });
+      await promisifyBrowserApiCall(chrome.browserAction.setBadgeBackgroundColor, {
+        color: '#EE0000',
+      });
+    }
+  } catch (e) {
+    console.log('Failed to set badge.', e);
+  }
 }

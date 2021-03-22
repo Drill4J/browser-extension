@@ -1,0 +1,13 @@
+@import '../../../../common/style-guide/index';
+
+.agent-not-found {
+  font-size: 20px;
+  line-height: 32px;
+  color: map-get($monochrome, black);
+
+  &__instructions {
+    font-size: 14px;
+    line-height: 20px;
+    color: map-get($monochrome, default);
+  }
+}

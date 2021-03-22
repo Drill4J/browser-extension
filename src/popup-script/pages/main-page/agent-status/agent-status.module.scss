@@ -2,17 +2,22 @@
 
 .agent-status {
   font-family: $semibold-font;
-  &__content {
-    &--status {
-      &--online {
-        color: map-get($color-palette, green100);
-      }
-      &--offline {
-        color: $shade-gray;
-      }
-      &--busy {
-        color: map-get($color-palette, yellow50);
-      }
+
+  &--status {
+    &--online {
+      color: map-get($green, default);
+    }
+
+    &--offline {
+      color: map-get($monochrome, default);
+    }
+
+    &--not-registered {
+      color: map-get($monochrome, default);
+    }
+
+    &--busy {
+      color: map-get($orange, default);
     }
   }
 }

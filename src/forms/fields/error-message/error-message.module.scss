@@ -2,8 +2,9 @@
 
 .error-message {
   color: map-get($color-palette, red100);
+  font-family: $regular-font;
   font-size: 12px;
-  line-height: 24px;
+  line-height: 18px;
 
   &::first-letter {
     text-transform: uppercase;

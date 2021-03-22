@@ -12,7 +12,8 @@
   },
   "env": {
     "browser": true,
-    "webextensions": true
+    "webextensions": true,
+    "jest": true
   },
   "rules": {
     "react/jsx-filename-extension": [2, { "extensions": [".js", ".jsx", ".ts", ".tsx"] }],

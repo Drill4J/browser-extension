@@ -1,0 +1,24 @@
+@import '../../../common/style-guide';
+
+.manual-test-in-progress {
+  &__test-name {
+    max-width: 200px;
+  }
+
+  &__active-session-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: map-get($red, default);
+    animation: blinker 1.5s infinite cubic-bezier(1, 0, 0, 1);
+  }
+}
+
+@keyframes blinker {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

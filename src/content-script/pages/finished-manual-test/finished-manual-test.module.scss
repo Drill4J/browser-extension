@@ -1,0 +1,13 @@
+@import '../../../common/style-guide';
+
+.finished-manual-test {
+  &__vertical-line {
+    width: 1px;
+    height: 20px;
+    border-right: 1px solid map-get($monochrome, dark-tint);
+  }
+
+  &__test-name {
+    max-width: 200px;
+  }
+}

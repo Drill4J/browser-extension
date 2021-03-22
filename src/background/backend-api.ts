@@ -75,7 +75,7 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
       return {
         async startTest(testName: string) { // TODO add isRealTime param
           const sessionId = uuid();
-          await axiosPost(baseUrl, {
+          await sendSessionAction(baseUrl, {
             type: 'START',
             payload: {
               sessionId,
@@ -88,21 +88,21 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
         },
 
         async stopTest(sessionId: string) {
-          await axiosPost(baseUrl, {
+          await sendSessionAction(baseUrl, {
             type: 'STOP',
             payload: { sessionId },
           });
         },
 
         async cancelTest(sessionId: string) {
-          await axiosPost(baseUrl, {
+          await sendSessionAction(baseUrl, {
             type: 'CANCEL',
             payload: { sessionId },
           });
         },
 
         async addSessionData(sessionId: string, data: unknown) {
-          await axiosPost(baseUrl, {
+          await sendSessionAction(baseUrl, {
             type: 'ADD_SESSION_DATA',
             payload: {
               sessionId,
@@ -178,53 +178,36 @@ async function login() {
   return authToken;
 }
 
-async function axiosPost(baseUrl: string, payload: unknown) {
+async function sendSessionAction(baseUrl: string, payload: unknown) {
   let data;
   try {
     const res = await axios.post(baseUrl, payload);
     data = res?.data;
+
+    if (Array.isArray(data)) {
+      const atLeastOneOperationIsSuccessful = data.some((x: any) => x.code === 200);
+      if (!atLeastOneOperationIsSuccessful) throw new Error(stringify(data));
+    }
   } catch (e) {
-    // FIXME this is specific to session actions, might as well move it elsewhere or rename a function
-    if (isAxiosError(e)) {
-      if (e.response?.data?.code === 404) {
-        throw (new SessionActionError(e.response?.data?.message, (payload as any).payload.sessionId));
-      }
-    }
-
-    throw new Error(getErrorMessage(e));
+    throw new SessionActionError(getErrorMessage(e), (payload as any).payload.sessionId);
   }
-
-  if (Array.isArray(data)) {
-    if (!data.some(x => x.code === 200)) { // TODO change when we will figure out SG actions handling
-      throw new Error('unexpected error');
-    }
-  } else if (data.code !== 200) { // TODO if backend always sets correct status codes that must not happen
-    throw new Error('unexpected error');
-  }
-  return data;
 }
 
-function getErrorMessage(e: unknown): string {
-  if (typeof e === 'string') return e;
-
-  if (typeof e === 'object') {
-    if (isAxiosError(e)) {
-      if (e.response?.data?.message) {
-        return e.response.data.message;
-      }
-      if (e.response?.status === 400) {
-        return 'bad request';
-      }
-      if (e.response?.status === 500) {
-        return 'internal server error';
-      }
-    }
+function getErrorMessage(e: any): string {
+  const defaultMessage = 'unexpected error';
+  if (e?.isAxiosError && e.response?.data?.message) {
+    return e.response?.data?.message;
   }
-
-  return 'unexpected error';
+  if (e?.message) {
+    return e.message;
+  }
+  return stringify(e) || defaultMessage;
 }
 
-function isAxiosError(e: unknown): e is AxiosError {
-  if (e && (e as any).isAxiosError) return true;
-  return false;
+function stringify(data: any) {
+  try {
+    return JSON.stringify(data);
+  } catch (e) {
+    return undefined;
+  }
 }

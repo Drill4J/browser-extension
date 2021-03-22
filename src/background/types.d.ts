@@ -1,7 +1,9 @@
+import { AgentStatus } from 'common/enums';
 import { SessionActionError } from '../common/errors/session-action-error';
 
 type Handler = (sender: chrome.runtime.MessageSender, ...params: any[]) => unknown;
 type Message = { type: string; payload: unknown };
+export type SessionErrorType = 'abort' | 'finish';
 export type MessageReceiver = (sender: chrome.runtime.MessageSender, messsage: Message) => Promise<unknown>;
 export type MessageSource = (receiver: MessageReceiver, connectionHandler?: any) => void;
 
@@ -27,6 +29,7 @@ export type SessionData = {
   status: SessionStatus;
   end?: number;
   error?: Error | SessionActionError;
+  errorType?: SessionErrorType;
 }
 
 export type ScopeData = Record<string, any>; // TODO type it properly!
@@ -38,7 +41,7 @@ export interface AdapterInfo {
   adapterType: AdapterType;
   id: string;
   host: string;
-  status: 'ONLINE' | 'OFFLINE' | 'BUSY' | '';
+  status: AgentStatus;
   mustRecordJsCoverage: boolean;
   buildVersion?: string;
 }
