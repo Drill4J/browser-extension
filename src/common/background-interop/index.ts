@@ -75,6 +75,10 @@ export async function cleanupTestSession() {
   return sendMessage<void>({ type: 'CLEANUP_TEST_SESSION' });
 }
 
+export async function reactivateTestSession() {
+  return sendMessage<void>({ type: 'REACTIVATE_TEST_SESSION' });
+}
+
 export async function getHostInfo() {
   return sendMessage<Record<string, any>>({ type: 'GET_HOST_INFO' });
 }

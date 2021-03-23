@@ -1,22 +1,12 @@
-@import '../common/style-guide/index';
+@import '../common/style-guide';
 
 .app {
-  &__relative-wrapper {
-    position: relative;
+  &__logo {
+    height: 24px;
+    margin: 6px 0;
   }
-  
-  &__unavailable-overlay {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-  
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
-    backdrop-filter: grayscale(1) blur(2px);
-    z-index: 2;
+
+  &__actions > * {
+    cursor: pointer;
   }
 }

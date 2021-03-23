@@ -1,3 +1,4 @@
+import { AdapterInfo } from 'background/types';
 import chromeApi from '../common/chrome-api';
 
 import * as backgroundInterop from '../common/background-interop';
@@ -14,5 +15,5 @@ async function getActiveTabUrl() {
 }
 
 export function useAgentOnActiveTab() {
-  return useSubscriptionWithAsyncOptions(backgroundInterop.subscribeToAgent, getOptions);
+  return useSubscriptionWithAsyncOptions<AdapterInfo>(backgroundInterop.subscribeToAgent, getOptions);
 }

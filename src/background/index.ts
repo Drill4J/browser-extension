@@ -260,6 +260,7 @@ async function init() {
           status: SessionStatus.ERROR,
           end: Date.now(),
           error: e,
+          errorType: 'finish',
         };
       } else {
         throw e;
@@ -289,6 +290,7 @@ async function init() {
           status: SessionStatus.ERROR,
           end: Date.now(),
           error: e,
+          errorType: 'abort',
         };
       } else {
         throw e;
@@ -301,6 +303,19 @@ async function init() {
     const host = transformHost(sender.url);
     delete sessionsData[host];
     notifySubscribers(sessionSubs[host], sessionsData[host]); // FIXME
+  });
+
+  router.add('REACTIVATE_TEST_SESSION', async (sender: chrome.runtime.MessageSender) => {
+    const host = transformHost(sender.url);
+
+    sessionsData[host] = {
+      ...sessionsData[host],
+      status: SessionStatus.ACTIVE,
+      end: undefined,
+      error: undefined,
+    };
+
+    notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
   // FIXME rename that to getIsHostAssociatedWithAgent

@@ -8,6 +8,7 @@ const fileExtensions = ['jpg', 'jpeg', 'png', 'gif', 'eot', 'otf', 'svg', 'ttf',
 const options = {
   mode: process.env.NODE_ENV || 'development',
   entry: {
+    iframe: path.join(__dirname, 'src', 'iframe.scss'),
     content: path.join(__dirname, 'src', 'content.ts'),
     popup: path.join(__dirname, 'src', 'popup.ts'),
     options: path.join(__dirname, 'src', 'options.ts'),
