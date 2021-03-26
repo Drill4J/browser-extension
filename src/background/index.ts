@@ -1,15 +1,21 @@
+import xxHashJs from 'xxhashjs';
+import chromeApi from '../common/chrome-api';
 import createMessageRouter from './message-router';
 import setupRuntimeMessageListener from './runtime-message-listener';
 import initBackendApi from './backend-api';
 import jsCoverageRecorder from './js-coverage-recorder';
 import { transformHost } from '../common/util/transform-host';
 import * as localStorageUtil from '../common/util/local-storage';
+import * as scriptParsedNotifier from './script-parsed-notifier';
+import * as navigationNotifier from './navigation-notifier';
+import * as updateNotifier from './updated-notifier';
 import type {
   AdapterInfo,
   AgentAdapter,
   BackendApi,
   BackendCreator,
   ScopeData,
+  ScriptSources,
   SessionData,
   SubNotifyFunction,
 } from './types';
@@ -19,13 +25,16 @@ import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
+import devToolsApi from './dev-tools-api';
 
 init();
 async function init() {
   // TODO refactor to store + actions + reducers
   let adapters: Record<string, AgentAdapter> = {};
+  const actualHashes: Record<string, any> = {};
 
   // session subscriptions
+  const scriptSources: ScriptSources = {};
   const backendConnectionStatusSubs: Record<string, any> = {};
   const backendConnectionStatusSubsCleanup: Record<string, any> = {};
   let backendConnectionStatusData: BackendConnectionStatus = BackendConnectionStatus.UNAVAILABLE;
@@ -46,6 +55,11 @@ async function init() {
   const scopeSubs: Record<string, any> = {};
   const scopeSubsCleanup: Record<string, any> = {};
   const scopesData: Record<string, ScopeData> = {};
+
+  // buildVerification subscriptions
+  const buildVerificationSubs: any = {};
+  const buildVerificationSubsCleanup: any = {};
+  const buildVerificationData: any = {};
 
   const interceptedDataStore: Record<string, any> = {};
   // const responseInterceptorsCleanup = setupResponseInterceptors(interceptedDataStore);
@@ -112,12 +126,12 @@ async function init() {
     ];
     agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
     agentsDataById = newInfo.reduce((a, z) => ({ ...a, [z.id]: z }), {});
-
     adapters = createAdaptersFromInfo(newInfo, backend);
 
     Object.keys(agentsData).forEach((host) => {
       if (agentSubs[host] && Object.keys(agentSubs[host]).length > 0) {
         notifySubscribers(agentSubs[host], agentsData[host]);
+        // updateBundleValidity(host, actualHashes[`${tab.id}${tab.url}`]);
       }
     });
   }
@@ -179,6 +193,17 @@ async function init() {
             delete scopeSubs[host][portId];
           };
         }
+
+        if (resource === 'build-verification') {
+          if (!buildVerificationSubs[host]) {
+            buildVerificationSubs[host] = {};
+          }
+          console.log(options);
+          if (buildVerificationSubs[host][portId]) throw new Error(`Duplicate subscription: resource ${resource}, host ${host}, portId ${portId}`);
+          buildVerificationSubs[host][portId] = createPortUpdater(port, 'build-verification');
+          buildVerificationSubs[host][portId](buildVerificationData[host]);
+          buildVerificationSubsCleanup[portId] = () => delete buildVerificationSubs[host][portId];
+        }
       }
       if (type === 'UNSUBSCRIBE') {
         if (resource === 'agent') {
@@ -192,6 +217,9 @@ async function init() {
         }
         if (resource === 'backend-connection-status') {
           backendConnectionStatusSubsCleanup[portId]();
+        }
+        if (resource === 'build-verification') {
+          buildVerificationSubsCleanup[portId]();
         }
       }
     };
@@ -218,19 +246,79 @@ async function init() {
       if (backendConnectionStatusSubsCleanup[portId]) {
         backendConnectionStatusSubsCleanup[portId]();
       }
+
+      if (buildVerificationSubsCleanup[portId]) {
+        buildVerificationSubsCleanup[portId]();
+      }
     });
 
     port.onMessage.addListener(portMessageHandler);
   };
   chrome.runtime.onConnect.addListener(runtimeConnectHandler);
 
+  function updateBundleValidity(host: any, tabActualHashes: string[]) {
+    buildVerificationData[host] = tabActualHashes
+      .some((tabActualHash) => Boolean(JSON
+        .parse(agentsData[host].agentVersion)
+        .map((info: any) => info.hash)
+        .find((hash: string) => hash === tabActualHash)));
+    notifySubscribers(buildVerificationSubs[host], buildVerificationData[host]);
+  }
+
   const router = createMessageRouter();
+
+  router.add('OPEN_WIDGET', async (sender, activeTab) => {
+    const { url, id: tabId } = activeTab;
+    const host = transformHost(url);
+    const agentInfo = agentsData[host];
+
+    try {
+      if (!agentInfo || Object.keys(agentInfo).length === 0 || !agentInfo.mustRecordJsCoverage) return;
+      await devToolsApi.attach({ tabId });
+    } catch (e) {
+      console.log('Failed to attach', tabId, e);
+      throw new Error(`Failed to attach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
+    }
+
+    scriptParsedNotifier.subscribe(url, tabId, ({ script, tab }: any) => {
+      const hash = getHash(unifyLineEndings(script.scriptSource));
+      if (!actualHashes[`${tab.id}${tab.url}`]) {
+        actualHashes[`${tab.id}${tab.url}`] = [];
+      }
+      actualHashes[`${tab.id}${tab.url}`].push(hash);
+      addScriptSources(tab, hash, script);
+      updateBundleValidity(host, actualHashes[`${tab.id}${tab.url}`]);
+    });
+
+    // navigationNotifier.subscribe(url, tabId, () => {
+    //   console.log('object');
+    //   unsubscribe();
+    // });
+
+    // updateNotifier.subscribe(url, tabId, () => {
+    //   console.log('object');
+    // });
+
+    await devToolsApi.sendCommand({ tabId }, 'Debugger.enable', {});
+    await devToolsApi.sendCommand({ tabId }, 'Debugger.setSkipAllPauses', { skip: true });
+  });
+
+  router.add('HIDE_WIDGET', async (sender, activeTab) => {
+    try {
+      await devToolsApi.detach({ tabId: activeTab?.id });
+    } catch (e) {
+      console.log('Failed to detach', activeTab?.id, e);
+      throw new Error(`Failed to detach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
+    }
+  });
 
   router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
+
     if (!adapter) throw new Error('Backend connection unavailable');
-    const sessionId = await adapter.startTest(testName, sender);
+
+    const sessionId = await adapter.startTest(testName, scriptSources, sender);
     sessionsData[host] = {
       testName,
       sessionId,
@@ -244,7 +332,6 @@ async function init() {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
-    // TODO !sessionsData[host] check?
     try {
       await adapter.stopTest(sessionsData[host].sessionId, sessionsData[host].testName, sender);
       sessionsData[host] = {
@@ -324,6 +411,17 @@ async function init() {
   });
 
   router.init(setupRuntimeMessageListener);
+
+  function addScriptSources(tab: any, hash: string, script: any) {
+    if (!scriptSources[tab.id]) {
+      scriptSources[tab.id] = {
+        hashToUrl: {},
+        urlToHash: {},
+      };
+    }
+    scriptSources[tab.id].hashToUrl[hash] = script.scriptUrl;
+    scriptSources[tab.id].urlToHash[script.scriptUrl] = hash;
+  }
 }
 
 async function connect(connectCb: any, disconnectCb: any) {
@@ -390,6 +488,7 @@ function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, strin
     .map((x: any) => ({
       adapterType: 'agents',
       id: x.id,
+      agentVersion: x.agentVersion,
       // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
       // - get BUSY status
       // - receive no further updates (because host has changed)
@@ -466,9 +565,9 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
     };
   }
   return {
-    startTest: async (testName, sender) => {
+    startTest: async (testName, scriptSources, sender) => {
       if (!sender) throw new Error('START_TEST_NO_SENDER');
-      await jsCoverageRecorder.start(sender);
+      await jsCoverageRecorder.start(sender, scriptSources);
       const sessionId = await backendApi.startTest(testName);
       return sessionId;
     },
@@ -490,4 +589,19 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       await backendApi.cancelTest(sessionId);
     },
   };
+}
+
+function getHash(data: any) {
+  const seed = 0xABCD;
+  const hashFn = xxHashJs.h32(seed);
+  return hashFn.update(data).digest().toString(16);
+}
+
+function unifyLineEndings(str: string): string {
+  // reference https://www.ecma-international.org/ecma-262/10.0/#sec-line-terminators
+  const LF = '\u000A';
+  const CRLF = '\u000D\u000A';
+  const LS = '\u2028';
+  const PS = '\u2029';
+  return str.replace(RegExp(`(${CRLF}|${LS}|${PS})`, 'g'), LF);
 }

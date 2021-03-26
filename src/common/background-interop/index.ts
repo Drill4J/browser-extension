@@ -39,6 +39,12 @@ export async function subscribeToBackendConnectionStatus(handler: (...params: un
   return unsubscribe;
 }
 
+export async function subscribeToBuildVerification(handler: (...params: unknown[]) => void, options?: unknown) {
+  await connectionEstablished;
+  const unsubscribe = connection.subscribe('build-verification', handler, options);
+  return unsubscribe;
+}
+
 export async function unsubscribeAll() {
   connection.unsubscribeAll();
 }
@@ -81,4 +87,16 @@ export async function reactivateTestSession() {
 
 export async function getHostInfo() {
   return sendMessage<Record<string, any>>({ type: 'GET_HOST_INFO' });
+}
+
+export async function verifyBuild(activeTab?: chrome.tabs.Tab) {
+  return sendMessage<boolean>({ type: 'VERIFY_BUILD', payload: activeTab });
+}
+
+export async function openWidget(activeTab?: chrome.tabs.Tab) {
+  return sendMessage<Record<string, any>>({ type: 'OPEN_WIDGET', payload: activeTab });
+}
+
+export async function hideWidget(activeTab?: chrome.tabs.Tab) {
+  return sendMessage<Record<string, any>>({ type: 'HIDE_WIDGET', payload: activeTab });
 }
