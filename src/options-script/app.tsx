@@ -4,7 +4,6 @@ import { FormGroup, Button, Icons } from '@drill4j/ui-kit';
 import { Form, Field } from 'react-final-form';
 
 import packageJson from '../../package.json';
-import { parseURL } from '../utils';
 import {
   Fields,
   composeValidators,

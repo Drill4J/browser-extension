@@ -7,7 +7,6 @@ import { BackendConnectionStatus } from '../../common/enums';
 import { useBackendConnectionStatus } from '../../hooks';
 import { Fields } from '../fields';
 import { composeValidators, required, validateAddress } from '../form-validators';
-import { parseURL } from '../../utils';
 import * as localStorageUtil from '../../common/util/local-storage';
 
 const validators = composeValidators(
@@ -36,50 +35,42 @@ export const ConnectionForm = () => {
       }}
       validate={validators}
       render={({
-        handleSubmit, submitting, pristine, invalid, values: { backendAddress = '' } = {},
-      }) => {
-        const prevValueRef = React.useRef('');
-
-        React.useEffect(() => {
-          prevValueRef.current = backendAddress;
-        });
-        const prevValue = prevValueRef.current;
-        return (
-          <div className="d-flex flex-column gy-6">
-            <FormGroup label="Admin API URL">
-              <Field
-                name="backendAddress"
-                component={Fields.Input}
-                placeholder="http(s)://host(:port)"
-                disabled={submitting || isLoading || isReconnecting}
-              />
-            </FormGroup>
-            <Button
-              className="mr-auto"
-              type="primary"
-              size="large"
-              disabled={submitting || pristine || invalid || isLoading || isReconnecting}
-              onClick={handleSubmit}
-            >
-              {(submitting || isLoading) && (
-                <>
-                  <Spinner className="mr-2" />
-                  <span>Connecting...</span>
-                </>
-              )}
-              {isReconnecting && (
-                <>
-                  <Spinner className="mr-2" />
-                  <span>
-                    Reconnecting...
-                  </span>
-                </>
-              )}
-              {!submitting && !isLoading && !isReconnecting && 'Connect'}
-            </Button>
-          </div>
-        );
-      }}
+        handleSubmit, submitting, pristine, invalid,
+      }) => (
+        <div className="d-flex flex-column gy-6">
+          <FormGroup label="Admin API URL">
+            <Field
+              name="backendAddress"
+              component={Fields.Input}
+              placeholder="http(s)://host(:port)"
+              disabled={submitting || isLoading || isReconnecting}
+            />
+          </FormGroup>
+          <Button
+            className="mr-auto"
+            type="primary"
+            size="large"
+            disabled={submitting || pristine || invalid || isLoading || isReconnecting}
+            onClick={handleSubmit}
+          >
+            {(submitting || isLoading) && (
+              <>
+                <Spinner className="mr-2" />
+                <span>Connecting...</span>
+              </>
+            )}
+            {isReconnecting && (
+              <>
+                <Spinner className="mr-2" />
+                <span>
+                  Reconnecting...
+                </span>
+              </>
+            )}
+            {!submitting && !isLoading && !isReconnecting && 'Connect'}
+          </Button>
+        </div>
+      )}
     />
   );
 };
