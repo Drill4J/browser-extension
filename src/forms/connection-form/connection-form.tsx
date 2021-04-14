@@ -2,6 +2,7 @@
 import * as React from 'react';
 import { Button, FormGroup, Spinner } from '@drill4j/ui-kit';
 import { Form, Field } from 'react-final-form';
+import styled, { keyframes } from 'styled-components';
 
 import { BackendConnectionStatus } from '../../common/enums';
 import { useBackendConnectionStatus } from '../../hooks';
@@ -74,3 +75,52 @@ export const ConnectionForm = () => {
     />
   );
 };
+
+const loadingFlash = keyframes`
+  0% {
+      background-position: -250px;
+  }
+  100% {
+      background-position: calc(100% + 250px);
+  }
+`;
+
+const Skeleton = styled.div`
+  background-color: rgb(240, 240, 240);
+
+  &::before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    background: linear-gradient(
+      90deg,
+      rgb(240, 240, 240) 0px,
+      #f9f9f9 calc(50% - 25px),
+      #f9f9f9 calc(50% + 25px),
+      rgb(240, 240, 240) 100%
+    );
+    background-size: 35%;
+    background-position: 0%;
+    background-repeat: no-repeat;
+    animation: ${loadingFlash} 1.5s infinite linear;
+  }
+`;
+
+const SkeletonTitle = styled(Skeleton)`
+  height: 20px;
+  width: 100px;
+`;
+
+const SkeletonField = styled(Skeleton)`
+  height: 40px;
+  width: 100%;
+  border-radius: 4px;
+`;
+
+const SkeletonButton = styled(Skeleton)`
+  height: 32px;
+  width: 150px;
+  border-radius: 20px;
+`;
