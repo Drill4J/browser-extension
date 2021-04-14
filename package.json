@@ -36,6 +36,7 @@
     "@types/react": "^16.14.0",
     "@types/react-dom": "^16.9.9",
     "@types/react-router-dom": "^5.1.6",
+    "@types/styled-components": "^5.1.9",
     "@types/uuid": "^8.3.0",
     "@types/xxhashjs": "^0.2.2",
     "@typescript-eslint/eslint-plugin": "^2.29.0",
