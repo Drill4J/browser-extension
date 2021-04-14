@@ -16,7 +16,6 @@ const validators = composeValidators(
 );
 
 export const ConnectionForm = () => {
-  const [isLoading, setIsLoading] = React.useState(false);
   const [initial, setInitial] = React.useState<Record<string, unknown> | null>(null);
   React.useEffect(() => {
     (async () => {
@@ -24,14 +23,15 @@ export const ConnectionForm = () => {
       setInitial(data);
     })();
   }, []);
-  const { data: backendConnectionStatus } = useBackendConnectionStatus();
-  const isReconnecting = backendConnectionStatus === BackendConnectionStatus.RECONNECTING;
+  const { data: backendConnectionStatus, isLoading } = useBackendConnectionStatus();
+
+  const isConnecting = backendConnectionStatus === BackendConnectionStatus.CONNECTING;
+  const isUnavailable = backendConnectionStatus === BackendConnectionStatus.UNAVAILABLE;
 
   return (
     <Form
       initialValues={initial}
       onSubmit={async (data: any) => {
-        setIsLoading(true);
         await localStorageUtil.save(data);
       }}
       validate={validators}
@@ -39,37 +39,44 @@ export const ConnectionForm = () => {
         handleSubmit, submitting, pristine, invalid,
       }) => (
         <div className="d-flex flex-column gy-6">
-          <FormGroup label="Admin API URL">
-            <Field
-              name="backendAddress"
-              component={Fields.Input}
-              placeholder="http(s)://host(:port)"
-              disabled={submitting || isLoading || isReconnecting}
-            />
-          </FormGroup>
-          <Button
-            className="mr-auto"
-            type="primary"
-            size="large"
-            disabled={submitting || pristine || invalid || isLoading || isReconnecting}
-            onClick={handleSubmit}
-          >
-            {(submitting || isLoading) && (
+          {isLoading || (isUnavailable && initial?.backendAddress)
+            ? (
               <>
-                <Spinner className="mr-2" />
-                <span>Connecting...</span>
+                <div className="d-flex flex-column gy-2">
+                  <SkeletonTitle />
+                  <SkeletonField />
+                </div>
+                <SkeletonButton className="mr-auto" />
+              </>
+            )
+            : (
+              <>
+                <FormGroup label="Admin API URL">
+                  <Field
+                    name="backendAddress"
+                    component={Fields.Input}
+                    placeholder="http(s)://host(:port)"
+                    disabled={submitting || isConnecting}
+                  />
+                </FormGroup>
+                <Button
+                  className="mr-auto"
+                  type="primary"
+                  size="large"
+                  disabled={submitting || pristine || invalid || isConnecting}
+                  onClick={handleSubmit}
+                >
+                  {(submitting || isConnecting)
+                    ? (
+                      <>
+                        <Spinner className="mr-2" />
+                        <span>Connecting...</span>
+                      </>
+                    )
+                    : 'Connect'}
+                </Button>
               </>
             )}
-            {isReconnecting && (
-              <>
-                <Spinner className="mr-2" />
-                <span>
-                  Reconnecting...
-                </span>
-              </>
-            )}
-            {!submitting && !isLoading && !isReconnecting && 'Connect'}
-          </Button>
         </div>
       )}
     />

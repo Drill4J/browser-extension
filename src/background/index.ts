@@ -101,6 +101,7 @@ async function init() {
       notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
       connectionEstablished = reconnectPromise;
     },
+    backendConnectionStatusSubs, backendConnectionStatusData,
   );
 
   function updateAgents(data: any) {
@@ -328,25 +329,30 @@ async function init() {
   router.init(setupRuntimeMessageListener);
 }
 
-async function connect(connectCb: any, disconnectCb: any) {
+async function connect(connectCb: any, disconnectCb: any, backendConnectionStatusSubs: any, backendConnectionStatusData: any) {
   // TODO add timeout and a way to restart
   const repeatUntilConnect = () => repeatAsync(async () => {
     const connection = await connectToBackend(() => {
       const reconnectPromise = repeatUntilConnect();
       disconnectCb(reconnectPromise);
-    });
+    }, backendConnectionStatusSubs, backendConnectionStatusData);
     connectCb(connection);
     return connection;
   }, true);
   return repeatUntilConnect();
 }
 
-async function connectToBackend(disconnectCb: any): Promise<BackendCreator | null> {
+async function connectToBackend(
+  disconnectCb: any,
+  backendConnectionStatusSubs: any,
+  backendConnectionStatusData: any,
+): Promise<BackendCreator | null> {
   const storage = await localStorageUtil.get('backendAddress');
   const backendAddress = storage?.backendAddress;
   if (!backendAddress) throw new Error('Backend address is not set');
-
-  console.log('received backendAddress', backendAddress);
+  // eslint-disable-next-line no-param-reassign
+  backendConnectionStatusData = BackendConnectionStatus.CONNECTING;
+  notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
 
   const backend = await initBackendApi(
     backendAddress,
