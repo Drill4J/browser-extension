@@ -47,7 +47,7 @@ async function injectIframe(host: string): Promise<HTMLIFrameElement | never> {
   iframe.classList.add('drill-widget-iframe--hidden');
   setTimeout(() => iframe.classList.remove('drill-widget-iframe--hidden'), 200);
 
-  document.body.appendChild(iframe);
+  getWidgetMountNode().appendChild(iframe);
   if (!iframe.contentDocument) throw new Error('failed to create iframe or it got deleted');
 
   const root = iframe.contentDocument.createElement('div');
@@ -78,7 +78,7 @@ async function positionIframe(host: string, iframe: HTMLIFrameElement) {
 function removeIframe(iframe: HTMLIFrameElement) {
   if (!iframe) return;
   bgInterop.unsubscribeAll();
-  document.body.removeChild(iframe);
+  getWidgetMountNode().removeChild(iframe);
 }
 
 function injectCss(targetDocument: Document, filename: string) {
@@ -110,4 +110,37 @@ function injectFonts(targetDocument: Document) {
       src: url("${browser.extension.getURL('OpenSans-Bold.ttf')}");
   }`;
   targetDocument.head.appendChild(fonts);
+}
+
+function getWidgetMountNode() {
+  if (!document.hasChildNodes()) throw new Error('page has no child nodes. Unable to mount/unmount widget');
+
+  if (document.body.tagName === 'BODY') return document.body;
+
+  if (document.body.tagName === 'FRAMESET') {
+    console.warn('mounting widget to <frameset> element is not supported. Looking for alternative elements...');
+  }
+
+  const htmlElement = getHtmlElement();
+
+  if (htmlElement) {
+    console.warn('Consdering <html> element to be the widget mount point', htmlElement);
+    return htmlElement;
+  }
+
+  console.warn('page has no <body>, nor <html> element. Considering the first child node to be a widget mount point:',
+    document.childNodes[0]);
+  return document.childNodes[0];
+}
+
+function getHtmlElement() {
+  const htmlTags = document.getElementsByTagName('html');
+  if (htmlTags.length === 0) {
+    console.warn('page has no <html> element');
+    return undefined;
+  }
+  if (htmlTags.length > 1) {
+    console.warn('page appears to have multiple <html> elements');
+  }
+  return htmlTags[0];
 }
