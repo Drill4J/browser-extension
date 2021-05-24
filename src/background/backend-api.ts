@@ -73,7 +73,7 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
 
     getMethods(baseUrl: string) {
       return {
-        async startTest(testName: string) { // TODO add isRealTime param
+        async startTest(testName: string, isRealtime: boolean) {
           const sessionId = uuid();
           await sendSessionAction(baseUrl, {
             type: 'START',
@@ -81,7 +81,7 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
               sessionId,
               testName,
               testType: 'MANUAL',
-              isRealtime: true,
+              isRealtime,
             },
           });
           return sessionId;

@@ -226,11 +226,11 @@ async function init() {
 
   const router = createMessageRouter();
 
-  router.add('START_TEST', async (sender: chrome.runtime.MessageSender, testName: string) => {
+  router.add('START_TEST', async (sender: chrome.runtime.MessageSender, { testName, isRealtime }) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
-    const sessionId = await adapter.startTest(testName, sender);
+    const sessionId = await adapter.startTest(testName, isRealtime, sender);
     sessionsData[host] = {
       testName,
       sessionId,
@@ -455,8 +455,8 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
 
   if (!adapterInfo.mustRecordJsCoverage) {
     return {
-      startTest: async (testName) => {
-        const sessionId = await backendApi.startTest(testName);
+      startTest: async (testName, isRealtime) => {
+        const sessionId = await backendApi.startTest(testName, isRealtime);
         return sessionId;
       },
       stopTest: async (sessionId: string) => {
@@ -468,10 +468,10 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
     };
   }
   return {
-    startTest: async (testName, sender) => {
+    startTest: async (testName, isRealtime, sender) => {
       if (!sender) throw new Error('START_TEST_NO_SENDER');
       await jsCoverageRecorder.start(sender);
-      const sessionId = await backendApi.startTest(testName);
+      const sessionId = await backendApi.startTest(testName, isRealtime);
       return sessionId;
     },
     stopTest: async (sessionId, testName, sender) => {
