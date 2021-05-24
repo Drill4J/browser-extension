@@ -59,8 +59,8 @@ async function sendMessage<T>(message: unknown): Promise<T> {
   });
 }
 
-export async function startTest(testName: string) {
-  return sendMessage<string>({ type: 'START_TEST', payload: testName });
+export async function startTest(testName: string, isRealtime: boolean) {
+  return sendMessage<string>({ type: 'START_TEST', payload: { testName, isRealtime } });
 }
 
 export async function stopTest() {

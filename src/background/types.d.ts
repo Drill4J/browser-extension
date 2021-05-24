@@ -17,7 +17,7 @@ export interface Routes {
 }
 
 export interface AgentAdapter {
-  startTest: (testName: string, sender?: chrome.runtime.MessageSender) => Promise<string>;
+  startTest: (testName: string, isRealtime: boolean, sender?: chrome.runtime.MessageSender) => Promise<string>;
   stopTest: (sessionId: string, testName?: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
   cancelTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
 }
@@ -47,7 +47,7 @@ export interface AdapterInfo {
 }
 
 export interface BackendApi {
-  startTest: (testName: string) => Promise<string>;
+  startTest: (testName: string, isRealtime: boolean) => Promise<string>;
   stopTest: (sessionId: string) => Promise<void>;
   cancelTest: (sessionId: string) => Promise<void>;
   addSessionData: (sessionId: string, data: unknown) => Promise<void>;

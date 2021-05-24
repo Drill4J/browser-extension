@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from '@drill4j/ui-kit';
+import { Button, Checkbox } from '@drill4j/ui-kit';
 
 import { AgentContext } from '../../context';
 import * as bgInterop from '../../../common/background-interop';
@@ -9,6 +9,7 @@ import { ManualTestError } from '../manual-test-error';
 export const StartNewManualTest = () => {
   const [submitError, setSubmitError] = React.useState('');
   const [testName, setTestName] = React.useState('');
+  const [isRealtime, setIsRealTime] = React.useState(true);
   const [isFormSubmitting, setIsFormSubmitting] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
@@ -42,6 +43,14 @@ export const StartNewManualTest = () => {
               onChange={({ currentTarget: { value } }) => setTestName(value)}
               disabled={isFormSubmitting}
             />
+            <span title="Whether a coverage must be updated in real-time or not" style={{ display: 'inherit' }}>
+              <span style={{ marginRight: '10px' }}>Realtime</span>
+              <Checkbox
+                disabled={isFormSubmitting}
+                checked={isRealtime}
+                onChange={(el) => setIsRealTime(el.target.checked)}
+              />
+            </span>
             <div title={!testName ? 'Enter a test name to start testing' : undefined}>
               <Button
                 type="primary"
@@ -51,7 +60,7 @@ export const StartNewManualTest = () => {
                   setSubmitError('');
                   setIsFormSubmitting(true);
                   try {
-                    await bgInterop.startTest(testName);
+                    await bgInterop.startTest(testName, isRealtime);
                     if (agent.mustRecordJsCoverage) {
                       (window as any).reloadRequired = true;
                     }
