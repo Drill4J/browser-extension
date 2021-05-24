@@ -14,7 +14,7 @@ async function init() {
   const hostInfo = await bgInterop.getHostInfo();
   const host = transformHost(window.location.href);
 
-  if (hostInfo && await isWidgetVisible(host)) {
+  if (hostInfo && (await isWidgetVisible(host))) {
     widget = await injectIframe(host);
   }
 
@@ -47,7 +47,7 @@ async function injectIframe(host: string): Promise<HTMLIFrameElement | never> {
   iframe.classList.add('drill-widget-iframe--hidden');
   setTimeout(() => iframe.classList.remove('drill-widget-iframe--hidden'), 200);
 
-  document.body.appendChild(iframe);
+  getWidgetMountNode().appendChild(iframe);
   if (!iframe.contentDocument) throw new Error('failed to create iframe or it got deleted');
 
   const root = iframe.contentDocument.createElement('div');
@@ -78,7 +78,7 @@ async function positionIframe(host: string, iframe: HTMLIFrameElement) {
 function removeIframe(iframe: HTMLIFrameElement) {
   if (!iframe) return;
   bgInterop.unsubscribeAll();
-  document.body.removeChild(iframe);
+  getWidgetMountNode().removeChild(iframe);
 }
 
 function injectCss(targetDocument: Document, filename: string) {
@@ -110,4 +110,19 @@ function injectFonts(targetDocument: Document) {
       src: url("${browser.extension.getURL('OpenSans-Bold.ttf')}");
   }`;
   targetDocument.head.appendChild(fonts);
+}
+
+function getWidgetMountNode() {
+  if (!document.hasChildNodes()) throw new Error('page has no child nodes. Unable to mount/unmount widget');
+
+  if (document.body?.tagName === 'BODY') return document.body;
+  console.warn('no <body> tag found');
+
+  if (document.documentElement) {
+    console.warn('using document.documentElement as widget mount point', document.documentElement);
+    return document.documentElement;
+  }
+
+  console.warn('using the first child node as a widget mount point', document.childNodes[0]);
+  return document.childNodes[0];
 }
