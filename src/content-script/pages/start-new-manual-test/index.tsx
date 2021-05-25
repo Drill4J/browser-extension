@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button, Checkbox } from '@drill4j/ui-kit';
-
+import { useLocalStorageGet } from '../../../hooks';
+import * as localStorageUtil from '../../../common/util/local-storage';
 import { AgentContext } from '../../context';
 import * as bgInterop from '../../../common/background-interop';
 import { Overlay, Spinner, TextInput } from '../../components';
@@ -13,9 +14,17 @@ export const StartNewManualTest = () => {
   const [isFormSubmitting, setIsFormSubmitting] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
-  const isMounted = React.useRef(true);
+  const isRealtimeLastValue = useLocalStorageGet('isRealtimeLastValue');
 
-  React.useEffect(() => () => {
+  // uncomment to become upset
+  // React.useEffect(() => {
+  //   (async () => {
+  //     await localStorageUtil.save({ isRealtimeLastValue: isRealtime });
+  //   })();
+  // }, [isRealtime]);
+
+  const isMounted = React.useRef(true);
+  React.useEffect(() => {
     isMounted.current = false;
   }, []);
 
@@ -47,8 +56,11 @@ export const StartNewManualTest = () => {
               <span style={{ marginRight: '10px' }}>Realtime</span>
               <Checkbox
                 disabled={isFormSubmitting}
-                checked={isRealtime}
-                onChange={(el) => setIsRealTime(el.target.checked)}
+                checked={isRealtimeLastValue === null ? true : isRealtimeLastValue}
+                onChange={async (el) => {
+                  setIsRealTime(el.target.checked);
+                  await localStorageUtil.save({ isRealtimeLastValue: el.target.checked });
+                }}
               />
             </span>
             <div title={!testName ? 'Enter a test name to start testing' : undefined}>

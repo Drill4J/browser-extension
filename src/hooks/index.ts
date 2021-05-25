@@ -1,4 +1,5 @@
 export { useLocalStorage } from './use-local-storage';
+export { useLocalStorageGet } from './use-local-storage-get';
 export { useAgentConfig } from './use-agent-config';
 export { useActiveTab } from './use-active-tab';
 export { useWsConnection } from './use-ws-connection';
