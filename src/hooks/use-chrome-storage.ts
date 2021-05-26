@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const useChromeStorage = <T>(key: string, initialValue: T) => {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    // https://developer.chrome.com/docs/extensions/reference/storage/
-    // I think it may be more profitable to use chrome.storage.SYNC
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+
+  useEffect(() => {
+    const handleStateChange = (changes: { [key: string]: chrome.storage.StorageChange }) => setStoredValue(changes[key].newValue);
+
+    chrome.storage.onChanged.addListener(handleStateChange);
     chrome.storage.local.get([key], result => {
       if (result && result[key] !== undefined) {
         setStoredValue(result[key]);
@@ -11,8 +14,9 @@ export const useChromeStorage = <T>(key: string, initialValue: T) => {
         chrome.storage.local.set({ [key]: initialValue });
       }
     });
-    return initialValue;
-  });
+
+    return () => chrome.storage.onChanged.removeListener(handleStateChange);
+  }, []);
 
   const setValue = (value: T) => {
     setStoredValue(value);
