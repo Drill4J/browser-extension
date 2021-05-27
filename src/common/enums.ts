@@ -9,6 +9,7 @@ export enum BackendConnectionStatus {
   AVAILABLE = 'available',
   UNAVAILABLE = 'unavailable',
   RECONNECTING = 'reconnecting',
+  CONNECTING = 'connecting',
 }
 
 export enum AgentStatus {
