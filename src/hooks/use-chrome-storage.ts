@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getStorage, addToStorage } from '../common/util/local-storage';
 
 export const useChromeStorage = <T>(key: string, initialValue: T) => {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
@@ -7,11 +8,12 @@ export const useChromeStorage = <T>(key: string, initialValue: T) => {
     const handleStateChange = (changes: { [key: string]: chrome.storage.StorageChange }) => setStoredValue(changes[key].newValue);
 
     chrome.storage.onChanged.addListener(handleStateChange);
-    chrome.storage.local.get([key], result => {
+    const storageValue = getStorage([key]);
+    storageValue.then((result) => {
       if (result && result[key] !== undefined) {
         setStoredValue(result[key]);
       } else {
-        chrome.storage.local.set({ [key]: initialValue });
+        addToStorage({ [key]: initialValue });
       }
     });
 
@@ -20,7 +22,7 @@ export const useChromeStorage = <T>(key: string, initialValue: T) => {
 
   const setValue = (value: T) => {
     setStoredValue(value);
-    chrome.storage.local.set({ [key]: value });
+    addToStorage({ [key]: value });
   };
 
   return [storedValue, setValue] as const;
