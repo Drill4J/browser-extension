@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button, Checkbox } from '@drill4j/ui-kit';
 
+import { useChromeStorage } from '../../../hooks';
 import { AgentContext } from '../../context';
 import * as bgInterop from '../../../common/background-interop';
 import { Overlay, Spinner, TextInput } from '../../components';
@@ -9,7 +10,8 @@ import { ManualTestError } from '../manual-test-error';
 export const StartNewManualTest = () => {
   const [submitError, setSubmitError] = React.useState('');
   const [testName, setTestName] = React.useState('');
-  const [isRealtime, setIsRealTime] = React.useState(true);
+  const [isRealtime, setIsRealtime] = useChromeStorage<boolean>('isRealtime', true);
+
   const [isFormSubmitting, setIsFormSubmitting] = React.useState(false);
   const agent = React.useContext(AgentContext);
 
@@ -48,7 +50,7 @@ export const StartNewManualTest = () => {
               <Checkbox
                 disabled={isFormSubmitting}
                 checked={isRealtime}
-                onChange={(el) => setIsRealTime(el.target.checked)}
+                onChange={(el) => setIsRealtime(el.target.checked)}
               />
             </span>
             <div title={!testName ? 'Enter a test name to start testing' : undefined}>
