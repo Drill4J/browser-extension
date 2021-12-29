@@ -10,3 +10,6 @@ localization/translated/en.json
 
 *.iml
 build.zip
+
+# vscode settings
+.history
