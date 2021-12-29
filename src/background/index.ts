@@ -397,10 +397,14 @@ function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, strin
       // - receive no further updates (because host has changed)
       // the same applies for service groups
       // It's not that big of an issue (as-is) but is worth to keep in mind
-      host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
+      // host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
+      // HARDCODE
+      host: transformHost(''), // paste your hardcoded host here
       status: x.status,
       buildVersion: x.buildVersion,
-      mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
+      // mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
+      // HARDCODE
+      mustRecordJsCoverage: false,
     }));
 }
 
@@ -413,7 +417,9 @@ function sgAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>)
         a[x.group] = {
           adapterType: 'groups',
           id: x.group,
-          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.group]),
+          // HARDCODE
+          host: transformHost(''), // paste your hardcoded host here
+          // host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.group]),
           // TODO think what to do with the SG status
           status: x.status,
           buildVersion: x.buildVersion,
