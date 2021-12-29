@@ -4,24 +4,46 @@ import { SessionStatus } from '../common/enums';
 import { SessionData } from './types';
 
 export function setupRequestInterceptor(sessionsStorage: Record<string, SessionData>) {
-  const interceptor = ({ requestHeaders = [], url }: WebRequest.OnBeforeSendHeadersDetailsType) => {
+  const interceptor = (details: WebRequest.OnBeforeRequestDetailsType) => {
+    const result: chrome.webRequest.BlockingResponse = {};
+    const { url } = details;
     const host = transformHost(url);
-    if (!host) return { requestHeaders };
 
+    // skip checks for empty hosts
+    if (!host) return result; // TODO probably can omit url and just return {}
+
+    // no active session
     const session = sessionsStorage[host];
-    if (session && session.status === SessionStatus.ACTIVE) {
-      requestHeaders.push({ name: 'drill-session-id', value: session.sessionId });
-      requestHeaders.push({ name: 'drill-test-name', value: session.testName });
+    if (!session || session.status !== SessionStatus.ACTIVE) return {}; // TODO probably can omit url and just return {}
+
+    // already added
+    const parsedUrl = new URL(url);
+    if (parsedUrl.search.indexOf('drill-session-id') > -1 && parsedUrl.search.indexOf('drill-test-name') > -1) {
+      return result;
     }
-    return { requestHeaders };
+
+    // check if other query params are present and format accordingly
+    if (parsedUrl.search) {
+      parsedUrl.search = `${parsedUrl.search}&drill-session-id=${session.sessionId}&drill-test-name=${session.testName}`;
+    } else {
+      parsedUrl.search = `?drill-session-id=${session.sessionId}&drill-test-name=${session.testName}`;
+    }
+    result.redirectUrl = parsedUrl.toString();
+
+    return result;
   };
-  browser.webRequest.onBeforeSendHeaders.addListener(
+
+  chrome.webRequest.onBeforeRequest.addListener(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
     interceptor,
     {
       urls: ['<all_urls>'],
     },
-    ['blocking', 'requestHeaders'],
+    ['blocking'],
   );
 
-  return () => browser.webRequest.onBeforeSendHeaders.removeListener(interceptor);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // @ts-ignore
+  return () => chrome.webRequest.onBeforeRequest.removeListener(interceptor);
 }
