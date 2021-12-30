@@ -1,4 +1,3 @@
-import xxHashJs from 'xxhashjs';
 import devToolsApi from './dev-tools-api';
 
 export default {
@@ -8,14 +7,6 @@ export default {
 };
 
 const scriptSources: any = {};
-
-async function reloadTabWithId(tabId: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.reload(tabId, { bypassCache: true }, () => {
-      resolve();
-    });
-  });
-}
 
 async function start(sender: chrome.runtime.MessageSender) {
   const target = {
@@ -40,35 +31,8 @@ async function start(sender: chrome.runtime.MessageSender) {
     hashToUrl: {},
     urlToHash: {},
   };
-  chrome.debugger.onEvent.addListener(async (source, method, params) => {
-    if (method !== 'Debugger.scriptParsed') {
-      return;
-    }
 
-    const { url, scriptId } = params as { url: string; scriptId: string };
-
-    if (!url || url.startsWith('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) {
-      return;
-    }
-
-    let rawScriptSource: any;
-    try {
-      rawScriptSource = await devToolsApi.sendCommand(target, 'Debugger.getScriptSource', { scriptId });
-    } catch (e) {
-      console.log(`%cWARNING%c: scriptId ${scriptId} getScriptSource(...) failed: ${e?.message || JSON.stringify(e)}`,
-        'background-color: yellow;',
-        'background-color: unset;');
-      return;
-    }
-
-    const hash = getHash(unifyLineEndings(rawScriptSource.scriptSource));
-    // TODO check source hashes agains expected build hashes
-    //      what about filenames?
-
-    // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
-    scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
-    scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
-  });
+  chrome.debugger.onEvent.addListener(scriptParsedHandler(sender));
 
   await devToolsApi.sendCommand(target, 'Debugger.enable', {});
   await devToolsApi.sendCommand(target, 'Debugger.setSkipAllPauses', { skip: true });
@@ -78,11 +42,11 @@ async function cancel(sender: chrome.runtime.MessageSender) {
   const target = {
     tabId: sender?.tab?.id,
   };
+  chrome.debugger.onEvent.removeListener(scriptParsedHandler(sender));
   await devToolsApi.sendCommand(target, 'Profiler.stopPreciseCoverage', {});
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
   await devToolsApi.detach(target);
-
   delete scriptSources[sender?.tab?.id as any];
 }
 
@@ -90,7 +54,7 @@ async function stop(sender: chrome.runtime.MessageSender) {
   const target = {
     tabId: sender?.tab?.id,
   };
-
+  chrome.debugger.onEvent.removeListener(scriptParsedHandler(sender));
   const data: any = await devToolsApi.sendCommand(target, 'Profiler.takePreciseCoverage', {});
   await devToolsApi.sendCommand(target, 'Profiler.stopPreciseCoverage', {});
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
@@ -103,17 +67,23 @@ async function stop(sender: chrome.runtime.MessageSender) {
   return { coverage: data.result, scriptSources: sources };
 }
 
-function getHash(data: any) {
-  const seed = 0xABCD;
-  const hashFn = xxHashJs.h32(seed);
-  return hashFn.update(data).digest().toString(16);
-}
+function scriptParsedHandler(sender: chrome.runtime.MessageSender) {
+  return (source: chrome.debugger.Debuggee, method: string, params: unknown) => {
+    if (method !== 'Debugger.scriptParsed') {
+      return;
+    }
 
-function unifyLineEndings(str: string): string {
-  // reference https://www.ecma-international.org/ecma-262/10.0/#sec-line-terminators
-  const LF = '\u000A';
-  const CRLF = '\u000D\u000A';
-  const LS = '\u2028';
-  const PS = '\u2029';
-  return str.replace(RegExp(`(${CRLF}|${LS}|${PS})`, 'g'), LF);
+    const { url, hash } = params as { url: string; scriptId: string; hash: string };
+
+    if (!url || url.includes('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) {
+      return;
+    }
+
+    // TODO check source hashes against expected hashes (obtained by js-parser)
+    //      what about filenames?
+
+    // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
+    scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
+    scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
+  };
 }
