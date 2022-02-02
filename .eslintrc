@@ -35,6 +35,7 @@
     "@typescript-eslint/no-use-before-define": 0,
     "@typescript-eslint/no-empty-function": 0,
     "no-unused-expressions": 0,
-    "react/jsx-props-no-spreading": 0
+    "react/jsx-props-no-spreading": 0,
+    "implicit-arrow-linebreak": 0
   }
 }
