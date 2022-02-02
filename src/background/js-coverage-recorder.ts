@@ -6,10 +6,10 @@ export default {
   cancel,
 };
 
-const scriptSources: any = {};
+const tabsScripts: Record<string, unknown[]> = {};
 
 async function start(sender: chrome.runtime.MessageSender) {
-  const target = {
+  const target: chrome.debugger.Debuggee = {
     tabId: sender?.tab?.id,
   };
 
@@ -27,10 +27,7 @@ async function start(sender: chrome.runtime.MessageSender) {
   });
 
   // FIXME tabId undefined checks
-  scriptSources[sender?.tab?.id as any] = {
-    hashToUrl: {},
-    urlToHash: {},
-  };
+  tabsScripts[sender?.tab?.id as any] = [];
 
   chrome.debugger.onEvent.addListener(scriptParsedHandler(sender));
 
@@ -47,7 +44,7 @@ async function cancel(sender: chrome.runtime.MessageSender) {
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
   await devToolsApi.detach(target);
-  delete scriptSources[sender?.tab?.id as any];
+  delete tabsScripts[sender?.tab?.id as any];
 }
 
 async function stop(sender: chrome.runtime.MessageSender) {
@@ -55,35 +52,30 @@ async function stop(sender: chrome.runtime.MessageSender) {
     tabId: sender?.tab?.id,
   };
   chrome.debugger.onEvent.removeListener(scriptParsedHandler(sender));
-  const data: any = await devToolsApi.sendCommand(target, 'Profiler.takePreciseCoverage', {});
+  const coverage = await devToolsApi.sendCommand(target, 'Profiler.takePreciseCoverage', {});
   await devToolsApi.sendCommand(target, 'Profiler.stopPreciseCoverage', {});
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
   await devToolsApi.detach(target);
 
-  // FIXME see FIXME #1, also scriptsources probably won't change every test. Or will they? (e.g. bundle splitting, modular design etc)
-  const sources = scriptSources[sender?.tab?.id as any];
-  delete scriptSources[sender?.tab?.id as any];
-  return { coverage: data.result, scriptSources: sources };
+  // FIXME see FIXME #1, also scripts probably won't change every test. Or will they? (e.g. bundle splitting, modular design etc)
+  const scripts = tabsScripts[sender?.tab?.id as any];
+  delete tabsScripts[sender?.tab?.id as any];
+  return { coverage, scripts };
 }
 
+// TODO test if sender.tabId is ever undefined
+// TODO test if (source.tabId != sender.tabId) is ever possible? Perhaps for <iframe>s or content scripts?
+// TODO check source hashes against expected hashes (obtained by js-parser) / check filenames as well?
 function scriptParsedHandler(sender: chrome.runtime.MessageSender) {
-  return (source: chrome.debugger.Debuggee, method: string, params: unknown) => {
-    if (method !== 'Debugger.scriptParsed') {
-      return;
-    }
-
-    const { url, hash } = params as { url: string; scriptId: string; hash: string };
-
-    if (!url || url.includes('chrome-extension:') || url.includes('google-analytics.com') || url.includes('node_modules')) {
-      return;
-    }
-
-    // TODO check source hashes against expected hashes (obtained by js-parser)
-    //      what about filenames?
-
-    // FIXME #1 either clear scriptSources on start/stop or store those by sender?.tab?.id / host
-    scriptSources[sender?.tab?.id as any].hashToUrl[hash] = url;
-    scriptSources[sender?.tab?.id as any].urlToHash[url] = hash;
+  return (source: chrome.debugger.Debuggee, method: string, params: any) => {
+    if (method !== 'Debugger.scriptParsed') return;
+    if (!params?.url || isIgnoredUrl(params.url)) return;
+    tabsScripts[sender?.tab?.id as any].push(params);
   };
+}
+
+function isIgnoredUrl(testUrl: string) {
+  const ignoredUrlChunks = ['chrome-extension:', 'google-analytics.com', 'node_modules']; // TODO allow to configure via settings?
+  return ignoredUrlChunks.some(ignoredUrl => testUrl.includes(ignoredUrl));
 }
