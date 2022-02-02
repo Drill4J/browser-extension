@@ -11,7 +11,7 @@ export function setupRequestInterceptor(sessionsStorage: Record<string, SessionD
     const session = sessionsStorage[host];
     if (session && session.status === SessionStatus.ACTIVE) {
       requestHeaders.push({ name: 'drill-session-id', value: session.sessionId });
-      requestHeaders.push({ name: 'drill-test-name', value: session.testName });
+      requestHeaders.push({ name: 'drill-test-id', value: session.testId });
     }
     return { requestHeaders };
   };

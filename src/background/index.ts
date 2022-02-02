@@ -4,7 +4,7 @@ import initBackendApi from './backend-api';
 import jsCoverageRecorder from './js-coverage-recorder';
 import { transformHost } from '../common/util/transform-host';
 import * as localStorageUtil from '../common/util/local-storage';
-import type {
+import {
   AdapterInfo,
   AgentAdapter,
   BackendApi,
@@ -12,6 +12,8 @@ import type {
   ScopeData,
   SessionData,
   SubNotifyFunction,
+  TestInfo,
+  TestResult,
 } from './types';
 import { SessionStatus, AgentType, BackendConnectionStatus } from '../common/enums';
 import { setupResponseInterceptor } from './response-interceptor';
@@ -19,6 +21,7 @@ import { repeatAsync } from '../common/util/repeat-async';
 import { setupRequestInterceptor } from './request-interceptor';
 import { objectPropsToArray } from '../common/util/object-props-to-array';
 import { SessionActionError } from '../common/errors/session-action-error';
+import { getHash } from './util';
 
 init();
 async function init() {
@@ -106,10 +109,7 @@ async function init() {
   function updateAgents(data: any) {
     // TODO refactor to store + actions + reducers
     rawAgentData = data;
-    const newInfo = [
-      ...agentAdaptersReducer(data, interceptedDataStore?.agents),
-      ...sgAdaptersReducer(data, interceptedDataStore?.agents),
-    ];
+    const newInfo = [...agentAdaptersReducer(data, interceptedDataStore?.agents), ...sgAdaptersReducer(data, interceptedDataStore?.agents)];
     agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
     agentsDataById = newInfo.reduce((a, z) => ({ ...a, [z.id]: z }), {});
 
@@ -127,9 +127,7 @@ async function init() {
     if (!portId) throw new Error(`Can't assign port id for ${port}`);
     const senderHost = transformHost(port.sender?.url);
     const portMessageHandler = (message: any) => {
-      const {
-        type, resource, options,
-      } = message;
+      const { type, resource, options } = message;
       const host = transformHost(options) || senderHost;
       console.log('MESSAGE from', portId, host, 'with', message);
 
@@ -230,8 +228,9 @@ async function init() {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
-    const sessionId = await adapter.startTest(testName, isRealtime, sender);
+    const sessionId = await adapter.startSession(isRealtime, sender);
     sessionsData[host] = {
+      testId: getHash(testName),
       testName,
       sessionId,
       start: Date.now(),
@@ -246,11 +245,29 @@ async function init() {
     if (!adapter) throw new Error('Backend connection unavailable');
     // TODO !sessionsData[host] check?
     try {
-      await adapter.stopTest(sessionsData[host].sessionId, sessionsData[host].testName, sender);
+      // FIXME sessionsData[host] juggling
+      // adding "end" to sessionData might seem unnecessary
+      // but will come in handy later, for re-submitting test result implementation
+      sessionsData[host] = {
+        ...sessionsData[host],
+        end: Date.now(),
+      };
+
+      const testInfo: TestInfo = {
+        id: sessionsData[host].testId,
+        startedAt: sessionsData[host].start,
+        finishedAt: Number(sessionsData[host].end),
+        result: 'PASSED' as TestResult,
+        details: {
+          testName: sessionsData[host].testName,
+        },
+      };
+
+      await adapter.addTests(sessionsData[host].sessionId, [testInfo]);
+      await adapter.stopSession(sessionsData[host].sessionId, sessionsData[host].testName, sender);
       sessionsData[host] = {
         ...sessionsData[host],
         status: SessionStatus.STOPPED,
-        end: Date.now(),
       };
     } catch (e) {
       // TODO conditional throwing/not-throwing is kinda unintuitive
@@ -276,7 +293,7 @@ async function init() {
     if (!adapter) throw new Error('Backend connection unavailable');
     // TODO !sessionsData[host] check?
     try {
-      await adapter.cancelTest(sessionsData[host].sessionId, sender);
+      await adapter.cancelSession(sessionsData[host].sessionId, sender);
       sessionsData[host] = {
         ...sessionsData[host],
         status: SessionStatus.CANCELED,
@@ -330,14 +347,15 @@ async function init() {
 
 async function connect(connectCb: any, disconnectCb: any) {
   // TODO add timeout and a way to restart
-  const repeatUntilConnect = () => repeatAsync(async () => {
-    const connection = await connectToBackend(() => {
-      const reconnectPromise = repeatUntilConnect();
-      disconnectCb(reconnectPromise);
-    });
-    connectCb(connection);
-    return connection;
-  }, true);
+  const repeatUntilConnect = () =>
+    repeatAsync(async () => {
+      const connection = await connectToBackend(() => {
+        const reconnectPromise = repeatUntilConnect();
+        disconnectCb(reconnectPromise);
+      });
+      connectCb(connection);
+      return connection;
+    }, true);
   return repeatUntilConnect();
 }
 
@@ -361,7 +379,7 @@ async function connectToBackend(disconnectCb: any): Promise<BackendCreator | nul
 }
 
 function notifyAllSubs(subsPerHost: Record<string, Record<string, SubNotifyFunction>>, data: BackendConnectionStatus) {
-  objectPropsToArray(subsPerHost).forEach(x => notifySubscribers(x, data));
+  objectPropsToArray(subsPerHost).forEach((x) => notifySubscribers(x, data));
 }
 
 function setupResponseInterceptors(interceptedDataStore: Record<string, any>) {
@@ -439,7 +457,7 @@ function createAdaptersFromInfo(data: AdapterInfo[], backend: BackendCreator) {
 }
 
 function notifySubscribers(subscribers: Record<string, SubNotifyFunction>, data: unknown) {
-  objectPropsToArray<SubNotifyFunction>(subscribers).forEach(notify => notify(data));
+  objectPropsToArray<SubNotifyFunction>(subscribers).forEach((notify) => notify(data));
 }
 
 function createPortUpdater(port: chrome.runtime.Port, resource: string): SubNotifyFunction {
@@ -455,32 +473,38 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
 
   if (!adapterInfo.mustRecordJsCoverage) {
     return {
-      startTest: async (testName, isRealtime) => {
-        const sessionId = await backendApi.startTest(testName, isRealtime);
+      startSession: async (isRealtime) => {
+        const sessionId = await backendApi.startSession(isRealtime);
         return sessionId;
       },
-      stopTest: async (sessionId: string) => {
-        await backendApi.stopTest(sessionId);
+      addTests: async (sessionId, tests) => {
+        await backendApi.addTests(sessionId, tests);
       },
-      cancelTest: async (sessionId: string) => {
-        await backendApi.cancelTest(sessionId);
+      stopSession: async (sessionId: string) => {
+        await backendApi.stopSession(sessionId);
+      },
+      cancelSession: async (sessionId: string) => {
+        await backendApi.cancelSession(sessionId);
       },
     };
   }
   return {
-    startTest: async (testName, isRealtime, sender) => {
+    startSession: async (isRealtime, sender) => {
       if (!sender) throw new Error('START_TEST_NO_SENDER');
       await jsCoverageRecorder.start(sender);
-      const sessionId = await backendApi.startTest(testName, isRealtime);
+      const sessionId = await backendApi.startSession(isRealtime);
       return sessionId;
     },
-    stopTest: async (sessionId, testName, sender) => {
+    addTests: async (sessionId, tests) => {
+      await backendApi.addTests(sessionId, tests);
+    },
+    stopSession: async (sessionId, testName, sender) => {
       if (!sender) throw new Error('STOP_TEST_NO_SENDER');
       const data = await jsCoverageRecorder.stop(sender);
-      await backendApi.addSessionData(sessionId, { ...data, testName });
-      await backendApi.stopTest(sessionId);
+      await backendApi.addSessionData(sessionId, { ...data, testId: getHash(testName) });
+      await backendApi.stopSession(sessionId);
     },
-    cancelTest: async (sessionId, sender) => {
+    cancelSession: async (sessionId, sender) => {
       if (!sender) throw new Error('CANCEL_TEST_NO_SENDER');
       // TODO that could mask other errors
       // quick hack to handle situations when debugger was already disconnected
@@ -489,7 +513,7 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
       } catch (e) {
         console.log('WARNING', 'failed to disconnect debugger:', e);
       }
-      await backendApi.cancelTest(sessionId);
+      await backendApi.cancelSession(sessionId);
     },
   };
 }

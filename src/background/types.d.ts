@@ -17,12 +17,14 @@ export interface Routes {
 }
 
 export interface AgentAdapter {
-  startTest: (testName: string, isRealtime: boolean, sender?: chrome.runtime.MessageSender) => Promise<string>;
-  stopTest: (sessionId: string, testName?: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
-  cancelTest: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
+  startSession: (isRealtime: boolean, sender?: chrome.runtime.MessageSender) => Promise<string>;
+  stopSession: (sessionId: string, testName: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
+  cancelSession: (sessionId: string, sender?: chrome.runtime.MessageSender) => Promise<void>;
+  addTests: (sessionId: string, tests: TestInfo[]) => Promise<void>;
 }
 
 export type SessionData = {
+  testId: string;
   testName: string;
   sessionId: string;
   start: number;
@@ -30,7 +32,7 @@ export type SessionData = {
   end?: number;
   error?: Error | SessionActionError;
   errorType?: SessionErrorType;
-}
+};
 
 export type ScopeData = Record<string, any>; // TODO type it properly!
 
@@ -47,14 +49,41 @@ export interface AdapterInfo {
 }
 
 export interface BackendApi {
-  startTest: (testName: string, isRealtime: boolean) => Promise<string>;
-  stopTest: (sessionId: string) => Promise<void>;
-  cancelTest: (sessionId: string) => Promise<void>;
+  startSession: (isRealtime: boolean) => Promise<string>;
+  stopSession: (sessionId: string) => Promise<void>;
+  cancelSession: (sessionId: string) => Promise<void>;
   addSessionData: (sessionId: string, data: unknown) => Promise<void>;
+  addTests(sessionId: string, tests: TestInfo[]): Promise<void>;
 }
 
 export interface BackendCreator {
   getMethods(baseUrl: string): BackendApi;
   subscribeAdmin(route: string, handler: any): () => void;
   subscribeTest2Code(route: string, handler: any, agentId: string, buildVersion?: string | undefined): () => void;
+}
+
+// TODO extract to @drill4j/types-backend-api?
+// (see @drill4j/js-auto-test-agent for more complete typings)
+export type TestInfo = {
+  id: string;
+  result: TestResult;
+  startedAt: number;
+  finishedAt: number;
+  details: TestDetails;
+};
+
+export type TestDetails = {
+  engine?: string;
+  path?: string;
+  testName: string;
+  params?: Record<string, string>;
+  metadata?: Record<string, string>;
+};
+
+export const enum TestResult {
+  PASSED = 'PASSED',
+  FAILED = 'FAILED',
+  SKIPPED = 'SKIPPED',
+  ERROR = 'ERROR',
+  UNKNOWN = 'UNKNOWN',
 }

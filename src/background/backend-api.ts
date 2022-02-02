@@ -3,26 +3,34 @@ import axios, { AxiosError } from 'axios';
 import { browser } from 'webextension-polyfill-ts';
 import { DrillSocket } from '../common/connection/drill-socket';
 import { SessionActionError } from '../common/errors/session-action-error';
+import { TestInfo } from './types';
 
 const AUTH_TOKEN_HEADER_NAME = 'Authorization';
 
 export default async (backendUrl: string, errorCb: any, completeCb: any) => {
   const token = await setupAxios(backendUrl);
-  const adminSocket = createAdminSocket(backendUrl, token, () => {
-    adminSocket.cleanup();
-    test2CodeSocket.cleanup();
-    errorCb();
-  }, completeCb);
-  const test2CodeSocket = createTest2CodeSocket(backendUrl, token, () => {}, () => {}); // FIXME test2code - individual connection handling
+  const adminSocket = createAdminSocket(
+    backendUrl,
+    token,
+    () => {
+      adminSocket.cleanup();
+      test2CodeSocket.cleanup();
+      errorCb();
+    },
+    completeCb,
+  );
+  const test2CodeSocket = createTest2CodeSocket(
+    backendUrl,
+    token,
+    () => {},
+    () => {},
+  ); // FIXME test2code - individual connection handling
   let test2CodeSubs: Record<string, any> = {};
 
   return {
     subscribeAdmin(route: string, handler: any) {
       // TODO check for duplicate subscriptions
-      const unsubscribe = adminSocket.subscribe(
-        route,
-        handler,
-      );
+      const unsubscribe = adminSocket.subscribe(route, handler);
       return unsubscribe;
     },
     getTest2CodeSubs() {
@@ -39,8 +47,7 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
 
       const subscriptionAlreadyExists = test2CodeSubs[`${agentId}${buildVersion}`][route];
       if (subscriptionAlreadyExists) {
-        console.log('DUPLICATE SUBSCRIPTION',
-          'agentId', agentId, 'buildVersion', buildVersion, 'route', route);
+        console.log('DUPLICATE SUBSCRIPTION', 'agentId', agentId, 'buildVersion', buildVersion, 'route', route);
         throw new Error('DUPLICATE_SUBSCRIPTION');
       }
 
@@ -56,9 +63,18 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
 
           const toHandler = test2CodeSubs[`${to.agentId}${to.buildVersion}`][route];
           if (!toHandler) {
-            console.log('WARNING: missing handler for test2code update',
-              '\n\t', 'route', route, 'agentId', agentId, 'buildVersion', buildVersion,
-              '\n\t', 'unsubscribing');
+            console.log(
+              'WARNING: missing handler for test2code update',
+              '\n\t',
+              'route',
+              route,
+              'agentId',
+              agentId,
+              'buildVersion',
+              buildVersion,
+              '\n\t',
+              'unsubscribing',
+            );
             unsubscribe();
           }
           toHandler(data);
@@ -73,13 +89,12 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
 
     getMethods(baseUrl: string) {
       return {
-        async startTest(testName: string, isRealtime: boolean) {
+        async startSession(isRealtime: boolean) {
           const sessionId = uuid();
           await sendSessionAction(baseUrl, {
             type: 'START',
             payload: {
               sessionId,
-              testName,
               testType: 'MANUAL',
               isRealtime,
             },
@@ -87,14 +102,14 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
           return sessionId;
         },
 
-        async stopTest(sessionId: string) {
+        async stopSession(sessionId: string) {
           await sendSessionAction(baseUrl, {
             type: 'STOP',
             payload: { sessionId },
           });
         },
 
-        async cancelTest(sessionId: string) {
+        async cancelSession(sessionId: string) {
           await sendSessionAction(baseUrl, {
             type: 'CANCEL',
             payload: { sessionId },
@@ -107,6 +122,16 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
             payload: {
               sessionId,
               data: JSON.stringify(data),
+            },
+          });
+        },
+
+        async addTests(sessionId: string, tests: TestInfo[]): Promise<void> {
+          await sendSessionAction(baseUrl, {
+            type: 'ADD_TESTS',
+            payload: {
+              sessionId,
+              tests,
             },
           });
         },
@@ -140,13 +165,11 @@ async function setupAxios(backendUrl: string) {
 
   const authToken = await getAuthToken(); // TODO move that out of setupAxios method
 
-  axios.interceptors.request.use(
-    async (config) => {
-      // eslint-disable-next-line no-param-reassign
-      config.headers[AUTH_TOKEN_HEADER_NAME] = `Bearer ${authToken}`;
-      return config;
-    },
-  );
+  axios.interceptors.request.use(async (config) => {
+    // eslint-disable-next-line no-param-reassign
+    config.headers[AUTH_TOKEN_HEADER_NAME] = `Bearer ${authToken}`;
+    return config;
+  });
 
   axios.interceptors.response.use(
     undefined, // (response) => response,
