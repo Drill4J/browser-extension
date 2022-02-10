@@ -61,7 +61,7 @@ async function stop(sender: chrome.runtime.MessageSender) {
   // FIXME see FIXME #1, also scripts probably won't change every test. Or will they? (e.g. bundle splitting, modular design etc)
   const scripts = tabsScripts[sender?.tab?.id as any];
   delete tabsScripts[sender?.tab?.id as any];
-  return { coverage, scripts };
+  return { coverage: JSON.stringify(coverage), scripts: JSON.stringify(scripts) };
 }
 
 // TODO test if sender.tabId is ever undefined
@@ -77,5 +77,5 @@ function scriptParsedHandler(sender: chrome.runtime.MessageSender) {
 
 function isIgnoredUrl(testUrl: string) {
   const ignoredUrlChunks = ['chrome-extension:', 'google-analytics.com', 'node_modules']; // TODO allow to configure via settings?
-  return ignoredUrlChunks.some(ignoredUrl => testUrl.includes(ignoredUrl));
+  return ignoredUrlChunks.some((ignoredUrl) => testUrl.includes(ignoredUrl));
 }

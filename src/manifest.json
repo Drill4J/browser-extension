@@ -1,20 +1,12 @@
 {
   "name": "Drill4J Browser Extension",
-  "version": "0.3.29",
+  "version": "0.3.34",
   "background": {
     "page": "background.html",
     "persistent": true
   },
   "options_page": "options.html",
-  "permissions": [
-    "tabs",
-    "webRequest",
-    "webRequestBlocking",
-    "activeTab",
-    "storage",
-    "debugger",
-    "*://*/*"
-  ],
+  "permissions": ["tabs", "webRequest", "webRequestBlocking", "activeTab", "storage", "debugger", "*://*/*"],
   "browser_action": {
     "default_icon": {
       "16": "default-logo.png",
@@ -31,10 +23,5 @@
   ],
   "manifest_version": 2,
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
-  "web_accessible_resources": [
-    "*.ttf",
-    "content.css",
-    "iframe.css",
-    "uikit.css"
-  ]
+  "web_accessible_resources": ["*.ttf", "content.css", "iframe.css", "uikit.css"]
 }
