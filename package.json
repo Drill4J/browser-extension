@@ -14,7 +14,7 @@
     "@drill4j/ui-kit": "0.1.57",
     "@redneckz/react-bem-helper": "^2.0.3",
     "@redneckz/react-dispatcher": "^0.0.6",
-    "axios": "^0.19.2",
+    "axios": "^0.21.2",
     "bootstrap": "^4.5.3",
     "final-form": "^4.20.1",
     "react": "^16.13.1",
