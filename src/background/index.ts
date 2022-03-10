@@ -24,6 +24,8 @@ import { SessionActionError } from '../common/errors/session-action-error';
 import { getHash } from './util';
 
 init();
+let backend: any;
+
 async function init() {
   // TODO refactor to store + actions + reducers
   let adapters: Record<string, AgentAdapter> = {};
@@ -79,7 +81,6 @@ async function init() {
 
   const requestInterceptorCleanup = setupRequestInterceptor(sessionsData);
 
-  let backend: any;
   let unsubscribeFromAdmin: any;
 
   let connectionEstablished = connect(
@@ -106,10 +107,14 @@ async function init() {
     },
   );
 
-  function updateAgents(data: any) {
+  async function updateAgents(data: any) {
     // TODO refactor to store + actions + reducers
     rawAgentData = data;
-    const newInfo = [...agentAdaptersReducer(data, interceptedDataStore?.agents), ...sgAdaptersReducer(data, interceptedDataStore?.agents)];
+    const agentAdapters = await agentAdaptersReducer(data, interceptedDataStore?.agents);
+    const sgAdapters = await sgAdaptersReducer(data, interceptedDataStore?.agents);
+
+    const newInfo = [...agentAdapters, ...sgAdapters];
+
     agentsData = newInfo.reduce((a, z) => ({ ...a, [z.host]: z }), {});
     agentsDataById = newInfo.reduce((a, z) => ({ ...a, [z.id]: z }), {});
 
@@ -366,7 +371,7 @@ async function connectToBackend(disconnectCb: any): Promise<BackendCreator | nul
 
   console.log('received backendAddress', backendAddress);
 
-  const backend = await initBackendApi(
+  return initBackendApi(
     backendAddress,
     (error: any) => {
       disconnectCb(error);
@@ -375,7 +380,6 @@ async function connectToBackend(disconnectCb: any): Promise<BackendCreator | nul
       console.log('admin complete');
     },
   );
-  return backend;
 }
 
 function notifyAllSubs(subsPerHost: Record<string, Record<string, SubNotifyFunction>>, data: BackendConnectionStatus) {
@@ -404,54 +408,83 @@ function setupResponseInterceptors(interceptedDataStore: Record<string, any>) {
   return () => responseInterceptor.cleanup();
 }
 
-function agentAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>): AdapterInfo[] {
-  return agentsList
-    .filter((x: any) => !x.group)
-    .map((x: any) => ({
-      adapterType: 'agents',
-      id: x.id,
-      // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
-      // - get BUSY status
-      // - receive no further updates (because host has changed)
-      // the same applies for service groups
-      // It's not that big of an issue (as-is) but is worth to keep in mind
-      host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
-      status: x.status,
-      buildVersion: x.buildVersion,
-      mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
-    }));
+async function agentAdaptersReducer(list: any, agentsHosts: Record<string, string>): Promise<AdapterInfo[]> {
+  const pickSingleAgents = (x: any) => !x.group;
+  const agents = await Promise.all(list.filter(pickSingleAgents).map(populateBuildData));
+  return agents.map((x: any) => ({
+    adapterType: 'agents',
+    id: x.id,
+    // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
+    // - get BUSY status
+    // - receive no further updates (because host has changed)
+    // the same applies for service groups
+    // It's not that big of an issue (as-is) but is worth to keep in mind
+    host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
+    status: x.status,
+    buildVersion: x.buildVersion,
+    mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
+  }));
 }
 
-function sgAdaptersReducer(agentsList: any, agentsHosts: Record<string, string>): AdapterInfo[] {
-  const sgAdaptersInfoMap: Record<string, AdapterInfo> = agentsList
-    .filter((x: any) => x.group)
-    .reduce((a: any, x: any) => {
-      if (!a[x.group]) {
-        // eslint-disable-next-line no-param-reassign
-        a[x.group] = {
-          adapterType: 'groups',
-          id: x.group,
-          host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.group]),
-          // TODO think what to do with the SG status
-          status: x.status,
-          buildVersion: x.buildVersion,
-          mustRecordJsCoverage: false,
-        };
-      }
-
-      if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT) {
-        // eslint-disable-next-line no-param-reassign
-        a[x.group].mustRecordJsCoverage = true;
-      }
-      if (!a[x.group].host) {
-        // eslint-disable-next-line no-param-reassign
-        a[x.group].host = transformHost(x.systemSettings?.targetHost);
-      }
-      return a;
-    }, {});
-  return objectPropsToArray(sgAdaptersInfoMap);
+async function populateBuildData(agentData: any): Promise<any> {
+  const { buildVersion, buildStatus, systemSettings } = await getLatestBuild(agentData.id); // agentVersion
+  return {
+    ...agentData,
+    buildVersion,
+    status: buildStatus,
+    systemSettings,
+  };
 }
 
+async function getLatestBuild(agentId: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = backend.subscribeAdmin(`/api/agent/${agentId}/builds`, (data: any) => {
+      unsubscribe();
+      const latestBuild = Array.isArray(data) && data[0];
+      if (!latestBuild) {
+        reject(new Error(`Agent ${agentId} - failed to obtain build info`));
+        return;
+      }
+      resolve(latestBuild);
+    });
+    setTimeout(() => {
+      unsubscribe();
+      reject(new Error(`/api/agent/${agentId}/builds - sub timeout`));
+    }, 5000);
+  });
+}
+
+async function sgAdaptersReducer(list: any, agentsHosts: Record<string, string>): Promise<AdapterInfo[]> {
+  const pickSgAgents = (x: any) => x.group;
+  const sgAgents = await Promise.all(list.filter(pickSgAgents).map(populateBuildData));
+  const groupsKeyValue = sgAgents.reduce((a: any, x: any) => {
+    if (!a[x.group]) {
+      // eslint-disable-next-line no-param-reassign
+      a[x.group] = {
+        adapterType: 'groups',
+        id: x.group,
+        host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.group]),
+        // TODO think what to do with the SG status
+        status: x.status,
+        buildVersion: x.buildVersion,
+        mustRecordJsCoverage: false,
+      };
+    }
+
+    if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT) {
+      // eslint-disable-next-line no-param-reassign
+      a[x.group].mustRecordJsCoverage = true;
+    }
+    if (!a[x.group].host) {
+      // eslint-disable-next-line no-param-reassign
+      a[x.group].host = transformHost(x.systemSettings?.targetHost);
+    }
+    return a;
+  }, {});
+  return objectPropsToArray(groupsKeyValue);
+}
+
+// eslint-disable-next-line no-shadow
 function createAdaptersFromInfo(data: AdapterInfo[], backend: BackendCreator) {
   return data.reduce((a, x) => ({ ...a, [x.host]: createAdapter(x, backend) }), {});
 }
@@ -466,6 +499,7 @@ function createPortUpdater(port: chrome.runtime.Port, resource: string): SubNoti
   };
 }
 
+// eslint-disable-next-line no-shadow
 function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): AgentAdapter {
   const test2CodeRoute = `/${adapterInfo.adapterType}/${adapterInfo.id}/plugins/test2code/dispatch-action`;
 
