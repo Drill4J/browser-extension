@@ -1,10 +1,16 @@
 import { browser, WebRequest } from 'webextension-polyfill-ts';
 
 export function setupResponseInterceptor() {
-  const interceptor = ({ responseHeaders = [], url }: WebRequest.OnHeadersReceivedDetailsType) => {
-    headerHandlers.forEach(handler => {
-      const matchedHeader = responseHeaders.find(x => x.name.toLowerCase() === handler.name.toLowerCase());
-      if (matchedHeader) handler.cb(matchedHeader.value, url);
+  const interceptor = (res: WebRequest.OnHeadersReceivedDetailsType) => {
+    const { responseHeaders = [], url } = res;
+    const { initiator } = res as any; // typings lack this field
+    const host = initiator || url;
+
+    headerHandlers.forEach((handler) => {
+      const matchedHeader = responseHeaders.find((x) => x.name.toLowerCase() === handler.name.toLowerCase());
+      if (matchedHeader) {
+        handler.cb(matchedHeader.value, host);
+      }
     });
   };
 
@@ -26,7 +32,7 @@ export function setupResponseInterceptor() {
       headerHandlers.push({ name, cb });
     },
     remove(headerName: string) {
-      const index = headerHandlers.findIndex(x => x.name === headerName);
+      const index = headerHandlers.findIndex((x) => x.name === headerName);
       if (index !== -1) {
         headerHandlers.splice(index, 1);
       }
@@ -41,6 +47,6 @@ export function setupResponseInterceptor() {
 type HeaderHandler = {
   name: string;
   cb: HeaderHandlerCb;
-}
+};
 
 type HeaderHandlerCb = (value: any, url: string) => any;
