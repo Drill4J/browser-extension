@@ -386,28 +386,6 @@ function notifyAllSubs(subsPerHost: Record<string, Record<string, SubNotifyFunct
   objectPropsToArray(subsPerHost).forEach((x) => notifySubscribers(x, data));
 }
 
-function setupResponseInterceptors(interceptedDataStore: Record<string, any>) {
-  // response interceptors
-  const responseInterceptor = setupResponseInterceptor();
-
-  responseInterceptor.add('drill-admin-url', async (backendAddress) => {
-    await localStorageUtil.save({ backendAddress });
-    responseInterceptor.remove('drill-admin-url');
-  });
-
-  // eslint-disable-next-line no-param-reassign
-  interceptedDataStore.agents = {};
-  const agentOrGroupHandler = async (id: string, host: string) => {
-    // eslint-disable-next-line no-param-reassign
-    interceptedDataStore.agents[id] = host;
-  };
-
-  responseInterceptor.add('drill-agent-id', agentOrGroupHandler);
-  responseInterceptor.add('drill-group-id', agentOrGroupHandler);
-
-  return () => responseInterceptor.cleanup();
-}
-
 async function agentAdaptersReducer(list: any, agentsHosts: Record<string, string>): Promise<AdapterInfo[]> {
   const pickSingleAgents = (x: any) => !x.group;
   const agents = await Promise.all(list.filter(pickSingleAgents).map(populateBuildData));
