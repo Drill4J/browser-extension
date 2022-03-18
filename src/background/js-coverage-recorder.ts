@@ -20,6 +20,12 @@ async function start(sender: chrome.runtime.MessageSender) {
     throw new Error(`Failed to attach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
   }
 
+  // HACK#1 to ensure detailed coverage collection when page reloads
+  // see https://jiraeu.epam.com/browse/EPMDJ-10335
+  // and https://bugs.chromium.org/p/chromium/issues/detail?id=1311673
+  await devToolsApi.sendCommand(target, 'Network.enable', {});
+  await devToolsApi.sendCommand(target, 'Network.setCacheDisabled', { cacheDisabled: true });
+
   await devToolsApi.sendCommand(target, 'Profiler.enable', {});
   await devToolsApi.sendCommand(target, 'Profiler.startPreciseCoverage', {
     callCount: false,
@@ -56,6 +62,11 @@ async function stop(sender: chrome.runtime.MessageSender) {
   await devToolsApi.sendCommand(target, 'Profiler.stopPreciseCoverage', {});
   await devToolsApi.sendCommand(target, 'Profiler.disable', {});
   await devToolsApi.sendCommand(target, 'Debugger.disable', {});
+
+  // HACK#1 (ctrl+f to find description above)
+  await devToolsApi.sendCommand(target, 'Network.setCacheDisabled', { cacheDisabled: false });
+  await devToolsApi.sendCommand(target, 'Network.disable', {});
+
   await devToolsApi.detach(target);
 
   // FIXME see FIXME #1, also scripts probably won't change every test. Or will they? (e.g. bundle splitting, modular design etc)
