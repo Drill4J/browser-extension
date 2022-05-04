@@ -512,6 +512,9 @@ function createAdapter(adapterInfo: AdapterInfo, backend: BackendCreator): Agent
     },
     stopSession: async (sessionId, testName, sender) => {
       if (!sender) throw new Error('STOP_TEST_NO_SENDER');
+      // TODO current approach works only for a single tab
+      // to enable coverage collection from tabs opened during test, we need to attach & start recording on-the-go
+      // hook into https://developer.chrome.com/docs/extensions/reference/webNavigation/#event-order
       const data = await jsCoverageRecorder.stop(sender);
       await backendApi.addSessionData(sessionId, { ...data, testId: getHash(testName) });
       await backendApi.stopSession(sessionId);
