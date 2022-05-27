@@ -45,12 +45,6 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
         test2CodeSubs[`${agentId}${buildVersion}`] = {};
       }
 
-      const subscriptionAlreadyExists = test2CodeSubs[`${agentId}${buildVersion}`][route];
-      if (subscriptionAlreadyExists) {
-        console.log('DUPLICATE SUBSCRIPTION', 'agentId', agentId, 'buildVersion', buildVersion, 'route', route);
-        throw new Error('DUPLICATE_SUBSCRIPTION');
-      }
-
       // TODO either move agentId + buildversion check inside test2CodeSocket
       //      OR suggest to change backend API to /ws/plugins/test2code/agents/:agentId/build/:buildVersion
       test2CodeSubs[`${agentId}${buildVersion}`][route] = handler;
@@ -76,6 +70,7 @@ export default async (backendUrl: string, errorCb: any, completeCb: any) => {
               'unsubscribing',
             );
             unsubscribe();
+            return;
           }
           toHandler(data);
         },

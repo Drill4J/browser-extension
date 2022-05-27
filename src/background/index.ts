@@ -129,12 +129,14 @@ async function init() {
 
   const runtimeConnectHandler = (port: chrome.runtime.Port) => {
     const portId = port.name || port.sender?.tab?.id;
+    console.log('connection on port', portId);
+
     if (!portId) throw new Error(`Can't assign port id for ${port}`);
     const senderHost = transformHost(port.sender?.url);
     const portMessageHandler = (message: any) => {
       const { type, resource, options } = message;
       const host = transformHost(options) || senderHost;
-      console.log('MESSAGE from', portId, host, 'with', message);
+      console.log(portId, type, host, JSON.stringify(message));
 
       if (type === 'SUBSCRIBE') {
         if (resource === 'backend-connection-status') {
@@ -150,7 +152,6 @@ async function init() {
           if (!agentSubs[host]) {
             agentSubs[host] = {};
           }
-          if (agentSubs[host][portId]) throw new Error(`Duplicate subscription: resource ${resource}, host ${host}, portId ${portId}`);
           agentSubs[host][portId] = createPortUpdater(port, 'agent');
           agentSubs[host][portId](agentsData[host]);
           agentSubsCleanup[portId] = () => delete agentSubs[host][portId];
@@ -160,7 +161,6 @@ async function init() {
           if (!sessionSubs[host]) {
             sessionSubs[host] = {};
           }
-          if (sessionSubs[host][portId]) throw new Error(`Duplicate subscription: resource ${resource}, host ${host}, portId ${portId}`);
           sessionSubs[host][portId] = createPortUpdater(port, 'session');
           sessionSubs[host][portId](sessionsData[host]);
           sessionSubsCleanup[portId] = () => delete sessionSubs[host][portId];
@@ -170,7 +170,6 @@ async function init() {
           if (!scopeSubs[host]) {
             scopeSubs[host] = {};
           }
-          if (scopeSubs[host][portId]) throw new Error(`Duplicate subscription: resource ${resource}, host ${host}, portId ${portId}`);
           scopeSubs[host][portId] = createPortUpdater(port, 'scope');
           scopeSubs[host][portId](scopesData[host]);
 
