@@ -95,7 +95,7 @@ async function init() {
       backendConnectionStatusData = BackendConnectionStatus.AVAILABLE;
       console.log('Connection established!');
 
-      unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents', updateAgents);
+      unsubscribeFromAdmin = backend.subscribeAdmin('/api/agents/build', updateAgents);
 
       notifyAllSubs(backendConnectionStatusSubs, backendConnectionStatusData);
     },
@@ -387,75 +387,46 @@ function notifyAllSubs(subsPerHost: Record<string, Record<string, SubNotifyFunct
 }
 
 async function agentAdaptersReducer(list: any, agentsHosts: Record<string, string>): Promise<AdapterInfo[]> {
-  const pickSingleAgents = (x: any) => !x.group;
-  const agents = await Promise.all(list.filter(pickSingleAgents).map(populateBuildData));
-  return agents.map((x: any) => ({
-    adapterType: 'agents',
-    id: x.id,
-    // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
-    // - get BUSY status
-    // - receive no further updates (because host has changed)
-    // the same applies for service groups
-    // It's not that big of an issue (as-is) but is worth to keep in mind
-    host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.id]),
-    status: x.status,
-    buildVersion: x.buildVersion,
-    mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
-  }));
-}
-
-async function populateBuildData(agentData: any): Promise<any> {
-  const { buildVersion, buildStatus, systemSettings } = await getLatestBuild(agentData.id); // agentVersion
-  return {
-    ...agentData,
-    buildVersion,
-    status: buildStatus,
-    systemSettings,
-  };
-}
-
-async function getLatestBuild(agentId: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const unsubscribe = backend.subscribeAdmin(`/api/agent/${agentId}/builds`, (data: any) => {
-      unsubscribe();
-      const latestBuild = Array.isArray(data) && data[0];
-      if (!latestBuild) {
-        reject(new Error(`Agent ${agentId} - failed to obtain build info`));
-        return;
-      }
-      resolve(latestBuild);
-    });
-    setTimeout(() => {
-      unsubscribe();
-      reject(new Error(`/api/agent/${agentId}/builds - sub timeout`));
-    }, 5000);
-  });
+  return list
+    .filter((x: any) => !x.groupId) // pick single agents
+    .map((x: any) => ({
+      adapterType: 'agents',
+      id: x.agentId,
+      // TODO if host changes on-the-fly (e.g. when popup opened in separate window) it will
+      // - get BUSY status
+      // - receive no further updates (because host has changed)
+      // the same applies for service groups
+      // It's not that big of an issue (as-is) but is worth to keep in mind
+      host: transformHost(x.build?.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.agentId]),
+      status: x.build?.buildStatus || x.agentStatus,
+      buildVersion: x.build?.buildVersion,
+      mustRecordJsCoverage: x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT,
+    }));
 }
 
 async function sgAdaptersReducer(list: any, agentsHosts: Record<string, string>): Promise<AdapterInfo[]> {
-  const pickSgAgents = (x: any) => x.group;
-  const sgAgents = await Promise.all(list.filter(pickSgAgents).map(populateBuildData));
+  const sgAgents = list.filter((x: any) => x.groupId);
   const groupsKeyValue = sgAgents.reduce((a: any, x: any) => {
-    if (!a[x.group]) {
+    if (!a[x.groupId]) {
       // eslint-disable-next-line no-param-reassign
-      a[x.group] = {
+      a[x.groupId] = {
         adapterType: 'groups',
-        id: x.group,
-        host: transformHost(x.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.group]),
+        id: x.groupId,
+        host: transformHost(x.build?.systemSettings?.targetHost) || (agentsHosts && agentsHosts[x.groupId]),
         // TODO think what to do with the SG status
-        status: x.status,
-        buildVersion: x.buildVersion,
+        status: x.build?.buildStatus || x.agentStatus,
+        buildVersion: x.build?.buildVersion,
         mustRecordJsCoverage: false,
       };
     }
 
     if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT) {
       // eslint-disable-next-line no-param-reassign
-      a[x.group].mustRecordJsCoverage = true;
+      a[x.groupId].mustRecordJsCoverage = true;
     }
-    if (!a[x.group].host) {
+    if (!a[x.groupId].host) {
       // eslint-disable-next-line no-param-reassign
-      a[x.group].host = transformHost(x.systemSettings?.targetHost);
+      a[x.groupId].host = transformHost(x.systemSettings?.targetHost);
     }
     return a;
   }, {});
