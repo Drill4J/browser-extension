@@ -1,0 +1,17 @@
+@import '../../../../common/style-guide';
+
+.confirm-finish-test {
+  font-size: 14px;
+  color: map-get($monochrome, black);
+  font-family: $regular-font;
+
+  &__vertical-line {
+    width: 1px;
+    height: 20px;
+    border-right: 1px solid map-get($monochrome, dark-tint);
+  }
+
+  > form {
+    margin: 0;
+  }
+}

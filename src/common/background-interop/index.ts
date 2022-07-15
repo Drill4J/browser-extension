@@ -1,19 +1,20 @@
 import { connect } from './background-connect';
 import type { BackgroundConnection } from './types';
 
+// FIXME ! establish connection only after GET_HOST_INFO yielded true
 let connection: BackgroundConnection;
 let connectionEstablished = connect(
   (x: BackgroundConnection) => {
-    // console.log('Connection established!', Date.now());
     connection = x;
   },
   (reconnectPromise) => {
-    // console.log('Reconnecting...', Date.now());
     connectionEstablished = reconnectPromise;
   },
 );
 
-export async function ready() { return connectionEstablished; }
+export async function ready() {
+  return connectionEstablished;
+}
 
 export async function subscribeToAgent(handler: (...params: unknown[]) => void, options?: unknown) {
   await connectionEstablished;
@@ -63,8 +64,8 @@ export async function startTest(testName: string, isRealtime: boolean) {
   return sendMessage<string>({ type: 'START_TEST', payload: { testName, isRealtime } });
 }
 
-export async function stopTest() {
-  return sendMessage<void>({ type: 'STOP_TEST' });
+export async function stopTest(status: string) {
+  return sendMessage<void>({ type: 'STOP_TEST', payload: { status } });
 }
 
 export async function cancelTest() {

@@ -243,7 +243,7 @@ async function init() {
     notifySubscribers(sessionSubs[host], sessionsData[host]);
   });
 
-  router.add('STOP_TEST', async (sender: chrome.runtime.MessageSender) => {
+  router.add('STOP_TEST', async (sender: chrome.runtime.MessageSender, { status }) => {
     const host = transformHost(sender.url);
     const adapter = adapters[host];
     if (!adapter) throw new Error('Backend connection unavailable');
@@ -261,7 +261,7 @@ async function init() {
         id: sessionsData[host].testId,
         startedAt: sessionsData[host].start,
         finishedAt: Number(sessionsData[host].end),
-        result: 'PASSED' as TestResult,
+        result: status.toUpperCase() as TestResult,
         details: {
           testName: sessionsData[host].testName,
         },
