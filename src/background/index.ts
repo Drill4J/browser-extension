@@ -58,10 +58,10 @@ async function init() {
   // response interceptors
   const responseInterceptor = setupResponseInterceptor();
 
-  responseInterceptor.add('drill-admin-url', async (backendAddress) => {
-    await localStorageUtil.save({ backendAddress });
-    responseInterceptor.remove('drill-admin-url');
-  });
+  // responseInterceptor.add('drill-admin-url', async (backendAddress) => {
+  //   await localStorageUtil.save({ backendAddress });
+  //   responseInterceptor.remove('drill-admin-url');
+  // });
 
   // eslint-disable-next-line no-param-reassign
   interceptedDataStore.agents = {};
