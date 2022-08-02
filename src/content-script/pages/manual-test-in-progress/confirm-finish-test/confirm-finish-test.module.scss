@@ -11,7 +11,22 @@
     border-right: 1px solid map-get($monochrome, dark-tint);
   }
 
+  &__message {
+    color: $shade-gray;
+    font-size: 12;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
   > form {
     margin: 0;
+
+    input[type="radio"] {
+      height: 16px;
+      width: 16px;
+      margin: 0;
+      margin-right: 9px;
+      margin-top: 1px;
+    }
   }
 }

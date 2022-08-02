@@ -40,16 +40,16 @@ export const ConfirmFinishTest = confirmFinishTest(({ className, setIsConfirming
       >
         {({ handleSubmit, form }) => (
           <form onSubmit={handleSubmit} style={{ flexGrow: 1 }} className="d-flex align-items-center gx-6">
-            <div className="fs-12 bold text-uppercase">Finish testing</div>
+            <Message>Finish testing</Message>
             <VerticalLine />
             <label className="bold">Result:</label>
-            <label>
+            <label className="d-flex align-items-center">
               <Field name="status" type="radio" value="passed">
                 {({ input }) => <input name={input.name} type="radio" value="passed" checked={input.checked} onChange={input.onChange} />}
               </Field>
               Passed
             </label>
-            <label>
+            <label className="d-flex align-items-center">
               <Field name="status" type="radio" value="failed">
                 {({ input }) => <input name={input.name} type="radio" value="failed" checked={input.checked} onChange={input.onChange} />}
               </Field>
@@ -76,3 +76,4 @@ export const ConfirmFinishTest = confirmFinishTest(({ className, setIsConfirming
 });
 
 const VerticalLine = confirmFinishTest.verticalLine('div');
+const Message = confirmFinishTest.message('div');
