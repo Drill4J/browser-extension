@@ -15,9 +15,11 @@ async function start(sender: chrome.runtime.MessageSender) {
 
   try {
     await devToolsApi.attach(target);
-  } catch (e) {
+  } catch (e: any) {
     console.log('Failed to attach', target, e);
-    throw new Error(`Failed to attach a debugger. Tab url: ${sender?.tab?.url} id: ${sender?.tab?.id}`);
+    throw new Error(
+      `Failed to attach a debugger. Try opening another tab. url: ${sender?.tab?.url} id: ${sender?.tab?.id}. Reason: ${e?.message}`,
+    );
   }
 
   // HACK#1 to ensure detailed coverage collection when page reloads

@@ -6,7 +6,11 @@ import * as bgInterop from './common/background-interop';
 import { App } from './content-script';
 import './content.scss';
 
-init();
+init().catch((error) => {
+  console.warn('Drill4 Browser Extension: failed to initialize:', error);
+  // eslint-disable-next-line no-alert
+  alert('Drill4 Browser Extension: failed to initialize. Press F12 to open developer tools and see error in Console tab');
+});
 
 async function init() {
   let widget: HTMLIFrameElement | null;

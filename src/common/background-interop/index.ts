@@ -52,6 +52,8 @@ async function sendMessage<T>(message: unknown): Promise<T> {
     // reference https://developer.chrome.com/extensions/runtime#method-sendMessage
     chrome.runtime.sendMessage('', message, {}, (response) => {
       if (response?.error) {
+        console.warn('Drill4J Browser Extension:', 'action', message, 'failed:', response.error);
+        // eslint-disable-next-line prefer-promise-reject-errors
         reject(response.error);
       } else {
         resolve(response);
