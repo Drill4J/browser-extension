@@ -4,14 +4,15 @@ import { repeatAsync } from '../util/repeat-async';
 import type { BackgroundConnection, ConnectCallback, DisconnectCallback } from './types';
 
 export async function connect(connectCb: ConnectCallback, disconnectCb: DisconnectCallback) {
-  const repeatUntilConnect = () => repeatAsync(async () => {
-    const connection = await connectPort(() => {
-      const reconnectPromise = repeatUntilConnect();
-      disconnectCb(reconnectPromise);
+  const repeatUntilConnect = () =>
+    repeatAsync(async () => {
+      const connection = await connectPort(() => {
+        const reconnectPromise = repeatUntilConnect();
+        disconnectCb(reconnectPromise);
+      });
+      connectCb(connection);
+      return connection;
     });
-    connectCb(connection);
-    return connection;
-  });
   return repeatUntilConnect();
 }
 
@@ -58,12 +59,10 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
       console.log('No handler for resource', message.resource);
       return;
     }
-    // console.log('PORT RECEIVED MESSAGE', message, 'NOTIFY SUBS', handlers);
-    handlers.forEach(handler => handler(message.payload));
+    handlers.forEach((handler) => handler(message.payload));
   };
 
   const disconnectHandler = () => {
-    // console.log('DISCONNECT disconnectHandler');
     if (port.onMessage.hasListener(messageHandler)) {
       port.onMessage.removeListener(messageHandler);
     }
@@ -76,7 +75,6 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
 
   return {
     subscribe: (resource: string, handler: (...params: any) => any, options?: any) => {
-      // console.log('BG CONNECT SUBSCRIBE', resource, handler, options);
       if (!Array.isArray(subs[resource])) {
         subs[resource] = [];
       }
@@ -88,9 +86,7 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
       }
 
       const unsubscribe = () => {
-        // console.log('BG CONNECT UNSUB', resource, options);
-
-        const index = subs[resource].findIndex(x => x === handler);
+        const index = subs[resource].findIndex((x) => x === handler);
         subs[resource].splice(index, 1); // TODO Does it look kinda iffy?
 
         const noMoreSubsLeft = subs[resource].length === 0;
@@ -102,7 +98,7 @@ async function connectPort(disconnectCb: () => void): Promise<BackgroundConnecti
       return unsubscribe;
     },
     unsubscribeAll() {
-      unsubscribeFunctions.forEach(x => x());
+      unsubscribeFunctions.forEach((x) => x());
       unsubscribeFunctions = [];
     },
   };

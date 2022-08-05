@@ -18,7 +18,8 @@ type asyncOp = () => Promise<any>;
 type syncOp = () => any;
 const noop = () => {};
 export function useSubscriptionWithAsyncOptions<T>(
-  subscribe: (...params: any[]) => Promise<() => void>, getOptions: asyncOp | syncOp | unknown = noop,
+  subscribe: (...params: any[]) => Promise<() => void>,
+  getOptions: asyncOp | syncOp | unknown = noop,
 ): SubscriptionState<T> {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +30,6 @@ export function useSubscriptionWithAsyncOptions<T>(
     let unsubscribe: () => any;
 
     const cleanup = () => {
-      console.log('ASYNC SUB CLEANUP', getOptions);
       isCleanupCalled = true;
       unsubscribe && unsubscribe();
     };
@@ -38,9 +38,7 @@ export function useSubscriptionWithAsyncOptions<T>(
       try {
         const options = typeof getOptions === 'function' ? await (getOptions() as Promise<any>) : getOptions;
         if (isCleanupCalled) return;
-        console.log('ASYNC SUB CALL', getOptions);
         unsubscribe = await subscribe((newData: T) => {
-          console.log('ASYNC SUB UPDATE', getOptions);
           setData(newData);
           setIsLoading(false);
         }, options);

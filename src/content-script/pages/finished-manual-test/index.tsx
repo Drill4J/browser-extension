@@ -26,7 +26,9 @@ export const FinishedManualTest = () => {
       <VerticalLine />
       <div className="d-flex align-items-center">
         <span className="mr-2">Test:</span>
-        <TestName className="bold" title={session?.testName}>{session?.testName}</TestName>
+        <TestName className="bold" title={session?.testName}>
+          {session?.testName}
+        </TestName>
       </div>
       <div>
         <span className="mr-2">Duration:</span>
@@ -36,19 +38,11 @@ export const FinishedManualTest = () => {
         <span className="mr-1">Scope Coverage:</span>
 
         {agent.adapterType === 'groups' && (
-          <span
-            className="bold"
-            title="Scope coverage for each Agent from Service Group is available in the Admin Panel"
-          >
+          <span className="bold" title="Scope coverage for each Agent from Service Group is available in the Admin Panel">
             n/a
           </span>
         )}
-        {agent.adapterType !== 'groups' && (
-          <span className="bold">
-            {percentFormatter(scope?.coverage?.percentage || 0)}
-            %
-          </span>
-        )}
+        {agent.adapterType !== 'groups' && <span className="bold">{percentFormatter(scope?.coverage?.percentage || 0)}%</span>}
       </div>
       <Button
         size="small"
@@ -57,7 +51,7 @@ export const FinishedManualTest = () => {
           try {
             await bgInterop.cleanupTestSession();
           } catch (e) {
-            console.log('cancel recording session failed', e);
+            // console.log('cancel recording session failed', e);
           }
         }}
       >

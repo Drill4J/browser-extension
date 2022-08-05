@@ -29,7 +29,6 @@ export const ConfirmFinishTest = confirmFinishTest(({ className, setIsConfirming
     <div className={className}>
       <Form
         onSubmit={async (values) => {
-          console.log('values', values);
           updateRequestStatus(true);
           await bgInterop.stopTest(values.status);
           if (isMounted.current) updateRequestStatus(false);

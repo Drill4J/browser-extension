@@ -3,11 +3,10 @@ const SET_INITIAL = 'SET_INITIAL';
 const SET_CORNER = 'SET_CORNER';
 const SET_IS_WIDGET_VISIBLE = 'SET_IS_WIDGET_VISIBLE';
 
-export type Action = ReturnType<
-  typeof savePosition | typeof setInitial | typeof setIsWidgetVisible | typeof setCorner>;
+export type Action = ReturnType<typeof savePosition | typeof setInitial | typeof setIsWidgetVisible | typeof setCorner>;
 
 export const setIsWidgetVisible = (data: boolean) => ({ type: SET_IS_WIDGET_VISIBLE, payload: data } as const);
-export const savePosition = (position: { x: number; y: number}) => ({ type: SAVE_POSITION, payload: position } as const);
+export const savePosition = (position: { x: number; y: number }) => ({ type: SAVE_POSITION, payload: position } as const);
 export const setInitial = (initialState: Record<string, any>) => ({ type: SET_INITIAL, payload: initialState } as const);
 export const setCorner = (corner: Corner | undefined) => ({ type: SET_CORNER, payload: nextCorner(corner) } as const);
 
@@ -42,7 +41,7 @@ export const reducer = (sideEffect: (params: any) => void) => (state: Applicatio
   try {
     sideEffect(newState);
   } catch (e) {
-    console.log('WARNING', 'side effect failed', e);
+    // console.warn('drill4j browser extension', e);
   }
 
   return newState;
