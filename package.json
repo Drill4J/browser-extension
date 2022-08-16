@@ -1,10 +1,10 @@
 {
   "name": "@drill4j/browser-extension",
-  "version": "0.3.34",
+  "version": "0.3.39",
   "license": "Apache-2.0",
   "scripts": {
     "build": "set NODE_ENV=development&& webpack",
-    "start": "NODE_ENV=development webpack --watch",
+    "start": "set NODE_ENV=development&& webpack --watch",
     "typecheck": "tsc --project tsconfig.json --noEmit --skipLibCheck",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "jest --passWithNoTests -c jest.unit.js",
