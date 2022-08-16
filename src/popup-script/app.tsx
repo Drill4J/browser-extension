@@ -20,7 +20,7 @@ export const App = () => {
       {backendConnectionData?.data !== BackendConnectionStatus.AVAILABLE && (
         <div className="d-flex flex-column h-100 pt-12 pb-4 px-4 gy-8">
           <div className="regular monochrome-default fs-14 lh-20">
-            No connection with backend. Try to refresh the page or connect using your admin address.
+            No connection with Drill4J Admin Backend service. Please enter the valid address (by default its hosted on port :8090).
           </div>
           <ConnectionForm />
         </div>
