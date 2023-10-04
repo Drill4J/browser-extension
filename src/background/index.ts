@@ -419,7 +419,7 @@ async function sgAdaptersReducer(list: any, agentsHosts: Record<string, string>)
       };
     }
 
-    if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT) {
+    if (x.agentType.toLowerCase() === AgentType.JAVA_SCRIPT && x.agentStatus === 'REGISTERED') {
       // eslint-disable-next-line no-param-reassign
       a[x.groupId].mustRecordJsCoverage = true;
     }
