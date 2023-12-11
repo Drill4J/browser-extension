@@ -5,7 +5,6 @@ import { DrillSocket } from '../common/connection/drill-socket';
 import { SessionActionError } from '../common/errors/session-action-error';
 import { TestInfo } from './types';
 
-const AUTH_TOKEN_HEADER_NAME = 'Authorization';
 
 export default async (backendUrl: string, errorCb: any, completeCb: any) => {
   const token = await setupAxios(backendUrl);
@@ -162,7 +161,7 @@ async function setupAxios(backendUrl: string) {
 
   axios.interceptors.request.use(async (config) => {
     // eslint-disable-next-line no-param-reassign
-    config.headers[AUTH_TOKEN_HEADER_NAME] = `Bearer ${authToken}`;
+    config.headers.authorization = `Bearer ${authToken}`;
     return config;
   });
 
@@ -185,15 +184,8 @@ async function setupAxios(backendUrl: string) {
 
 async function getAuthToken() {
   const { token } = await browser.storage.local.get('token');
-  if (token) return token;
-  return login();
-}
-
-async function login() {
-  const { headers } = await axios.post('/login');
-  const authToken = headers[AUTH_TOKEN_HEADER_NAME.toLowerCase()];
-  if (!authToken) throw new Error('Backend authentication failed');
-  return authToken;
+  if (!token) throw new Error("No authorization token found. Sign in required")
+  return token;
 }
 
 async function sendSessionAction(baseUrl: string, payload: unknown) {
