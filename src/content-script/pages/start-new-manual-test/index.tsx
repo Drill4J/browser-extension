@@ -48,7 +48,7 @@ export const StartNewManualTest = () => {
               <Checkbox
                 disabled={isFormSubmitting}
                 checked={isRealtime}
-                onChange={(el) => setIsRealTime(el.target.checked)}
+                onChange={(el: any) => setIsRealTime(el.target.checked)}
               />
             </span>
             <div title={!testName ? 'Enter a test name to start testing' : undefined}>

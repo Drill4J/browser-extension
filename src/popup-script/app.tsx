@@ -18,11 +18,11 @@ export const App = () => {
       {backendConnectionData?.data === BackendConnectionStatus.AVAILABLE && hasAssociatedAgent && <MainPage agent={agent} />}
       {backendConnectionData?.data === BackendConnectionStatus.AVAILABLE && !hasAssociatedAgent && <AgentNotFound />}
       {backendConnectionData?.data !== BackendConnectionStatus.AVAILABLE && (
-        <div className="d-flex flex-column h-100 pt-12 pb-4 px-4 gy-8">
-          <div className="regular monochrome-default fs-14 lh-20">
-            No connection with Drill4J Admin Backend service. Please enter the valid address (by default its hosted on port :8090).
+        <div className="d-flex flex-column h-100 p-4">
+          <div className="regular monochrome-default fs-14 mb-2">
+            Sign in
           </div>
-          <ConnectionForm />
+          <ConnectionForm/>
         </div>
       )}
     </div>
