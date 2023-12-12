@@ -46,7 +46,7 @@ export const ConnectionForm = () => {
             await localStorageUtil.save({ backendAddress, token })
           } catch (e: any) {
             if (e.isAxiosError) {
-              if (e.response.status == 401) {
+              if (e.response.status == 401 || e.response.status == 403) {
                 setError("Invalid username or password")
               } else {
                 console.log('Sign in attempt failed. Reason:',e)

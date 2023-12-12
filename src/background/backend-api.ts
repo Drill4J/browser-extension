@@ -168,7 +168,7 @@ async function setupAxios(backendUrl: string) {
   axios.interceptors.response.use(
     undefined, // (response) => response,
     async (error) => {
-      if (error.response && error.response.status === 401) {
+      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
         // TODO update token & retry
         // see https://github.com/axios/axios/issues/934
         //  - note the comments
